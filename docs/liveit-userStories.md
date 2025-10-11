@@ -124,3 +124,51 @@ Catatan Teknis Umum Federated Login:
 - Pastikan idempotensi: beberapa klik tidak membuat multi akun.
 - Logging keamanan: simpan provider, timestamp, userId.
 - Rate limiting untuk percobaan login berulang.
+
+Epic: Homepage Experience
+Tujuan: Menghadirkan beranda yang langsung menunjukkan progres, inspirasi harian, dan dorongan refleksi yang selaras dengan loop inti Habit Tracker dan Gamifikasi.
+
+14. Ringkasan Hari Ini
+   Sebagai seorang pengguna aktif, saya ingin melihat ringkasan progres harian saya begitu membuka homepage, supaya saya langsung tahu sudah sejauh mana saya menjalani kebiasaan hari ini.
+   Kriteria Penerimaan:
+   Menampilkan sapaan personal (nama depan + konteks waktu) dan jumlah habit selesai vs total.
+   Menampilkan indikator progres visual (progress bar/circle) yang diperbarui secara real-time saat check-in atau undo.
+   Saat semua habit selesai, kartu ringkasan berubah menjadi tampilan "All done" dengan pesan penyemangat dan highlight bonus +20 ZP.
+   Jika check-in hari ini di-undo, ringkasan kembali ke progres sebelumnya tanpa reload penuh.
+   Jika pengguna belum menambahkan habit, ringkasan menampilkan empty state dengan CTA "Tambah Habit" yang membuka katalog kurasi.
+
+15. Daftar Habit Harian di Homepage
+   Sebagai seorang pengguna, saya ingin daftar habit harian terorganisir langsung di homepage, supaya saya bisa melakukan check-in atau undo dengan cepat tanpa berpindah layar.
+   Kriteria Penerimaan:
+   Daftar habit terbagi menjadi dua grup: "Belum Selesai" dan "Selesai Hari Ini", dengan grup selesai dapat diciutkan.
+   Setiap item menampilkan nama habit, catatan singkat (jika ada), dan indikator status hari ini.
+   Menekan checkbox di grup "Belum Selesai" memicu endpoint check-in dan memindahkan item ke grup selesai.
+   Di grup "Selesai Hari Ini" tersedia aksi cepat undo yang memanggil endpoint undo check-in dan mengembalikan item ke grup belum selesai.
+   Status daftar memuat data `checkedInToday` dari backend (GET /habits) setiap kali halaman dibuka; hari baru (UTC sementara) mereset grup secara otomatis dan menampilkan pesan penyambutan hari baru.
+
+16. Akses Renungan Hari Ini
+   Sebagai seorang pengguna, saya ingin melihat sorotan renungan hari ini di homepage, supaya saya terdorong untuk membaca dan menerapkannya dalam habit harian.
+   Kriteria Penerimaan:
+   Kartu renungan menampilkan judul, snippet, dan estimasi waktu baca (jika tersedia) dari renungan published terbaru untuk hari itu.
+   Tersedia tombol "Baca Renungan" yang membuka detail renungan dan tombol "Buat Habit dari Renungan" yang memicu endpoint create-habit.
+   Setelah berhasil membuat habit dari renungan, aplikasi menampilkan notifikasi sukses yang menegaskan habit baru muncul di daftar dengan reach awal limited sesuai kebijakan.
+   Jika belum ada renungan untuk hari ini, kartu menampilkan renungan published terbaru dengan label "Renungan terbaru" serta pesan suportif.
+   Menampilkan skeleton/loading state saat data renungan masih diambil dari backend.
+
+17. Highlight Gamifikasi & Refleksi
+   Sebagai seorang pengguna, saya ingin melihat ringkasan Zoe Points, tingkatan perjalanan, dan badge terbaru di homepage, supaya saya merasa dimotivasi dan diajak berefleksi.
+   Kriteria Penerimaan:
+   Modul menampilkan total Zoe Points, nama tingkatan perjalanan saat ini, dan progres menuju tingkatan berikutnya (misal "20 ZP lagi ke Membangun Irama").
+   Menampilkan badge terbaru atau badge yang baru saja dibuka hari ini beserta pesan refleksi sesuai dokumen gamifikasi.
+   Saat terjadi level up atau badge baru, homepage menampilkan toast/kartu refleksi dengan bahasa suportif (tanpa kompetisi) yang dapat ditutup pengguna.
+   Modul menyediakan tautan "Lihat Profil Lengkap" untuk detail gamifikasi di halaman profil.
+   Data diperbarui minimal setiap kali pengguna membuka homepage atau setelah event check-in selesai diproses.
+
+18. Penanganan Empty State & Gangguan
+   Sebagai seorang pengguna, saya ingin homepage memberikan arahan jelas saat belum ada habit atau ketika terjadi kendala koneksi, supaya saya tetap tahu langkah berikutnya tanpa merasa disalahkan.
+   Kriteria Penerimaan:
+   Jika tidak ada habit aktif, tampilkan modul "Mulai Kebiasaan" dengan rekomendasi 3 habit kurasi dan tautan ke katalog lengkap.
+   Jika backend tidak dapat dijangkau, homepage menunjukkan pesan error ramah dan tombol "Coba Lagi" tanpa memblokir interaksi lain.
+   Jika perangkat offline, homepage menampilkan indikator offline, mempertahankan data lokal terakhir, dan menyinkronkan ulang saat koneksi kembali.
+   Setelah pergantian hari, homepage menampilkan banner "Selamat datang di hari baru" dan mereset status check-in sesuai batas hari (UTC sementara) tanpa menghilangkan histori.
+   Semua pesan empty/error menggunakan bahasa suportif dan menghindari nada menyalahkan pengguna.

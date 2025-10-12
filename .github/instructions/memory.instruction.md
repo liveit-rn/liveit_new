@@ -23,10 +23,10 @@ applyTo: '**'
 - Documentation style: 
 
 ## Context7 Research History
-- Libraries researched on Context7: General Flutter/mobile homepage search (no specific library results available)
-- Best practices discovered: No new guidance available from Context7 search
+- Libraries researched on Context7: General Flutter/mobile homepage search (no specific library results available); auto_route v10 installation & setup
+- Best practices discovered: No new guidance available from initial homepage search; auto_route recommends using `routerConfig: _appRouter.config()` with generated RootStackRouter, `@AutoRouterConfig`, and part files
 - Implementation patterns used: n/a
-- Version-specific findings: n/a
+- Version-specific findings: auto_route v10.1.2 exposes config-based API via generated `RootStackRouter.config()`; dependencies require `auto_route`, `auto_route_generator`, `build_runner`
 
 ## Conversation History
 - Important decisions made: Identified homepage must highlight habit checklist, devotional teaser, gamification progress per MVP docs; menambahkan Epic Homepage Experience ke dokumen user stories

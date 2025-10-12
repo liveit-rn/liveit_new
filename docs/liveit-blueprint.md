@@ -111,7 +111,7 @@ Memudahkan pembentukan kebiasaan rohani yang sesuai dengan cara hidup Yesus mela
 
 ## **Tech Stack & Arsitektur**
 
-- **Mobile:** React Native (TypeScript), Zustand, Tanstack Query, React Navigation, AsyncStorage
+- **Mobile:** Flutter, BloC, Auto_route, dio,
 - **Backend:** NestJS (Bertindak sebagai _proxy/facade_ untuk semua layanan, termasuk otentikasi. Mengelola logika bisnis inti dan database PostgreSQL).
 - **Landing Page:** Next.js, Tailwind CSS
 - **Layanan Pihak Ketiga:**

@@ -45,3 +45,22 @@ Impact:
 - Analyzer akan menampilkan error sementara karena file hasil generate belum ada.
 - Perlu menjalankan code generation: `dart run build_runner build` (atau `flutter pub run build_runner build`).
 - Setelah generate, method seperti `config()` dan symbol `_$AppRouter` serta `HomeRoute` akan tersedia dan error hilang.
+
+## 2025-10-12 — Theme setup using FlexColorScheme
+
+Context:
+- Implement color scheme/theme data aligned to brand palette "Grounded Growth" per docs [docs/liveit-brand-essence.md](docs/liveit-brand-essence.md) and [docs/liveit-blueprint.md](docs/liveit-blueprint.md).
+
+Choice:
+- Added centralized theme configuration [lib/core/theme/app_theme.dart](lib/core/theme/app_theme.dart) with FlexColorScheme light/dark based on brand colors.
+- Wired theme into all app entry points: [Dart.main()](lib/main.dart:5), [Dart.main()](lib/main_dev.dart:5), [Dart.main()](lib/main_prod.dart:5) using [Dart.AppTheme.light()](lib/core/theme/app_theme.dart:29) and [Dart.AppTheme.dark()](lib/core/theme/app_theme.dart:68).
+
+Rationale:
+- Align UI to documented brand personality and palette.
+- Use minimal, centralized implementation for maintainability and consistency.
+- Avoid over-scoping: Typography and component-specific styles can be added later after verification.
+
+Impact:
+- App now uses brand-consistent color scheme in both light and dark modes via ThemeMode.system.
+- No changes to data schema or backend.
+- Provides semantic colors via ThemeExtension for success/warning/info to support UX messaging patterns.

@@ -38,12 +38,12 @@ kenapa milih LiveIt :
   - Warna Sekunder: Oranye terang (#FF9800) - menyimbolkan energi dan aksi
   - Aksen: Putih bersih (#FFFFFF) - menyimbolkan kemurnian
 - **Typography**:
-  - Headline: Font sans-serif tegas seperti Montserrat Bold
-  - Body Text: Font readable seperti Roboto atau Inter
+  - Headline: Font sans-serif tegas (New Amsterdam)
+  - Body Text: Font readable (Jakarta plus)
 - **Elemen Visual**: Simbol jalan, langkah kaki, dan panah sebagai motif visual berulang
 
 ### **Tagline Variations**
-
+P
 - **Utama**: "Jalani hidupmu, cara-Nya"
 - **Alternatif**:
   - "Don't just believe it. Live it."

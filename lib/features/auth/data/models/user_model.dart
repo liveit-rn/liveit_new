@@ -16,24 +16,75 @@ class UserModel extends User {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // Handle null needsUsername by providing a default value
     final safeJson = Map<String, dynamic>.from(json);
 
-    // Debug logging
-    print('🔍 UserModel.fromJson - Original JSON: $json');
-    print(
-      '🔍 UserModel.fromJson - needsUsername value: ${json['needsUsername']}',
-    );
-    print(
-      '🔍 UserModel.fromJson - needsUsername type: ${json['needsUsername'].runtimeType}',
-    );
-
-    if (safeJson['needsUsername'] == null) {
-      print('⚠️  UserModel.fromJson - needsUsername is null, setting to true');
-      safeJson['needsUsername'] = true; // Default to true for new registrations
+    // Normalisasi key yang tidak konsisten dari backend:
+    // Username: 'username' | 'user_name' | 'userName'
+    dynamic uname = safeJson['username'];
+    if (uname == null) {
+      if (safeJson.containsKey('user_name')) {
+        uname = safeJson['user_name'];
+      } else if (safeJson.containsKey('userName')) {
+        uname = safeJson['userName'];
+      }
+    }
+    if (uname != null) {
+      safeJson['username'] = uname is String ? uname : uname.toString();
     }
 
-    print('🔍 UserModel.fromJson - Safe JSON: $safeJson');
+    // needsUsername: 'needsUsername' | 'needs_username' | 'needsUserName'
+    dynamic needsRaw = safeJson['needsUsername'];
+    if (needsRaw == null) {
+      if (safeJson.containsKey('needs_username')) {
+        needsRaw = safeJson['needs_username'];
+      } else if (safeJson.containsKey('needsUserName')) {
+        needsRaw = safeJson['needsUserName'];
+      }
+    }
+
+    // Tanggal: 'createdAt' | 'created_at', 'updatedAt' | 'updated_at'
+    final createdRaw = safeJson['createdAt'] ?? safeJson['created_at'];
+    if (createdRaw != null) {
+      safeJson['createdAt'] =
+          createdRaw is String ? createdRaw : createdRaw.toString();
+    }
+    final updatedRaw = safeJson['updatedAt'] ?? safeJson['updated_at'];
+    if (updatedRaw != null) {
+      safeJson['updatedAt'] =
+          updatedRaw is String ? updatedRaw : updatedRaw.toString();
+    }
+
+    // Normalisasi needsUsername menjadi boolean yang konsisten.
+    // Jika tidak diberikan atau tidak bisa diparse, turunkan dari keberadaan username:
+    // - true jika username null/empty
+    // - false jika username sudah ada
+    bool computedNeedsUsername;
+    if (needsRaw is bool) {
+      computedNeedsUsername = needsRaw;
+    } else if (needsRaw == null) {
+      final u = safeJson['username'];
+      computedNeedsUsername =
+          u == null || (u is String && u.trim().isEmpty);
+    } else if (needsRaw is String) {
+      final lower = needsRaw.toLowerCase();
+      if (lower == 'true' || lower == '1') {
+        computedNeedsUsername = true;
+      } else if (lower == 'false' || lower == '0') {
+        computedNeedsUsername = false;
+      } else {
+        final u = safeJson['username'];
+        computedNeedsUsername =
+            u == null || (u is String && u.trim().isEmpty);
+      }
+    } else if (needsRaw is num) {
+      computedNeedsUsername = needsRaw != 0;
+    } else {
+      final u = safeJson['username'];
+      computedNeedsUsername =
+          u == null || (u is String && u.trim().isEmpty);
+    }
+
+    safeJson['needsUsername'] = computedNeedsUsername;
 
     return _$UserModelFromJson(safeJson);
   }

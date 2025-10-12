@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/theme/app_theme.dart';
 
 void main() async {
-  await dotenv.load(fileName: '.env.dev'); // Load .env.dev file
+  await dotenv.load(fileName: '.env.prod'); // Load .env.prod file
   runApp(const MyApp());
 }
 

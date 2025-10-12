@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "LIVEIT • Dev (Android/iOS)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_dev.dart"
+    },
+    {
+      "name": "LIVEIT • Dev Web (Chrome)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_dev.dart",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "LIVEIT • Prod Debug (Android/iOS)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_prod.dart"
+    },
+    {
+      "name": "LIVEIT • Prod Release (Android/iOS)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_prod.dart",
+      "flutterMode": "release"
+    },
+    {
+      "name": "LIVEIT • Prod Release Web (Chrome)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main_prod.dart",
+      "deviceId": "chrome",
+      "flutterMode": "release"
+    }
+  ]
+}

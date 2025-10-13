@@ -122,9 +122,7 @@ class AppTheme {
     ).copyWith(
       colorScheme: FlexColorScheme.light(colors: scheme).toScheme.copyWith(
         surface: _lightSurface,
-        background: _lightBackground,
         outline: _lightOutline,
-        onBackground: _lightOnBackground,
         onSurface: _lightOnSurface,
       ),
       textTheme: lightTextTheme,
@@ -217,9 +215,7 @@ class AppTheme {
     ).copyWith(
       colorScheme: FlexColorScheme.dark(colors: scheme).toScheme.copyWith(
         surface: _darkSurface,
-        background: _darkBackground,
         outline: _darkOutline,
-        onBackground: _darkOnBackground,
         onSurface: _darkOnSurface,
       ),
       textTheme: darkTextTheme,

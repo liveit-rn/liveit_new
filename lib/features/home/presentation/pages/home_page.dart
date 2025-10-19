@@ -18,7 +18,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<HomeBloc>(
-      create: (_) => HomeBloc(InMemoryHomeRepository())..add(const HomeStarted()),
+      create: (_) =>
+          HomeBloc(InMemoryHomeRepository())..add(const HomeStarted()),
       child: const _HomeView(),
     );
   }
@@ -28,8 +29,7 @@ class _HomeView extends StatelessWidget {
   const _HomeView();
 
   Future<void> _onRefresh(BuildContext context) async {
-    final HomeBloc bloc = context.read<HomeBloc>()
-      ..add(const HomeRefreshed());
+    final HomeBloc bloc = context.read<HomeBloc>()..add(const HomeRefreshed());
 
     await bloc.stream.firstWhere(
       (HomeState state) => state.status != HomeStatus.loading,
@@ -77,10 +77,10 @@ class _HomeView extends StatelessWidget {
           onAddHabit: uiState.hasAnyHabit
               ? null
               : () => bloc.add(
-                    const PlaceholderActionRequested(
-                      'Navigasi katalog habit akan segera tersedia.',
-                    ),
+                  const PlaceholderActionRequested(
+                    'Navigasi katalog habit akan segera tersedia.',
                   ),
+                ),
         ),
       )
       ..add(const SizedBox(height: 24));
@@ -91,12 +91,9 @@ class _HomeView extends StatelessWidget {
           HabitGroupsSection(
             pendingHabits: uiState.pendingHabits,
             completedHabits: uiState.completedHabits,
-            onCheckIn: (HabitItem habit) => bloc.add(
-              HabitCheckInRequested(habit.id),
-            ),
-            onUndo: (HabitItem habit) => bloc.add(
-              HabitUndoRequested(habit.id),
-            ),
+            onCheckIn: (HabitItem habit) =>
+                bloc.add(HabitCheckInRequested(habit.id)),
+            onUndo: (HabitItem habit) => bloc.add(HabitUndoRequested(habit.id)),
           ),
         )
         ..add(const SizedBox(height: 24));
@@ -124,9 +121,7 @@ class _HomeView extends StatelessWidget {
               'Navigasi ke detail renungan dalam pengembangan.',
             ),
           ),
-          onCreateHabit: () => bloc.add(
-            const DevotionalHabitCreateRequested(),
-          ),
+          onCreateHabit: () => bloc.add(const DevotionalHabitCreateRequested()),
         ),
       )
       ..add(const SizedBox(height: 24))

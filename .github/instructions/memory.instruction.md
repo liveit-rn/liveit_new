@@ -38,6 +38,7 @@ applyTo: "**"
 - Recurring questions atau topik: Homepage experience requirements, integrasi dengan habit tracker, renungan, dan gamifikasi
 - Solutions yang berhasil: Mensintesis dokumen feature untuk menyusun user stories baru dengan acceptance criteria detail
 - Hal yang perlu dihindari atau tidak berhasil: Context7 search tidak menemukan library relevan
+- 2025-10-19: Updated `README.md` to include project overview, quickstart, architecture notes, and contribution guidelines per user request. This helps onboarding new contributors and documents developer workflow.
 
 ## Notes
 

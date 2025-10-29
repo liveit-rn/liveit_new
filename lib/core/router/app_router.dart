@@ -1,6 +1,11 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:liveit_new/core/navigation/presentation/pages/navigation_shell_page.dart';
 import 'package:liveit_new/features/auth/presentation/pages/login_page.dart';
+import 'package:liveit_new/features/inspire/presentation/pages/devotion_page.dart';
+import 'package:liveit_new/features/library/presentation/pages/habits_page.dart';
+import 'package:liveit_new/features/profile/presentation/pages/profile_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/home/presentation/pages/routine_page.dart';
 
 part 'app_router.gr.dart';
 
@@ -11,7 +16,17 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-     AutoRoute(page: HomeRoute.page, path: '/', initial: true),
-     AutoRoute(page: LoginRoute.page, path: '/login'),
+    AutoRoute(page: LoginRoute.page, path: '/login'),
+    AutoRoute(
+      page: NavigationShellRoute.page,
+      path: '/',
+      initial: true,
+      children: [
+        AutoRoute(page: RoutineRoute.page, path: 'routine', initial: true),
+        AutoRoute(page: DevotionRoute.page, path: 'devotion'),
+        AutoRoute(page: HabitsRoute.page, path: 'habits'),
+        AutoRoute(page: ProfileRoute.page, path: 'profile'),
+      ],
+    ),
   ];
 }

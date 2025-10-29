@@ -44,11 +44,11 @@ class DevotionalHighlight extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        title,
-        snippet,
-        readingDuration,
-        isForToday,
-      ];
+    title,
+    snippet,
+    readingDuration,
+    isForToday,
+  ];
 }
 
 @immutable
@@ -78,11 +78,11 @@ class GamificationHighlight extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        totalZoePoints,
-        currentJourneyLevel,
-        pointsToNextLevel,
-        latestBadge,
-      ];
+    totalZoePoints,
+    currentJourneyLevel,
+    pointsToNextLevel,
+    latestBadge,
+  ];
 }
 
 @immutable
@@ -158,22 +158,22 @@ class HomeUiState extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        userFirstName,
-        pendingHabits.length,
-        ...pendingHabits,
-        completedHabits.length,
-        ...completedHabits,
-        devotional,
-        gamification,
-        recommendations.length,
-        ...recommendations,
-        isOffline,
-        hasError,
-      ];
+    userFirstName,
+    pendingHabits.length,
+    ...pendingHabits,
+    completedHabits.length,
+    ...completedHabits,
+    devotional,
+    gamification,
+    recommendations.length,
+    ...recommendations,
+    isOffline,
+    hasError,
+  ];
 
   factory HomeUiState.sample() {
     return HomeUiState(
-      userFirstName: 'Rani',
+      userFirstName: 'Bagus',
       pendingHabits: const [
         HabitItem(
           id: 'habit-scripture',

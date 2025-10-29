@@ -119,3 +119,27 @@ Current Status:
 Next Steps:
 
 - Tambahkan interceptors/router guards sesuai kebutuhan fitur (auth, onboarding) dan dokumentasikan perubahan.
+
+---
+
+Initial Ask (2025-10-22):
+
+- Susun atau perbarui `.github/copilot-instructions.md` agar AI coding agent cepat paham konteks repo.
+
+Initial Response:
+
+- Meninjau `AGENTS.md`, struktur `lib/`, serta dokumen blueprint dan brand untuk merangkum arsitektur, workflow, dan pola penting.
+
+Checklist:
+
+- [x] Audit pedoman AI yang sudah ada (`AGENTS.md`, docs utama)
+- [x] Identifikasi arsitektur inti, workflow build/test, dan pola modul yang harus diketahui agen
+- [x] Tulis `.github/copilot-instructions.md` dengan ringkasan 20–50 baris
+
+Current Status:
+
+- Berkas petunjuk agen telah dibuat dan selaras dengan konteks repo per 2025-10-22.
+
+Next Steps:
+
+- Revisi file instruksi jika ada perubahan besar pada arsitektur, tooling, atau SOP agen.

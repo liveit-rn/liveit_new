@@ -24,6 +24,32 @@ Next Steps:
 
 ---
 
+Initial Ask (2025-10-13):
+
+- Implement homepage layout sesuai dokumen brand essence dan user story Epic Homepage Experience.
+
+Initial Response:
+
+- Menelaah kembali `docs/liveit-userStories.md`, `docs/liveit-brand-essence.md`, dan struktur modul home untuk memetakan komponen UI yang diperlukan.
+
+Checklist:
+
+- [x] Identifikasi section utama (ringkasan harian, daftar habit, renungan, gamifikasi, status banner, empty state)
+- [x] Bangun widget modular di `lib/features/home/presentation/widget/` untuk setiap section
+- [x] Perbarui `HomePage` agar merangkai widget dan menangani interaksi dasar (check-in, undo, refresh, snackbar)
+- [ ] Integrasikan dengan state management/bloc serta API backend nyata
+- [ ] Tambahkan pengujian widget untuk skenario utama dan edge case offline/error
+
+Current Status:
+
+- Homepage kini menampilkan layout lengkap dengan data sample `HomeUiState.sample()` dan interaksi lokal. Integrasi data & testing menyeluruh masih pending.
+
+Next Steps:
+
+- Sambungkan ke sumber data nyata (bloc/service) dan lengkapi pengujian widget sesuai acceptance criteria user stories 14-18.
+
+---
+
 Initial Ask (2025-10-11):
 
 - Susun user story halaman homepage berdasarkan dokumen blueprint LIVEIT.
@@ -96,6 +122,53 @@ Next Steps:
 
 ---
 
+Initial Ask (2025-10-22):
+
+- Susun atau perbarui `.github/copilot-instructions.md` agar AI coding agent cepat paham konteks repo.
+
+Initial Response:
+
+- Meninjau `AGENTS.md`, struktur `lib/`, serta dokumen blueprint dan brand untuk merangkum arsitektur, workflow, dan pola penting.
+
+Checklist:
+
+- [x] Audit pedoman AI yang sudah ada (`AGENTS.md`, docs utama)
+- [x] Identifikasi arsitektur inti, workflow build/test, dan pola modul yang harus diketahui agen
+- [x] Tulis `.github/copilot-instructions.md` dengan ringkasan 20–50 baris
+
+Current Status:
+
+- Berkas petunjuk agen telah dibuat dan selaras dengan konteks repo per 2025-10-22.
+
+Next Steps:
+
+- Revisi file instruksi jika ada perubahan besar pada arsitektur, tooling, atau SOP agen.
+
+---
+
+Initial Ask (2025-10-30):
+
+- Samakan layout homepage (tab Routine) dengan mock mobile terbaru, termasuk header, daftar habit, dan quick actions.
+
+Initial Response:
+
+- Meninjau implementasi `lib/features/home/presentation/pages/home_page.dart` untuk memetakan selisih dengan referensi desain dan menentukan komponen yang perlu dirombak.
+
+Checklist:
+
+- [x] Ganti header card dengan gradient mint + progress ring sesuai mock
+- [x] Kelompokkan daftar habit dalam satu card dengan badge kemajuan
+- [x] Desain ulang quick action tiles agar konsisten dengan referensi
+- [ ] Integrasikan ulang layout ke HomeBloc/data real saat siap
+- [ ] Tambahkan pengujian widget untuk variasi state utama
+
+Current Status:
+
+- Layout baru sudah terpasang dengan data sampel lokal; menunggu integrasi state management dan pengujian.
+
+Next Steps:
+
+- Hook ke HomeBloc ketika data tersedia dan tulis widget test untuk memastikan struktur baru stabil.
 Update (2025-10-19):
 
 - Action: `README.md` updated with project overview, quickstart, architecture notes, and contribution guidelines.

@@ -14,6 +14,8 @@ This file is append-only. Each entry must include:
 2025-10-11 | Homepage product requirements | Added Homepage Experience epic with stories 14-18 to `docs/liveit-userStories.md` | Aligns documentation with blueprint guidance so design/dev teams share same expectations | Product and engineering teams should review new homepage stories when planning UI and data integrations
 2025-10-12 | Frontend environment configuration | Created root `.env` holding API base URL `https://liveit-api-dev-5jufu.ondigitalocean.app` | Needed so Flutter client can load backend base URL consistently via dotenv | Frontend devs should load `API_BASE_URL` from env when wiring network layer
 2025-10-12 | Flutter routing setup | Adjusted `AppRouter` to extend `RootStackRouter` per auto_route v10 docs and restored `routerConfig` usage in `MaterialApp.router` | Fixes analyzer errors about missing `config()`/`delegate()` by aligning implementation with official installation guide | Ensures navigation builds with latest auto_route API and keeps generated routes functional
+2025-10-13 | Homepage experience scaffolding | Implemented composable widgets for homepage (daily summary, habit groups, devotional highlight, gamification, empty/error banners) using brand palette and mocked sample state | Needed tangible prototype aligning with user stories 14-18 and brand essence to guide further integration work | FE team now has baseline UI to wire with real bloc/state/data and evaluate interactions per acceptance criteria
+2025-10-22 | AI agent onboarding guidance | Authored `.github/copilot-instructions.md` summarising architecture, workflows, and conventions for automated assistants | Needed single-source instructions so AI agents mirror repo norms without re-reading entire codebase each session | Future agents can ramp quickly; keep file updated when workflows or patterns change
 2025-10-12 | Authentication Feature Implementation | Implemented complete authentication feature with BLoC state management, clean architecture, email/password auth, username claiming, OAuth placeholders, dependency injection with get_it, secure storage | User requested full auth implementation based on documentation with BLoC pattern and existing theme | All authentication flows ready for backend integration, OAuth buttons ready for when backend supports it
 2025-10-12 | Authentication Debug Logging | Added comprehensive logging throughout auth flow using Logger package - BLoC events/states, repository calls, API requests/responses, UI state changes, error handling | User reported registration not working despite data being added to database - needed detailed logging to debug null type error | Extensive logging added at all layers to identify where the issue occurs in the auth flow
 2025-10-12 | Authentication needsUsername Bug Fix | Fixed type 'Null' is not a subtype of type 'bool' error in UserModel.fromJson by adding null handling for needsUsername field, defaulting to true when backend returns null | Backend was returning null for needsUsername field but model expected non-nullable bool, causing registration UI to crash after successful API call | UserModel now safely handles null needsUsername from backend, registration flow should work end-to-end without casting errors
@@ -74,3 +76,51 @@ Impact:
 - App now uses brand-consistent color scheme in both light and dark modes via ThemeMode.system.
 - No changes to data schema or backend.
 - Provides semantic colors via ThemeExtension for success/warning/info to support UX messaging patterns.
+
+---
+
+## 2025-10-29 — Bottom Navigation Bar Implementation
+
+Context:
+- User requested bottom navigation bar similar to reference image with 5 tabs: Routine, Inspire, Challenge, Library, Profile.
+- Need to implement navigation using existing Bloc pattern and AutoRoute setup.
+
+Choice:
+- Created 5 feature pages: RoutinePage (moved from HomePage content), InspirePage, ChallengePage, LibraryPage, ProfilePage.
+- Created NavigationBloc to manage bottom navigation state with NavigationTabChanged event.
+- Created NavigationShellPage as wrapper page using AutoTabsRouter for nested navigation.
+- Updated AppRouter to use NavigationShellPage as root with nested child routes.
+- Simplified HomePage to basic placeholder (kept for potential future use).
+
+Files Created:
+- lib/features/home/presentation/pages/routine_page.dart (moved content from old HomePage)
+- lib/features/inspire/presentation/pages/inspire_page.dart
+- lib/features/challenge/presentation/pages/challenge_page.dart
+- lib/features/library/presentation/pages/library_page.dart
+- lib/features/profile/presentation/pages/profile_page.dart
+- lib/core/navigation/presentation/bloc/navigation_bloc.dart
+- lib/core/navigation/presentation/bloc/navigation_event.dart
+- lib/core/navigation/presentation/bloc/navigation_state.dart
+- lib/core/navigation/presentation/pages/navigation_shell_page.dart
+
+Files Modified:
+- lib/core/router/app_router.dart (added nested navigation structure)
+- lib/features/home/presentation/pages/home_page.dart (simplified)
+
+Rationale:
+- Follows established architecture patterns (feature-first, Bloc state management, AutoRoute).
+- Separates navigation concerns from content pages for better maintainability.
+- Allows independent development of each tab while maintaining consistent navigation UX.
+- Uses AutoTabsRouter for proper nested routing with deep-linking support.
+
+Impact:
+- Bottom navigation now visible on all main app screens.
+- Each tab has its own route and can maintain independent state.
+- Navigation state managed through Bloc for consistency and testability.
+- Routine tab contains all previous HomePage functionality (habits, devotionals, gamification).
+- Other tabs are placeholders ready for future feature implementation.
+- Developers working on new features can now add content to respective tab pages.
+
+
+2025-10-30 | Homepage mobile layout refresh | Reworked `HomePage` into a stacked scroll layout with gradient header, grouped habit card, and refreshed quick actions to match latest mobile mock | Aligns Routine tab with visual reference while keeping logic lightweight until Bloc integration lands | UI matches design expectations for demo builds; further integration work should re-hook HomeBloc and ensure design tokens stay consistent when data wiring arrives
+

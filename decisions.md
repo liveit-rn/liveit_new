@@ -124,3 +124,36 @@ Impact:
 
 2025-10-30 | Homepage mobile layout refresh | Reworked `HomePage` into a stacked scroll layout with gradient header, grouped habit card, and refreshed quick actions to match latest mobile mock | Aligns Routine tab with visual reference while keeping logic lightweight until Bloc integration lands | UI matches design expectations for demo builds; further integration work should re-hook HomeBloc and ensure design tokens stay consistent when data wiring arrives
 
+---
+
+## 2025-11-07 — Fix LocaleDataException for Indonesian DateFormat
+
+Context:
+- User encountered `LocaleDataException: Locale data has not been initialized, call initializeDateFormatting(<locale>)` when running the app.
+- `HomePage` uses `DateFormat('EEEE, d MMM', 'id_ID')` to format dates in Indonesian locale.
+- The error occurred because `intl` package locale data was not initialized before being used.
+
+Choice:
+- Added `import 'package:intl/date_symbol_data_local.dart'` to all main entry points: `main.dart`, `main_dev.dart`, `main_prod.dart`.
+- Added `await initializeDateFormatting('id_ID', null);` call in the `main()` function before `runApp()` in all three entry points.
+- Ensures Indonesian locale data is loaded before any `DateFormat` calls.
+
+Files Modified:
+- lib/main.dart
+- lib/main_dev.dart
+- lib/main_prod.dart
+
+Rationale:
+- The `intl` package requires explicit initialization of locale data before formatting dates with specific locales.
+- Initializing in `main()` ensures the locale data is ready before any widgets that use `DateFormat` are built.
+- Using Indonesian locale ('id_ID') aligns with the app's target audience and brand localization.
+
+Impact:
+- App will no longer crash with `LocaleDataException` when displaying formatted dates.
+- All date formatting throughout the app (especially in `HomePage`) will work correctly with Indonesian locale.
+- Future features using `DateFormat` with 'id_ID' will work without additional initialization.
+- Developers adding new date formatting should be aware locale is already initialized for Indonesian.
+
+
+```
+

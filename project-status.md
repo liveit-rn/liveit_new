@@ -169,3 +169,8 @@ Current Status:
 Next Steps:
 
 - Hook ke HomeBloc ketika data tersedia dan tulis widget test untuk memastikan struktur baru stabil.
+Update (2025-10-19):
+
+- Action: `README.md` updated with project overview, quickstart, architecture notes, and contribution guidelines.
+- Impact: Improves onboarding for new contributors; points to `docs/`, `decisions.md`, and memory file for further context.
+- Next Steps: Consider adding CI scripts and platform-specific setup instructions to README if requested.

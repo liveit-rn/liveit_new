@@ -666,6 +666,31 @@ class _QuickActionButton extends StatelessWidget {
       ),
     );
   }
+
+  void _handleLogout(BuildContext context) {
+    // Show confirmation dialog
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Konfirmasi Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              // Trigger logout event
+              context.read<AuthBloc>().add(AuthLogoutRequested());
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _QuickActionItem {

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -10,33 +11,46 @@ import '../widgets/auth_text_field.dart';
 import '../widgets/social_login_button.dart';
 
 @RoutePage()
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final Logger logger = Logger();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _login() {
+  void _register() {
     if (_formKey.currentState!.validate()) {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final name = _nameController.text.trim().isEmpty
+          ? null
+          : _nameController.text.trim();
+
+      logger.i('📱 UI: Register button pressed');
+      logger.d('📋 UI: Email: $email, Has name: ${name != null}');
+
       context.read<AuthBloc>().add(
-        AuthLoginRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        ),
+        AuthRegisterRequested(email: email, password: password, name: name),
       );
+    } else {
+      logger.w('⚠️ UI: Form validation failed');
     }
   }
 
@@ -48,7 +62,10 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: theme.colorScheme.background,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
+          logger.i('📱 UI: BLoC state changed to ${state.runtimeType}');
+
           if (state is AuthError) {
+            logger.e('📱 UI: Showing error to user: ${state.message}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -56,12 +73,18 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
           } else if (state is AuthAuthenticated) {
+            logger.i('📱 UI: User authenticated successfully');
+            logger.d('📋 UI: User needs username: ${state.user.needsUsername}');
             // Check if user needs username
             if (state.user.needsUsername) {
+              logger.i('📱 UI: Navigating to claim username page');
               context.router.pushPath('/claim-username');
             } else {
+              logger.i('📱 UI: Navigating to home page');
               context.router.pushPath('/home');
             }
+          } else if (state is AuthLoading) {
+            logger.i('📱 UI: Auth loading state');
           }
         },
         child: SafeArea(
@@ -72,10 +95,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 40),
                   // Header
                   Text(
-                    'Selamat Datang Kembali',
+                    'Mulai Perjalanan Iman',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
@@ -83,12 +106,21 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Lanjutkan perjalanan iman Anda',
+                    'Buat akun untuk membangun kebiasaan rohani yang konsisten',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onBackground.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 40),
+
+                  // Name Field (Optional)
+                  AuthTextField(
+                    label: 'Nama (opsional)',
+                    hintText: 'Masukkan nama lengkap',
+                    controller: _nameController,
+                    keyboardType: TextInputType.name,
+                  ),
+                  const SizedBox(height: 20),
 
                   // Email Field
                   AuthTextField(
@@ -113,49 +145,45 @@ class _LoginPageState extends State<LoginPage> {
                   // Password Field
                   AuthTextField(
                     label: 'Kata Sandi',
-                    hintText: 'Masukkan kata sandi',
+                    hintText: 'Minimal 8 karakter',
                     controller: _passwordController,
                     isPassword: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Kata sandi harus diisi';
                       }
+                      if (value.length < 8) {
+                        return 'Kata sandi minimal 8 karakter';
+                      }
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Forgot Password Link
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () {
-                        // TODO: Implement forgot password
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Fitur lupa password akan segera hadir',
-                            ),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Lupa kata sandi?',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
+                  // Confirm Password Field
+                  AuthTextField(
+                    label: 'Konfirmasi Kata Sandi',
+                    hintText: 'Ulangi kata sandi',
+                    controller: _confirmPasswordController,
+                    isPassword: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Konfirmasi kata sandi harus diisi';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Kata sandi tidak sama';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 32),
 
-                  // Login Button
+                  // Register Button
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       return AuthButton(
-                        text: 'Masuk',
-                        onPressed: _login,
+                        text: 'Daftar',
+                        onPressed: _register,
                         isLoading: state is AuthLoading,
                       );
                     },
@@ -205,18 +233,18 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 32),
 
-                  // Register Link
+                  // Login Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Belum punya akun? ',
+                        'Sudah punya akun? ',
                         style: theme.textTheme.bodyMedium,
                       ),
                       GestureDetector(
-                        onTap: () => context.router.pushPath('/register'),
+                        onTap: () => context.router.pushPath('/'),
                         child: Text(
-                          'Daftar di sini',
+                          'Masuk di sini',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,

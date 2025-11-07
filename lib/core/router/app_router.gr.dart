@@ -17,6 +17,12 @@ class DevotionRoute extends PageRouteInfo<void> {
     : super(DevotionRoute.name, initialChildren: children);
 
   static const String name = 'DevotionRoute';
+/// [ClaimUsernamePage]
+class ClaimUsernameRoute extends PageRouteInfo<void> {
+  const ClaimUsernameRoute({List<PageRouteInfo>? children})
+    : super(ClaimUsernameRoute.name, initialChildren: children);
+
+  static const String name = 'ClaimUsernameRoute';
 
   static PageInfo page = PageInfo(
     name,
@@ -38,6 +44,7 @@ class HabitsRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const HabitsPage();
+      return const ClaimUsernamePage();
     },
   );
 }
@@ -81,6 +88,12 @@ class NavigationShellRoute extends PageRouteInfo<void> {
     : super(NavigationShellRoute.name, initialChildren: children);
 
   static const String name = 'NavigationShellRoute';
+/// [RegisterPage]
+class RegisterRoute extends PageRouteInfo<void> {
+  const RegisterRoute({List<PageRouteInfo>? children})
+    : super(RegisterRoute.name, initialChildren: children);
+
+  static const String name = 'RegisterRoute';
 
   static PageInfo page = PageInfo(
     name,
@@ -118,6 +131,7 @@ class RoutineRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const RoutinePage();
+      return const RegisterPage();
     },
   );
 }

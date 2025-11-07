@@ -111,3 +111,6 @@ Impact:
 - Other tabs are placeholders ready for future feature implementation.
 - Developers working on new features can now add content to respective tab pages.
 
+
+2025-10-30 | Homepage mobile layout refresh | Reworked `HomePage` into a stacked scroll layout with gradient header, grouped habit card, and refreshed quick actions to match latest mobile mock | Aligns Routine tab with visual reference while keeping logic lightweight until Bloc integration lands | UI matches design expectations for demo builds; further integration work should re-hook HomeBloc and ensure design tokens stay consistent when data wiring arrives
+

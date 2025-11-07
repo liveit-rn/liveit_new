@@ -143,3 +143,29 @@ Current Status:
 Next Steps:
 
 - Revisi file instruksi jika ada perubahan besar pada arsitektur, tooling, atau SOP agen.
+
+---
+
+Initial Ask (2025-10-30):
+
+- Samakan layout homepage (tab Routine) dengan mock mobile terbaru, termasuk header, daftar habit, dan quick actions.
+
+Initial Response:
+
+- Meninjau implementasi `lib/features/home/presentation/pages/home_page.dart` untuk memetakan selisih dengan referensi desain dan menentukan komponen yang perlu dirombak.
+
+Checklist:
+
+- [x] Ganti header card dengan gradient mint + progress ring sesuai mock
+- [x] Kelompokkan daftar habit dalam satu card dengan badge kemajuan
+- [x] Desain ulang quick action tiles agar konsisten dengan referensi
+- [ ] Integrasikan ulang layout ke HomeBloc/data real saat siap
+- [ ] Tambahkan pengujian widget untuk variasi state utama
+
+Current Status:
+
+- Layout baru sudah terpasang dengan data sampel lokal; menunggu integrasi state management dan pengujian.
+
+Next Steps:
+
+- Hook ke HomeBloc ketika data tersedia dan tulis widget test untuk memastikan struktur baru stabil.

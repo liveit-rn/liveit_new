@@ -18,18 +18,9 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: LoginRoute.page, path: '/login'),
-    AutoRoute(
-      page: NavigationShellRoute.page,
-      path: '/',
-      initial: true,
-      children: [
-        AutoRoute(page: HomeRoute.page, path: 'routine', initial: true),
-        AutoRoute(page: DevotionRoute.page, path: 'devotion'),
-        AutoRoute(page: HabitsRoute.page, path: 'habits'),
-        AutoRoute(page: ProfileRoute.page, path: 'profile'),
-      ],
-    ),
+    AutoRoute(page: DevotionRoute.page, path: 'devotion'),
+    // AutoRoute(page: HabitsRoute.page, path: 'habits'),
+    // AutoRoute(page: ProfileRoute.page, path: 'profile'),
     AutoRoute(page: LoginRoute.page, path: '/', initial: true),
     AutoRoute(page: RegisterRoute.page, path: '/register'),
     AutoRoute(page: ClaimUsernameRoute.page, path: '/claim-username'),

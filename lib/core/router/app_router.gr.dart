@@ -11,18 +11,28 @@
 part of 'app_router.dart';
 
 /// generated route for
-/// [DevotionPage]
-class DevotionRoute extends PageRouteInfo<void> {
-  const DevotionRoute({List<PageRouteInfo>? children})
-    : super(DevotionRoute.name, initialChildren: children);
-
-  static const String name = 'DevotionRoute';
 /// [ClaimUsernamePage]
 class ClaimUsernameRoute extends PageRouteInfo<void> {
   const ClaimUsernameRoute({List<PageRouteInfo>? children})
     : super(ClaimUsernameRoute.name, initialChildren: children);
 
   static const String name = 'ClaimUsernameRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ClaimUsernamePage();
+    },
+  );
+}
+
+/// generated route for
+/// [DevotionPage]
+class DevotionRoute extends PageRouteInfo<void> {
+  const DevotionRoute({List<PageRouteInfo>? children})
+    : super(DevotionRoute.name, initialChildren: children);
+
+  static const String name = 'DevotionRoute';
 
   static PageInfo page = PageInfo(
     name,
@@ -44,7 +54,6 @@ class HabitsRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const HabitsPage();
-      return const ClaimUsernamePage();
     },
   );
 }
@@ -88,12 +97,6 @@ class NavigationShellRoute extends PageRouteInfo<void> {
     : super(NavigationShellRoute.name, initialChildren: children);
 
   static const String name = 'NavigationShellRoute';
-/// [RegisterPage]
-class RegisterRoute extends PageRouteInfo<void> {
-  const RegisterRoute({List<PageRouteInfo>? children})
-    : super(RegisterRoute.name, initialChildren: children);
-
-  static const String name = 'RegisterRoute';
 
   static PageInfo page = PageInfo(
     name,
@@ -120,6 +123,22 @@ class ProfileRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [RegisterPage]
+class RegisterRoute extends PageRouteInfo<void> {
+  const RegisterRoute({List<PageRouteInfo>? children})
+    : super(RegisterRoute.name, initialChildren: children);
+
+  static const String name = 'RegisterRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const RegisterPage();
+    },
+  );
+}
+
+/// generated route for
 /// [RoutinePage]
 class RoutineRoute extends PageRouteInfo<void> {
   const RoutineRoute({List<PageRouteInfo>? children})
@@ -131,7 +150,6 @@ class RoutineRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const RoutinePage();
-      return const RegisterPage();
     },
   );
 }

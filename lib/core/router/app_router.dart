@@ -22,7 +22,7 @@ class AppRouter extends RootStackRouter {
       path: '/',
       initial: true,
       children: [
-        AutoRoute(page: RoutineRoute.page, path: 'routine', initial: true),
+        AutoRoute(page: HomeRoute.page, path: 'routine', initial: true),
         AutoRoute(page: DevotionRoute.page, path: 'devotion'),
         AutoRoute(page: HabitsRoute.page, path: 'habits'),
         AutoRoute(page: ProfileRoute.page, path: 'profile'),

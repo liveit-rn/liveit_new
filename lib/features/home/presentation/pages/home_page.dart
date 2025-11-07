@@ -60,24 +60,6 @@ class _HomePageState extends State<HomePage> {
   int get progress =>
       totalHabits == 0 ? 0 : ((completedToday / totalHabits) * 100).round();
 
-  List<_QuickActionItem> get _quickActions => [
-    _QuickActionItem(
-      icon: Icons.menu_book_rounded,
-      label: 'Renungan',
-      onTap: () => _onQuickActionPressed('Renungan'),
-    ),
-    _QuickActionItem(
-      icon: Icons.auto_graph_rounded,
-      label: 'Progress',
-      onTap: () => _onQuickActionPressed('Progress'),
-    ),
-    _QuickActionItem(
-      icon: Icons.people_alt_rounded,
-      label: 'Komunitas',
-      onTap: () => _onQuickActionPressed('Komunitas'),
-    ),
-  ];
-
   String get _greetingPeriod {
     final hour = DateTime.now().hour;
     if (hour < 12) {
@@ -87,14 +69,6 @@ class _HomePageState extends State<HomePage> {
       return 'siang';
     }
     return 'malam';
-  }
-
-  void _onQuickActionPressed(String label) {
-    if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$label segera tersedia.')));
   }
 
   @override
@@ -133,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                     totalHabits: totalHabits,
                   ),
                   const SizedBox(height: 24),
-                  _QuickActionsSection(actions: _quickActions),
+                  _CommunityCard(),
                 ]),
               ),
             ),
@@ -571,57 +545,8 @@ class _HabitTrailingBadge extends StatelessWidget {
   }
 }
 
-class _QuickActionsSection extends StatelessWidget {
-  final List<_QuickActionItem> actions;
-
-  const _QuickActionsSection({required this.actions});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Aksi Cepat',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: List.generate(actions.length, (index) {
-            final item = actions[index];
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: index != actions.length - 1 ? 12 : 0,
-                ),
-                child: _QuickActionButton(
-                  icon: item.icon,
-                  label: item.label,
-                  onTap: item.onTap,
-                ),
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+class _CommunityCard extends StatelessWidget {
+  const _CommunityCard();
 
   @override
   Widget build(BuildContext context) {
@@ -629,78 +554,74 @@ class _QuickActionButton extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      onTap: () {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Komunitas segera tersedia.')),
+          );
+      },
+      borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: colorScheme.outline.withValues(alpha: 0.12),
-            width: 0.6,
+            width: 0.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Icon(icon, color: colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                Icons.people_alt_rounded,
+                color: colorScheme.primary,
+                size: 32,
               ),
             ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Komunitas',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Terhubung dengan sesama untuk saling mendukung perjalanan iman.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
           ],
         ),
       ),
     );
   }
-
-  void _handleLogout(BuildContext context) {
-    // Show confirmation dialog
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Konfirmasi Logout'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              // Trigger logout event
-              context.read<AuthBloc>().add(AuthLogoutRequested());
-            },
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionItem {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickActionItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
 }

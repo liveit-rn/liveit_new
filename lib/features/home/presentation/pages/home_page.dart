@@ -82,7 +82,12 @@ class _HomePageState extends State<HomePage> {
         _greetingPeriod[0].toUpperCase() + _greetingPeriod.substring(1);
 
     return Scaffold(
-      backgroundColor: Colors.red, // DEBUG: warna merah terang!
+      backgroundColor: const Color.fromRGBO(
+        83,
+        79,
+        79,
+        1,
+      ), // DEBUG: warna merah terang!
       body: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -234,7 +239,7 @@ class _HeaderCard extends StatelessWidget {
                 Expanded(
                   child: _HeaderStatChip(
                     icon: Icons.bolt,
-                    label: 'Faith Points',
+                    label: 'Zoe Points',
                     value: '480',
                     subtitle: '+20 hari ini',
                   ),

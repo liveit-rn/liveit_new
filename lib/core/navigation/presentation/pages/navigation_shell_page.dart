@@ -58,11 +58,17 @@ class _NavigationShellView extends StatelessWidget {
     int currentIndex,
     TabsRouter tabsRouter,
   ) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: Colors.white, // White background for bottom nav
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withOpacity(0.2), // Subtle top border
+            width: 1,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -143,7 +149,7 @@ class _NavigationShellView extends StatelessWidget {
                 isActive ? activeIcon : icon,
                 color: isActive
                     ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
+                    : colorScheme.onSurfaceVariant.withOpacity(0.6),
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -152,7 +158,7 @@ class _NavigationShellView extends StatelessWidget {
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: isActive
                       ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
+                      : colorScheme.onSurfaceVariant.withOpacity(0.6),
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),

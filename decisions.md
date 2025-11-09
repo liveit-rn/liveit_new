@@ -154,6 +154,71 @@ Impact:
 - Future features using `DateFormat` with 'id_ID' will work without additional initialization.
 - Developers adding new date formatting should be aware locale is already initialized for Indonesian.
 
+---
+
+2025-11-09 | Bottom Navigation Theme Compliance | Replaced hardcoded colors with theme-based colorScheme values to align with centralized theming strategy | Current implementation used hardcoded black background and white icons, violating theming guidelines in AGENTS.md and .github/copilot-instructions.md | Bottom nav now uses `colorScheme.surface` for background, `colorScheme.primary` for active items, and `colorScheme.onSurfaceVariant` for inactive items; ensures brand consistency, supports light/dark modes, and follows Material Design 3 principles as defined in core/theme/app_theme.dart
+
+Files Modified:
+- lib/core/navigation/presentation/pages/navigation_shell_page.dart
+
+Details:
+- Background: `Color.fromARGB(255, 0, 0, 0)` → `colorScheme.surface`
+- Active icons/text: `Colors.white` → `colorScheme.primary`
+- Inactive icons/text: `Colors.white.withOpacity(0.6)` → `colorScheme.onSurfaceVariant.withOpacity(0.6)`
+
+Impact:
+- Compliant with centralized theming guidelines
+- Automatically adapts to theme changes
+- Better accessibility and brand consistency
+
+---
+
+2025-11-09 | Profile Page Redesign | Redesigned profile header with horizontal layout (large circular photo left, name/username/bio right stacked vertically), updated background to light gray, added top border to bottom nav for better separation | User requested prominent profile card with left photo and right text stack, bio field, better bottom nav visibility, and edit icon consistency | Profile header now features 112px circular avatar on left with enlarged name (22px bold uppercase), username, and bio text stacked on right; background changed from dark brown to light gray (#F5F5F5); bottom nav has white background with subtle top border for clear separation; edit icon already uses pencil (Icons.edit_outlined); all cards remain white for consistency
+
+Files Modified:
+- lib/features/profile/presentation/pages/profile_page.dart
+- lib/core/navigation/presentation/pages/navigation_shell_page.dart
+
+Details:
+- Profile header: Changed from vertical centered layout to horizontal Row layout
+- Avatar radius: 48 → 56 (larger and more prominent)
+- Name styling: Added bold, uppercase, 22px font size
+- Added bio field with italic placeholder text
+- Card padding: 20 → 24 for better spacing
+- Background: Color.fromARGB(255, 97, 81, 81) → Color(0xFFF5F5F5)
+- Bottom nav: Added top border with outline color at 20% opacity
+- Bottom nav background: Explicit white color for contrast
+
+Impact:
+- Profile card is now more dominant and visually appealing
+- Better use of horizontal space with side-by-side layout
+- Bio field allows for personalization
+- Clearer visual hierarchy with larger, bolder name
+- Bottom navigation now clearly separated from main content
+- Improved contrast and readability with lighter background
+
+
+---
+
+2025-11-09 | Profile Page UI Improvements | Multiple UI refinements to Profile page following user requirements | User requested 5 specific tasks to improve profile aesthetics and usability | Changed background from red to light gray (#F9F9F9), changed bottom nav background to red with white icons/text, removed email field from profile header for privacy, added tooltip icon next to "Zoe Points" label, ensured logout button maintains red error color for visibility
+
+Files Modified:
+- lib/features/profile/presentation/pages/profile_page.dart
+- lib/core/navigation/presentation/pages/navigation_shell_page.dart
+
+Details:
+1. Scaffold background changed to Color(0xFFF9F9F9) for cleaner look
+2. Bottom navigation bar now has red background with white icons/labels
+3. Email field removed from _ProfileHeader widget
+4. Added optional showTooltip parameter to _StatItem with help icon for Zoe Points
+5. Logout icon and text explicitly use colorScheme.error to maintain red accent
+
+Impact:
+- Improved visual hierarchy and contrast
+- Better privacy by hiding email in public-facing profile view
+- Added educational tooltip for gamification terms
+- Bottom nav now uses brand primary color (red) consistently
+
 
 ```
 

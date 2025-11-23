@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../widgets/progress_ring.dart';
 
 @RoutePage()
@@ -43,8 +46,6 @@ class _HomePageState extends State<HomePage> {
       'streak': 5,
     },
   ];
-
-  final String _userFirstName = 'Bagus';
 
   void _toggleHabit(int id) {
     setState(() {
@@ -88,36 +89,65 @@ class _HomePageState extends State<HomePage> {
         79,
         1,
       ), // DEBUG: warna merah terang!
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _HeaderCard(
-                    greeting: capitalisedGreeting,
-                    name: _userFirstName,
-                    dateLabel: dateLabel,
-                    completed: completedToday,
-                    total: totalHabits,
-                    progress: progress,
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          print('📱 HomePage: Current AuthState = ${authState.runtimeType}');
+
+          // Get user's first name from auth state
+          String userFirstName = 'User'; // default fallback
+
+          if (authState is AuthAuthenticated) {
+            final user = authState.user;
+            print('👤 User ID: ${user.id}');
+            print('📧 User Email: ${user.email}');
+            print('🏷️ User Username: ${user.username}');
+            print('📝 User Name: ${user.name}');
+
+            // Priority: name -> username -> email (before @)
+            final name =
+                user.name ?? user.username ?? user.email.split('@').first;
+            // Get first word as first name
+            userFirstName = name.split(' ').first;
+
+            print('✅ Displaying as: $userFirstName');
+          } else {
+            print(
+              '⚠️ NOT AUTHENTICATED - Auth state: ${authState.runtimeType}',
+            );
+          }
+
+          return SafeArea(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      _HeaderCard(
+                        greeting: capitalisedGreeting,
+                        name: userFirstName,
+                        dateLabel: dateLabel,
+                        completed: completedToday,
+                        total: totalHabits,
+                        progress: progress,
+                      ),
+                      const SizedBox(height: 24),
+                      _HabitGroupCard(
+                        habits: _habits,
+                        onToggle: _toggleHabit,
+                        completedToday: completedToday,
+                        totalHabits: totalHabits,
+                      ),
+                      const SizedBox(height: 24),
+                      _CommunityCard(),
+                    ]),
                   ),
-                  const SizedBox(height: 24),
-                  _HabitGroupCard(
-                    habits: _habits,
-                    onToggle: _toggleHabit,
-                    completedToday: completedToday,
-                    totalHabits: totalHabits,
-                  ),
-                  const SizedBox(height: 24),
-                  _CommunityCard(),
-                ]),
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -170,16 +200,19 @@ class _HeaderCard extends StatelessWidget {
                   children: [
                     Text(
                       'Selamat $greeting, $name',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        fontWeight: FontWeight.w700,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 20,
+                        letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       dateLabel,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.78),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -229,9 +262,9 @@ class _HeaderCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.28),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -244,7 +277,7 @@ class _HeaderCard extends StatelessWidget {
                     subtitle: '+20 hari ini',
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: 16),
                 Expanded(
                   child: _HeaderStatChip(
                     icon: Icons.emoji_events,
@@ -284,31 +317,35 @@ class _HeaderStatChip extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 6),
+            Icon(icon, color: Colors.white, size: 22),
+            const SizedBox(width: 8),
             Text(
               label,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: Colors.white.withValues(alpha: 0.92),
                 fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
           value,
           style: theme.textTheme.headlineSmall?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
+            fontSize: 28,
           ),
         ),
         if (subtitle != null) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             subtitle!,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.75),
+              color: Colors.white.withValues(alpha: 0.88),
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
         ],
@@ -365,7 +402,9 @@ class _HabitGroupCard extends StatelessWidget {
                     Text(
                       'Habit Harian',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -380,18 +419,23 @@ class _HabitGroupCard extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 14,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
+                  color: completedToday == totalHabits
+                      ? colorScheme.tertiary.withValues(alpha: 0.15)
+                      : colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
                   '$completedToday/$totalHabits',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+                    color: completedToday == totalHabits
+                        ? colorScheme.tertiary
+                        : colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -409,13 +453,15 @@ class _HabitGroupCard extends StatelessWidget {
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(18),
+                  splashColor: colorScheme.primary.withValues(alpha: 0.08),
+                  highlightColor: colorScheme.primary.withValues(alpha: 0.04),
                   onTap: () => onToggle(habit['id'] as int),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     child: Row(
                       children: [
                         _HabitCheckbox(completed: completed),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,10 +500,13 @@ class _HabitGroupCard extends StatelessWidget {
                   ),
                 ),
                 if (index != habits.length - 1)
-                  Divider(
-                    height: 0,
-                    thickness: 1,
-                    color: colorScheme.outline.withValues(alpha: 0.08),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 60),
+                    child: Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
                   ),
               ],
             );
@@ -478,21 +527,22 @@ class _HabitCheckbox extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      width: 28,
-      height: 28,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutBack,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: completed ? colorScheme.primary : Colors.transparent,
+        color: completed ? colorScheme.tertiary : Colors.transparent,
         border: Border.all(
           color: completed
-              ? colorScheme.primary
-              : colorScheme.outline.withValues(alpha: 0.4),
-          width: 2,
+              ? colorScheme.tertiary
+              : colorScheme.outline.withValues(alpha: 0.35),
+          width: 2.5,
         ),
       ),
       child: completed
-          ? Icon(Icons.check, size: 18, color: colorScheme.onPrimary)
+          ? Icon(Icons.check_rounded, size: 20, color: Colors.white)
           : null,
     );
   }

@@ -1,10 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/repositories/in_memory_profile_repository.dart';
-import '../bloc/profile_bloc.dart';
-import '../bloc/profile_event.dart';
-import '../bloc/profile_state.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 
 @RoutePage()
 class ProfilePage extends StatelessWidget {
@@ -12,12 +11,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          ProfileBloc(repository: InMemoryProfileRepository())
-            ..add(const ProfileRequested()),
-      child: const _ProfileView(),
-    );
+    return const _ProfileView();
   }
 }
 
@@ -28,30 +22,41 @@ class _ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Light gray/beige background
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          if (state.status == ProfileStatus.loading) {
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          print('📱 ProfilePage: AuthState = ${authState.runtimeType}');
+
+          if (authState is AuthLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state.status == ProfileStatus.failure) {
-            return Center(child: Text('Error: ${state.errorMessage}'));
+          if (authState is! AuthAuthenticated) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Anda belum login'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.router.pushPath('/'),
+                    child: const Text('Login'),
+                  ),
+                ],
+              ),
+            );
           }
 
-          if (state.profile == null) {
-            return const Center(child: Text('Tidak ada data profil'));
-          }
-
-          final profile = state.profile!;
+          final user = authState.user;
+          print('👤 Profile User: ${user.username} - ${user.name}');
 
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _ProfileHeader(profile: profile),
+                  _ProfileHeader(user: user),
                   const SizedBox(height: 24),
-                  _StatsCard(profile: profile),
+                  _StatsCard(),
                   const SizedBox(height: 16),
                   _MenuSection(),
                 ],
@@ -65,14 +70,19 @@ class _ProfileView extends StatelessWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  final dynamic profile;
+  final dynamic user;
 
-  const _ProfileHeader({required this.profile});
+  const _ProfileHeader({required this.user});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Get display name: priority is name -> username -> email
+    final displayName =
+        user.name ?? user.username ?? user.email.split('@').first;
+    final username = user.username ?? 'user';
 
     return Card(
       elevation: 2,
@@ -81,24 +91,15 @@ class _ProfileHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Large circular profile photo on the left
+            // Circular profile photo - slightly smaller for better balance
             CircleAvatar(
-              radius: 56, // Larger size for prominence
+              radius: 48, // Reduced from 56 for better proportion
               backgroundColor: colorScheme.primaryContainer,
-              child: profile.avatarUrl != null
-                  ? ClipOval(
-                      child: Image.network(
-                        profile.avatarUrl!,
-                        fit: BoxFit.cover,
-                        width: 112,
-                        height: 112,
-                      ),
-                    )
-                  : Icon(
-                      Icons.person,
-                      size: 56,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
+              child: Icon(
+                Icons.person,
+                size: 48,
+                color: colorScheme.onPrimaryContainer,
+              ),
             ),
             const SizedBox(width: 20),
             // Text information on the right (stacked vertically)
@@ -108,32 +109,36 @@ class _ProfileHeader extends StatelessWidget {
                 children: [
                   // Display Name - Large and Bold
                   Text(
-                    (profile.displayName ?? profile.username).toUpperCase(),
+                    displayName.toUpperCase(),
                     style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
+                      fontWeight: FontWeight.w800, // Increased from bold
+                      fontSize: 20,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  // Username - Smaller
+                  const SizedBox(height: 6),
+                  // Username - Larger and more prominent
                   Text(
-                    '@${profile.username}',
+                    '@$username',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600, // Increased from w500
+                      fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Bio - Short description
+                  const SizedBox(height: 10),
+                  // Email
                   Text(
-                    'Ini adalah bio singkat saya...',
+                    user.email,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.8),
-                      fontStyle: FontStyle.italic,
+                      color: colorScheme.onSurface.withValues(
+                        alpha: 0.7,
+                      ), // Better contrast
+                      fontSize: 13,
                     ),
-                    maxLines: 3,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -147,51 +152,49 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _StatsCard extends StatelessWidget {
-  final dynamic profile;
-
-  const _StatsCard({required this.profile});
+  const _StatsCard();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
+      elevation: 1, // Subtle shadow for depth
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: theme.colorScheme.outline.withValues(alpha: 0.12),
+          width: 1,
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _StatItem(
               icon: Icons.local_fire_department_outlined,
               label: 'Zoe Points',
-              value: profile.totalZoePoints.toString(),
+              value: '480', // TODO: Get from backend
               color: theme.colorScheme.tertiary,
               showTooltip: true,
             ),
             _StatItem(
               icon: Icons.military_tech_outlined,
               label: 'Level',
-              value: profile.currentLevel.toString(),
+              value: '3', // TODO: Get from backend
               color: theme.colorScheme.primary,
             ),
             _StatItem(
               icon: Icons.calendar_today_outlined,
               label: 'Bergabung',
-              value: _formatJoinDate(profile.joinedAt),
+              value: '1bln', // TODO: Get from user.createdAt
               color: theme.colorScheme.secondary,
             ),
           ],
         ),
       ),
     );
-  }
-
-  String _formatJoinDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date).inDays;
-    if (diff < 30) return '${diff}h';
-    if (diff < 365) return '${diff ~/ 30}bln';
-    return '${diff ~/ 365}thn';
   }
 }
 
@@ -216,16 +219,18 @@ class _StatItem extends StatelessWidget {
 
     return Column(
       children: [
-        Icon(icon, color: color, size: 28),
-        const SizedBox(height: 8),
+        Icon(icon, color: color, size: 24), // Consistent icon size
+        const SizedBox(height: 10),
         Text(
           value,
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800, // Bolder for emphasis
+            fontSize: 28, // Larger for better hierarchy
             color: color,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -233,6 +238,8 @@ class _StatItem extends StatelessWidget {
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
               ),
             ),
             if (showTooltip) ...[
@@ -251,7 +258,9 @@ class _StatItem extends StatelessWidget {
                 child: Icon(
                   Icons.help_outline,
                   size: 14,
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.6,
+                  ),
                 ),
               ),
             ],
@@ -265,48 +274,126 @@ class _StatItem extends StatelessWidget {
 class _MenuSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: const Text('Edit Profil'),
-            trailing: const Icon(Icons.chevron_right),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            leading: Icon(
+              Icons.edit_outlined,
+              size: 22,
+              color: colorScheme.onSurface,
+            ),
+            title: Text(
+              'Edit Profil',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            splashColor: colorScheme.primary.withValues(alpha: 0.08),
             onTap: () {
               // TODO: Navigate to edit profile
             },
           ),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: colorScheme.outline.withValues(alpha: 0.12),
+          ),
           ListTile(
-            leading: const Icon(Icons.badge_outlined),
-            title: const Text('Badge & Pencapaian'),
-            trailing: const Icon(Icons.chevron_right),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            leading: Icon(
+              Icons.badge_outlined,
+              size: 22,
+              color: colorScheme.onSurface,
+            ),
+            title: Text(
+              'Badge & Pencapaian',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            splashColor: colorScheme.primary.withValues(alpha: 0.08),
             onTap: () {
               // TODO: Navigate to badges
             },
           ),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            color: colorScheme.outline.withValues(alpha: 0.12),
+          ),
           ListTile(
-            leading: const Icon(Icons.history_outlined),
-            title: const Text('Riwayat Aktivitas'),
-            trailing: const Icon(Icons.chevron_right),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            leading: Icon(
+              Icons.history_outlined,
+              size: 22,
+              color: colorScheme.onSurface,
+            ),
+            title: Text(
+              'Riwayat Aktivitas',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            splashColor: colorScheme.primary.withValues(alpha: 0.08),
             onTap: () {
               // TODO: Navigate to activity history
             },
           ),
-          const Divider(height: 1),
-          ListTile(
-            leading: Icon(
-              Icons.logout,
-              color: Theme.of(context).colorScheme.error,
+          Divider(
+            height: 1,
+            color: colorScheme.outline.withValues(alpha: 0.12),
+          ),
+          // Logout with subtle background
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.error.withValues(alpha: 0.10),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
             ),
-            title: Text(
-              'Logout',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 4,
+              ),
+              leading: Icon(Icons.logout, size: 22, color: colorScheme.error),
+              title: Text(
+                'Logout',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              splashColor: colorScheme.error.withValues(alpha: 0.12),
+              onTap: () {
+                _showLogoutDialog(context);
+              },
             ),
-            onTap: () {
-              _showLogoutDialog(context);
-            },
           ),
         ],
       ),
@@ -326,8 +413,23 @@ class _MenuSection extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
-              // TODO: Trigger logout via AuthBloc
+              print('🚪 Logout: User confirmed logout');
+              // Close dialog first
               Navigator.pop(ctx);
+
+              // Trigger logout
+              context.read<AuthBloc>().add(AuthLogoutRequested());
+
+              // Navigate to login page
+              context.router.pushPath('/');
+
+              // Show snackbar
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Berhasil logout'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
             },
             child: const Text('Logout'),
           ),

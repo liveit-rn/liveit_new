@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
+import '../network/dio_client.dart';
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -12,15 +13,25 @@ import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/profile/data/datasources/profile_remote_datasource.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
 
 final getIt = GetIt.instance;
 
 void configureDependencies() {
   // Core
-  getIt.registerLazySingleton<Dio>(() => Dio());
   getIt.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );
+
+  // DioClient with interceptors
+  getIt.registerLazySingleton<DioClient>(
+    () => DioClient(storage: getIt<FlutterSecureStorage>()),
+  );
+
+  // Legacy Dio for auth (will be migrated to DioClient)
+  getIt.registerLazySingleton<Dio>(() => Dio());
 
   // Auth DataSources
   getIt.registerLazySingleton<AuthRemoteDataSource>(
@@ -52,6 +63,18 @@ void configureDependencies() {
       checkUsernameAvailabilityUseCase: getIt(),
       claimUsernameUseCase: getIt(),
       authRepository: getIt(),
+    ),
+  );
+
+  // Profile DataSources
+  getIt.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSource(dioClient: getIt<DioClient>()),
+  );
+
+  // Profile Repository
+  getIt.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(
+      remoteDataSource: getIt<ProfileRemoteDataSource>(),
     ),
   );
 }

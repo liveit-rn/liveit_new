@@ -140,6 +140,8 @@ class _NavigationShellView extends StatelessWidget {
           context.read<NavigationBloc>().add(NavigationTabChanged(index));
         },
         borderRadius: BorderRadius.circular(12),
+        splashColor: colorScheme.primary.withOpacity(0.1),
+        highlightColor: colorScheme.primary.withOpacity(0.05),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
@@ -149,7 +151,7 @@ class _NavigationShellView extends StatelessWidget {
                 isActive ? activeIcon : icon,
                 color: isActive
                     ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant.withOpacity(0.6),
+                    : colorScheme.onSurfaceVariant.withOpacity(0.5),
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -158,8 +160,19 @@ class _NavigationShellView extends StatelessWidget {
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: isActive
                       ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant.withOpacity(0.6),
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                      : colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                  fontSize: 11,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Active indicator - underline
+              Container(
+                height: 2,
+                width: 32,
+                decoration: BoxDecoration(
+                  color: isActive ? colorScheme.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ],

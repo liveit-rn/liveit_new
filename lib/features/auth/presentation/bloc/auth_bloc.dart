@@ -41,16 +41,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     try {
+      logger.i('🔍 AuthCheck: Starting authentication check...');
       emit(AuthLoading());
 
       final isAuthenticated = await authRepository.isAuthenticated();
+      logger.i('🔍 AuthCheck: isAuthenticated = $isAuthenticated');
+
       if (isAuthenticated) {
+        logger.i('🔍 AuthCheck: Fetching current user from backend...');
         final user = await authRepository.getCurrentUser();
+        logger.i('🔍 AuthCheck: User fetched successfully');
+        logger.i('   - ID: ${user.id}');
+        logger.i('   - Email: ${user.email}');
+        logger.i('   - Username: ${user.username}');
+        logger.i('   - Name: ${user.name}');
+        logger.i('   - NeedsUsername: ${user.needsUsername}');
+
         emit(AuthAuthenticated(user));
       } else {
+        logger.w('🔍 AuthCheck: User not authenticated');
         emit(AuthUnauthenticated());
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logger.e(
+        '🔍 AuthCheck: Error during auth check',
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(AuthUnauthenticated());
     }
   }

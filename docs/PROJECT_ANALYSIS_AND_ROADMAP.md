@@ -37,7 +37,33 @@ The codebase has a solid foundation with the **Auth feature** being the most mat
 
 ---
 
-## 3. Detailed Roadmap
+## 3. Codebase Foundation Analysis (New)
+
+Before proceeding with feature development, the following fundamental gaps need addressing to ensure a scalable and developer-friendly environment.
+
+### 3.1 Routing & Navigation
+- **Current Status:** Uses `auto_route` with a `NavigationShellRoute`.
+- **Gap:** **Missing AuthGuard.** The app starts at `LoginRoute` by default. There is no mechanism (Guard or redirection logic) to check if a valid token exists and redirect logged-in users directly to `/home`.
+- **Action:** Implement `AuthGuard` in `AppRouter` to protect authenticated routes.
+
+### 3.2 Responsiveness
+- **Current Status:** Standard Flutter widgets. No specific responsiveness package found in `pubspec.yaml`.
+- **Gap:** Lack of consistent sizing strategy for different screen sizes (Mobile vs Tablet).
+- **Action:** Add `flutter_screenutil` for consistent adaptation or define a clear `MediaQuery` based utility class.
+
+### 3.3 Localization (i18n)
+- **Current Status:** `intl` package present, but `flutter_localizations` SDK dependency and `.arb` file generation setup are missing.
+- **Gap:** Hardcoded strings likely exist. Scaling to support ID/EN fully will be painful later.
+- **Action:** Configure `l10n.yaml`, add `flutter_localizations`, and move strings to `.arb` files.
+
+### 3.4 Global Error Handling
+- **Current Status:** `PrettyDioLogger` handles network logs.
+- **Gap:** No global error boundary (e.g., `runZonedGuarded`) to catch unhandled exceptions or UI crashes.
+- **Action:** Wrap `main()` in `runZonedGuarded` and set up a global error handler (even if just logging to console for now).
+
+---
+
+## 4. Detailed Roadmap
 
 Since you are learning Flutter, this roadmap is designed to build difficulty progressively.
 
@@ -75,7 +101,7 @@ Since you are learning Flutter, this roadmap is designed to build difficulty pro
 
 ---
 
-## 4. Codebase Feedback & Recommendations
+## 5. Codebase Feedback & Recommendations
 
 ### `lib/core/network/dio_client.dart`
 - **Verdict:** ✅ **Excellent.** You have `AuthInterceptor` and `FlutterSecureStorage` wired up correctly.
@@ -91,7 +117,7 @@ Since you are learning Flutter, this roadmap is designed to build difficulty pro
 - **Issue:** `updateAvatar(String avatarUrl)` implies you already have the URL.
 - **Fix:** You need a `uploadAvatar(File file)` method that hits the proxy endpoint.
 
-## 5. Next Steps for You
+## 6. Next Steps for You
 
 1.  **Read this document carefully.**
 2.  **Pick Phase 1 (Google Auth) OR Phase 2 (Profile Upload)** to start. Profile might be easier to debug visually.

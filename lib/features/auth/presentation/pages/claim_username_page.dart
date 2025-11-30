@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -51,6 +52,9 @@ class _ClaimUsernamePageState extends State<ClaimUsernamePage> {
   }
 
   Widget _buildUsernameStatusIcon() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final semantic = Theme.of(context).extension<AppSemanticColors>();
+
     if (_isCheckingUsername) {
       return const SizedBox(
         width: 20,
@@ -61,7 +65,9 @@ class _ClaimUsernamePageState extends State<ClaimUsernamePage> {
         _usernameController.text.length >= 3) {
       return Icon(
         _isUsernameAvailable ? Icons.check_circle : Icons.cancel,
-        color: _isUsernameAvailable ? Colors.green : Colors.red,
+        color: _isUsernameAvailable
+            ? (semantic?.success ?? colorScheme.primary)
+            : colorScheme.error,
       );
     }
     return const SizedBox.shrink();

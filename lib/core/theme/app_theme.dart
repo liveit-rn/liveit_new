@@ -35,9 +35,11 @@ class AppTheme {
   static const Color _successLight = Color(0xFF66BB6A);
   static const Color _warningLight = Color(0xFFF4A261);
   static const Color _infoLight = Color(0xFF4A90A4);
+  static const Color _highlightLight = Color(0xFFF9A826); // Faith yellow/orange
   static const Color _successDark = Color(0xFF81C784);
   static const Color _warningDark = Color(0xFFF4A261);
   static const Color _infoDark = Color(0xFF7FB3C2);
+  static const Color _highlightDark = Color(0xFFFFB74D); // Lighter faith yellow
 
   /// Light theme using the Grounded Growth palette.
   static ThemeData light() {
@@ -123,6 +125,7 @@ class AppTheme {
           success: _successLight,
           warning: _warningLight,
           info: _infoLight,
+          highlight: _highlightLight,
         ),
       ],
     );
@@ -212,6 +215,7 @@ class AppTheme {
           success: _successDark,
           warning: _warningDark,
           info: _infoDark,
+          highlight: _highlightDark,
         ),
       ],
     );
@@ -224,19 +228,27 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color success;
   final Color warning;
   final Color info;
+  final Color highlight; // Faith yellow/orange for streaks, achievements
 
   const AppSemanticColors({
     required this.success,
     required this.warning,
     required this.info,
+    required this.highlight,
   });
 
   @override
-  AppSemanticColors copyWith({Color? success, Color? warning, Color? info}) {
+  AppSemanticColors copyWith({
+    Color? success,
+    Color? warning,
+    Color? info,
+    Color? highlight,
+  }) {
     return AppSemanticColors(
       success: success ?? this.success,
       warning: warning ?? this.warning,
       info: info ?? this.info,
+      highlight: highlight ?? this.highlight,
     );
   }
 
@@ -247,6 +259,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
       info: Color.lerp(info, other.info, t)!,
+      highlight: Color.lerp(highlight, other.highlight, t)!,
     );
   }
 }

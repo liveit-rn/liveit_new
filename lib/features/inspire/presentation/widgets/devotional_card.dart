@@ -53,7 +53,7 @@ class _DevotionalCardState extends State<DevotionalCard> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: colorScheme.shadow.withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

@@ -6,12 +6,13 @@ class ChallengePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Challenge')),
-      body: const Center(
+      body: Center(
         child: Text(
           'Challenge Page - Coming Soon',
-          style: TextStyle(fontSize: 18),
+          style: theme.textTheme.bodyLarge,
         ),
       ),
     );

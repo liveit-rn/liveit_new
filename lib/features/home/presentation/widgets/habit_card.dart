@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class HabitCard extends StatelessWidget {
   final String title;
@@ -20,6 +21,8 @@ class HabitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final semantic = theme.extension<AppSemanticColors>();
+    final highlightColor = semantic?.highlight ?? colorScheme.tertiary;
 
     return GestureDetector(
       onTap: onToggle,
@@ -34,7 +37,7 @@ class HabitCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: colorScheme.shadow.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -104,19 +107,19 @@ class HabitCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF9A826).withValues(alpha: 0.1),
+                      color: highlightColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('🔥', style: TextStyle(fontSize: 14)),
+                        Text('🔥', style: theme.textTheme.labelMedium),
                         const SizedBox(width: 4),
                         Text(
                           '$streak',
                           style: theme.textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFFF9A826),
+                            color: highlightColor,
                           ),
                         ),
                       ],

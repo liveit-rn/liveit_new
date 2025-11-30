@@ -31,7 +31,7 @@ class ProgressRing extends StatelessWidget {
               backgroundColor: colorScheme.surfaceContainerHighest.withValues(
                 alpha: 0.3,
               ),
-              progressColor: Colors.white,
+              progressColor: colorScheme.onPrimary,
               strokeWidth: 8,
             ),
           ),

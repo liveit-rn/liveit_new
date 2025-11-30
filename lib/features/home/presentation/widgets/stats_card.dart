@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class StatsCard extends StatelessWidget {
   final IconData icon;
@@ -20,28 +21,33 @@ class StatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final semantic = theme.extension<AppSemanticColors>();
 
     Color bgColor;
     Color iconColor;
+    Color textOnBgColor; // WHY: untuk konsistensi warna text di atas bgColor
 
     switch (variant) {
       case 'primary':
-        bgColor = const Color(0xFFF9A826); // Faith yellow/orange
-        iconColor = Colors.white;
+        bgColor = semantic?.highlight ?? colorScheme.tertiary;
+        iconColor = colorScheme.onTertiary;
+        textOnBgColor = colorScheme.onTertiary;
         break;
       case 'success':
         bgColor = colorScheme.primary;
-        iconColor = Colors.white;
+        iconColor = colorScheme.onPrimary;
+        textOnBgColor = colorScheme.onPrimary;
         break;
       default:
         bgColor = colorScheme.surface;
         iconColor = colorScheme.onSurfaceVariant;
+        textOnBgColor = colorScheme.onSurface;
     }
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: variant == 'default' ? bgColor : bgColor,
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
         border: variant == 'default'
             ? Border.all(
@@ -51,7 +57,7 @@ class StatsCard extends StatelessWidget {
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: colorScheme.shadow.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -70,7 +76,7 @@ class StatsCard extends StatelessWidget {
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: variant == 'default'
                         ? colorScheme.onSurfaceVariant
-                        : Colors.white.withValues(alpha: 0.9),
+                        : textOnBgColor.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -84,7 +90,7 @@ class StatsCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: variant == 'default'
                   ? colorScheme.onSurface
-                  : Colors.white,
+                  : textOnBgColor,
             ),
           ),
           const SizedBox(height: 2),
@@ -93,7 +99,7 @@ class StatsCard extends StatelessWidget {
             style: theme.textTheme.labelSmall?.copyWith(
               color: variant == 'default'
                   ? colorScheme.onSurfaceVariant
-                  : Colors.white.withValues(alpha: 0.8),
+                  : textOnBgColor.withValues(alpha: 0.8),
             ),
           ),
         ],

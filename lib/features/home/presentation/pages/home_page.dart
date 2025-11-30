@@ -83,12 +83,7 @@ class _HomePageState extends State<HomePage> {
         _greetingPeriod[0].toUpperCase() + _greetingPeriod.substring(1);
 
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(
-        83,
-        79,
-        79,
-        1,
-      ), // DEBUG: warna merah terang!
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
           print('📱 HomePage: Current AuthState = ${authState.runtimeType}');
@@ -178,7 +173,7 @@ class _HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.red, // DEBUG: MERAH TERANG!
+        color: colorScheme.primary,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
@@ -201,7 +196,7 @@ class _HeaderCard extends StatelessWidget {
                     Text(
                       'Selamat $greeting, $name',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.95),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.95),
                         fontWeight: FontWeight.w800,
                         fontSize: 20,
                         letterSpacing: -0.3,
@@ -211,7 +206,7 @@ class _HeaderCard extends StatelessWidget {
                     Text(
                       dateLabel,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.85),
                         fontSize: 13,
                       ),
                     ),
@@ -222,13 +217,13 @@ class _HeaderCard extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '$completed dari $total habit selesai',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -245,14 +240,14 @@ class _HeaderCard extends StatelessWidget {
                     Text(
                       '$progress%',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       'Progress',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.82),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.82),
                       ),
                     ),
                   ],
@@ -264,7 +259,7 @@ class _HeaderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.28),
+              color: colorScheme.onPrimary.withValues(alpha: 0.28),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -311,18 +306,19 @@ class _HeaderStatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: Colors.white, size: 22),
+            Icon(icon, color: colorScheme.onPrimary, size: 22),
             const SizedBox(width: 8),
             Text(
               label,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.92),
+                color: colorScheme.onPrimary.withValues(alpha: 0.92),
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -333,7 +329,7 @@ class _HeaderStatChip extends StatelessWidget {
         Text(
           value,
           style: theme.textTheme.headlineSmall?.copyWith(
-            color: Colors.white,
+            color: colorScheme.onPrimary,
             fontWeight: FontWeight.w800,
             fontSize: 28,
           ),
@@ -343,7 +339,7 @@ class _HeaderStatChip extends StatelessWidget {
           Text(
             subtitle!,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.88),
+              color: colorScheme.onPrimary.withValues(alpha: 0.88),
               fontWeight: FontWeight.w500,
               fontSize: 12,
             ),
@@ -383,7 +379,7 @@ class _HabitGroupCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -542,7 +538,7 @@ class _HabitCheckbox extends StatelessWidget {
         ),
       ),
       child: completed
-          ? Icon(Icons.check_rounded, size: 20, color: Colors.white)
+          ? Icon(Icons.check_rounded, size: 20, color: colorScheme.onTertiary)
           : null,
     );
   }
@@ -585,7 +581,7 @@ class _HabitTrailingBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 14)),
+          Text('🔥', style: theme.textTheme.labelMedium),
           const SizedBox(width: 4),
           Text(
             '$streak hari',
@@ -628,7 +624,7 @@ class _CommunityCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: colorScheme.shadow.withValues(alpha: 0.05),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),

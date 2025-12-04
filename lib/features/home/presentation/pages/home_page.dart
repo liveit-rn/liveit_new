@@ -5,6 +5,11 @@ import 'package:intl/intl.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../habit_tracker/domain/entities/user_habit.dart';
+import '../../../habit_tracker/presentation/bloc/habit_bloc.dart';
+import '../../../habit_tracker/presentation/bloc/habit_event.dart';
+import '../../../habit_tracker/presentation/bloc/habit_state.dart';
+import '../../../../core/router/app_router.dart';
 import '../widgets/progress_ring.dart';
 
 @RoutePage()
@@ -16,50 +21,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, dynamic>> _habits = [
-    {
-      'id': 1,
-      'title': 'Doa Pagi',
-      'description': '5 menit bersama Tuhan',
-      'completed': true,
-      'streak': 7,
-    },
-    {
-      'id': 2,
-      'title': 'Baca Alkitab',
-      'description': '1 pasal per hari',
-      'completed': true,
-      'streak': 12,
-    },
-    {
-      'id': 3,
-      'title': 'Meditasi Firman',
-      'description': 'Refleksi & jurnal',
-      'completed': false,
-      'streak': 3,
-    },
-    {
-      'id': 4,
-      'title': 'Doa Malam',
-      'description': 'Syukur atas hari ini',
-      'completed': false,
-      'streak': 5,
-    },
-  ];
-
-  void _toggleHabit(int id) {
-    setState(() {
-      final index = _habits.indexWhere((h) => h['id'] == id);
-      if (index != -1) {
-        _habits[index]['completed'] = !_habits[index]['completed'];
-      }
-    });
+  void _toggleHabit(String userHabitId, bool isCompleted) {
+    final bloc = context.read<HabitBloc>();
+    final now = DateTime.now();
+    if (isCompleted) {
+      bloc.add(HabitUndoCheckInRequested(userHabitId: userHabitId, date: now));
+    } else {
+      bloc.add(HabitCheckInRequested(userHabitId: userHabitId, date: now));
+    }
   }
-
-  int get completedToday => _habits.where((h) => h['completed'] == true).length;
-  int get totalHabits => _habits.length;
-  int get progress =>
-      totalHabits == 0 ? 0 : ((completedToday / totalHabits) * 100).round();
 
   String get _greetingPeriod {
     final hour = DateTime.now().hour;
@@ -74,7 +44,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print('🔴🔴🔴 HOMEPAGE BARU DI-RENDER! 🔴🔴🔴');
     final String dateLabel = DateFormat(
       'EEEE, d MMM',
       'id_ID',
@@ -84,63 +53,90 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await context.router.push(const AddHabitRoute());
+          if (result == true && context.mounted) {
+            context.read<HabitBloc>().add(HabitStarted());
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
-          print('📱 HomePage: Current AuthState = ${authState.runtimeType}');
-
           // Get user's first name from auth state
           String userFirstName = 'User'; // default fallback
 
           if (authState is AuthAuthenticated) {
             final user = authState.user;
-            print('👤 User ID: ${user.id}');
-            print('📧 User Email: ${user.email}');
-            print('🏷️ User Username: ${user.username}');
-            print('📝 User Name: ${user.name}');
-
             // Priority: name -> username -> email (before @)
             final name =
                 user.name ?? user.username ?? user.email.split('@').first;
             // Get first word as first name
             userFirstName = name.split(' ').first;
-
-            print('✅ Displaying as: $userFirstName');
-          } else {
-            print(
-              '⚠️ NOT AUTHENTICATED - Auth state: ${authState.runtimeType}',
-            );
           }
 
-          return SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _HeaderCard(
-                        greeting: capitalisedGreeting,
-                        name: userFirstName,
-                        dateLabel: dateLabel,
-                        completed: completedToday,
-                        total: totalHabits,
-                        progress: progress,
+          return BlocBuilder<HabitBloc, HabitState>(
+            builder: (context, habitState) {
+              int completedToday = 0;
+              int totalHabits = 0;
+              int progress = 0;
+              List<UserHabit> habits = [];
+              bool isLoading = habitState is HabitLoading;
+              String? errorMessage;
+
+              if (habitState is HabitLoaded) {
+                habits = habitState.habits;
+                completedToday = habitState.completedToday;
+                totalHabits = habitState.totalHabits;
+                progress = habitState.progress;
+              } else if (habitState is HabitError) {
+                errorMessage = habitState.message;
+              }
+
+              return SafeArea(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          _HeaderCard(
+                            greeting: capitalisedGreeting,
+                            name: userFirstName,
+                            dateLabel: dateLabel,
+                            completed: completedToday,
+                            total: totalHabits,
+                            progress: progress,
+                          ),
+                          const SizedBox(height: 24),
+                          if (errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: Text(
+                                'Error: $errorMessage',
+                                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                              ),
+                            ),
+                          if (isLoading && habits.isEmpty)
+                            const Center(child: CircularProgressIndicator())
+                          else
+                            _HabitGroupCard(
+                              habits: habits,
+                              onToggle: _toggleHabit,
+                              completedToday: completedToday,
+                              totalHabits: totalHabits,
+                            ),
+                          const SizedBox(height: 24),
+                          _CommunityCard(),
+                        ]),
                       ),
-                      const SizedBox(height: 24),
-                      _HabitGroupCard(
-                        habits: _habits,
-                        onToggle: _toggleHabit,
-                        completedToday: completedToday,
-                        totalHabits: totalHabits,
-                      ),
-                      const SizedBox(height: 24),
-                      _CommunityCard(),
-                    ]),
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
@@ -351,8 +347,8 @@ class _HeaderStatChip extends StatelessWidget {
 }
 
 class _HabitGroupCard extends StatelessWidget {
-  final List<Map<String, dynamic>> habits;
-  final ValueChanged<int> onToggle;
+  final List<UserHabit> habits;
+  final void Function(String, bool) onToggle;
   final int completedToday;
   final int totalHabits;
 
@@ -419,7 +415,7 @@ class _HabitGroupCard extends StatelessWidget {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: completedToday == totalHabits
+                  color: completedToday == totalHabits && totalHabits > 0
                       ? colorScheme.tertiary.withValues(alpha: 0.15)
                       : colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(18),
@@ -427,7 +423,7 @@ class _HabitGroupCard extends StatelessWidget {
                 child: Text(
                   '$completedToday/$totalHabits',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: completedToday == totalHabits
+                    color: completedToday == totalHabits && totalHabits > 0
                         ? colorScheme.tertiary
                         : colorScheme.primary,
                     fontWeight: FontWeight.w700,
@@ -438,12 +434,25 @@ class _HabitGroupCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
+          if (habits.isEmpty)
+             Padding(
+               padding: const EdgeInsets.symmetric(vertical: 20),
+               child: Center(
+                 child: Text(
+                   'Belum ada habit. Tambahkan sekarang!',
+                   style: theme.textTheme.bodyMedium?.copyWith(
+                     color: colorScheme.onSurfaceVariant,
+                   ),
+                 ),
+               ),
+             )
+          else
           ...List.generate(habits.length, (index) {
             final habit = habits[index];
-            final bool completed = habit['completed'] == true;
-            final String title = habit['title'] as String;
-            final String description = habit['description'] as String;
-            final int streak = habit['streak'] as int;
+            final bool completed = habit.checkedInToday;
+            final String title = habit.title ?? habit.habit?.name ?? 'Untitled';
+            final String description = habit.notes ?? habit.habit?.description ?? '';
+            final int streak = habit.currentStreak;
 
             return Column(
               children: [
@@ -451,7 +460,7 @@ class _HabitGroupCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                   splashColor: colorScheme.primary.withValues(alpha: 0.08),
                   highlightColor: colorScheme.primary.withValues(alpha: 0.04),
-                  onTap: () => onToggle(habit['id'] as int),
+                  onTap: () => onToggle(habit.id, completed),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     child: Row(
@@ -474,16 +483,18 @@ class _HabitGroupCard extends StatelessWidget {
                                       : colorScheme.onSurface,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                description,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  decoration: completed
-                                      ? TextDecoration.lineThrough
-                                      : null,
+                              if (description.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  description,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    decoration: completed
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

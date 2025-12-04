@@ -16,6 +16,10 @@ import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/profile/data/datasources/profile_remote_datasource.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/habit_tracker/data/datasources/habit_remote_data_source.dart';
+import '../../features/habit_tracker/data/repositories/habit_repository_impl.dart';
+import '../../features/habit_tracker/domain/repositories/habit_repository.dart';
+import '../../features/habit_tracker/presentation/bloc/habit_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -77,4 +81,20 @@ void configureDependencies() {
       remoteDataSource: getIt<ProfileRemoteDataSource>(),
     ),
   );
+
+  // Habit Tracker Feature
+  getIt.registerLazySingleton<HabitRemoteDataSource>(
+    () => HabitRemoteDataSourceImpl(getIt<DioClient>()),
+  );
+
+  getIt.registerLazySingleton<HabitRepository>(
+    () => HabitRepositoryImpl(
+      remoteDataSource: getIt<HabitRemoteDataSource>(),
+    ),
+  );
+
+  getIt.registerFactory<HabitBloc>(
+    () => HabitBloc(repository: getIt<HabitRepository>()),
+  );
 }
+

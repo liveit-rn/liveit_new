@@ -168,9 +168,36 @@ Current Status:
 
 Next Steps:
 
-- Hook ke HomeBloc ketika data tersedia dan tulis widget test untuk memastikan struktur baru stabil.
-Update (2025-10-19):
 
-- Action: `README.md` updated with project overview, quickstart, architecture notes, and contribution guidelines.
-- Impact: Improves onboarding for new contributors; points to `docs/`, `decisions.md`, and memory file for further context.
-- Next Steps: Consider adding CI scripts and platform-specific setup instructions to README if requested.
+---
+
+Initial Ask (2025-12-03):
+
+- Implement Habit Tracker feature following `docs/liveit-habbitTracker-feature.md` and `docs/flutter_integration_fromBackend_guide.md`.
+
+Initial Response:
+
+- Analyzed codebase, created feature structure `lib/features/habit_tracker`. Implemented Data, Domain, and Presentation layers.
+
+Checklist:
+
+- [x] Define Models (`Habit`, `UserHabit`, `HabitCheckinResponse`)
+- [x] Implement `HabitRemoteDataSource` with `DioClient`
+- [x] Implement `HabitRepository`
+- [x] Implement `HabitBloc` (Load, CheckIn, Undo, Add)
+- [x] Register dependencies in `service_locator.dart`
+- [x] Integrate `HabitBloc` into `RoutinePage`/`HomePage`
+- [x] Create `AddHabitPage` and add to Router
+- [x] Implement "Add Habit" FAB in `HomePage`
+
+Current Status:
+
+- Feature implemented. UI updated to use real Bloc (which calls API).
+- `HomePage` displays habit list and handles check-ins.
+- `AddHabitPage` allows adding from catalog or custom.
+
+Next Steps:
+
+- Verify integration with running backend.
+- Implement gamification visual feedback (animations).
+- Add offline caching (Hive) if needed for robust offline support (currently relies on API).

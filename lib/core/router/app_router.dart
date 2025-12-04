@@ -6,6 +6,7 @@ import 'package:liveit_new/features/library/presentation/pages/habits_page.dart'
 import 'package:liveit_new/features/profile/presentation/pages/profile_page.dart';
 import 'package:liveit_new/features/auth/presentation/pages/register_page.dart';
 import 'package:liveit_new/features/auth/presentation/pages/claim_username_page.dart';
+import '../../features/habit_tracker/presentation/pages/add_habit_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/home/presentation/pages/routine_page.dart';
 
@@ -31,5 +32,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ProfileRoute.page, path: 'profile'),
       ],
     ),
+    AutoRoute(page: AddHabitRoute.page, path: '/add-habit'),
   ];
 }

@@ -168,8 +168,34 @@ Current Status:
 
 Next Steps:
 
-
 ---
+
+Initial Ask (2025-12-27):
+
+- Buat dokumen gambaran besar architecture feature Articles/Daily Devotional dan panduan implementasi Flutter (state management, DTO, data flow), tanpa menulis kode.
+
+Initial Response:
+
+- Meninjau kontrak backend/CMS pada folder `docs/devotional-page/*` (public endpoints, cursor pagination, contentJson/ProseMirror) dan menyusun panduan implementasi yang boring + type-safe.
+
+Checklist:
+
+- [x] Ringkas kontrak API public untuk mobile (`GET /articles/public`, `GET /articles/public/:slug`)
+- [x] Tetapkan fetch rule devotional untuk MVP: `section=devotional`, urutan `publishedAt desc`
+- [x] Catat timezone handling MVP: server UTC, client hanya formatting untuk display
+- [x] Definisikan guideline DTO + mapping rules + repository contract
+- [x] Definisikan guideline state management (Bloc) untuk feed & detail
+- [x] Tegaskan strategi reader: render dari `contentJson` (ProseMirror) bukan HTML mentah
+- [x] Tegaskan scope MVP: like endpoint belum ada → UI like ditunda
+
+Current Status:
+
+- Dokumen panduan tersedia di `docs/skills/articles-devotional-flutter-architecture.md` dan sudah diselaraskan dengan kontrak backend.
+
+Next Steps:
+
+- Flutter team implement feed + detail berdasarkan dokumen.
+- Keputusan MVP sudah dikunci: navigasi pakai `slug` (simpan `id` untuk cursor/cache/analytics), renderer v1 pakai minimum node set, embed provider YouTube-only.
 
 Initial Ask (2025-12-03):
 

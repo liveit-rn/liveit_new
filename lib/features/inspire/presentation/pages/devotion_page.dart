@@ -26,7 +26,7 @@ class DevotionPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Firman Tuhan untuk menguatkan imanmu',
+                      'Hidupi Firman Tuhan dalam tindakan nyata',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

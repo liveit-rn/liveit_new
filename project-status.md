@@ -197,6 +197,14 @@ Next Steps:
 - Flutter team implement feed + detail berdasarkan dokumen.
 - Keputusan MVP sudah dikunci: navigasi pakai `slug` (simpan `id` untuk cursor/cache/analytics), renderer v1 pakai minimum node set, embed provider YouTube-only.
 
+Update (2025-12-27):
+
+- Menambahkan “Done criteria” per step, daftar failure modes wajib, dan template sample payload fixtures (list + detail + optional 404) ke `docs/skills/articles-devotional-flutter-architecture.md` agar implementasi bisa dikerjakan mandiri tanpa AI dan lebih mudah dites.
+
+Update (2025-12-27):
+
+- Menyesuaikan section fixtures (12.3) agar mengikuti shape server-accurate dari `docs/devotional-page/ARTICLES_PUBLIC_API_RESPONSES.md` (field list/detail, catatan `nextCursor` bisa di-omit).
+
 Initial Ask (2025-12-03):
 
 - Implement Habit Tracker feature following `docs/liveit-habbitTracker-feature.md` and `docs/flutter_integration_fromBackend_guide.md`.

@@ -398,6 +398,12 @@ Output yang harus kamu punya setelah step ini:
 
 - Satu catatan kontrak (bisa copy dari dokumen ini) yang jadi pegangan saat bikin DTO/repository.
 
+Cek berhasil (done criteria):
+
+- Kamu bisa jawab tanpa buka dokumen lagi: endpoint apa untuk feed dan detail, filter devotional-nya apa, dan cursor param harus bagaimana.
+- Kamu sudah sepakat “batas MVP”: like skip, embed YouTube-only, render dari `contentJson` (bukan HTML).
+- Kamu punya catatan singkat (di dokumen / notes pribadi) berisi field minimal yang wajib ada di list item dan detail.
+
 ### Step 2 — Buat DTO (data layer) + JSON parsing rules
 
 Implement DTO sesuai `ArticlePublic` di backend guide.
@@ -430,6 +436,12 @@ Rules:
 - Parse `publishedAt` sebagai UTC (`DateTime.parse(...).toUtc()`), dan baru `toLocal()` saat display.
 - `contentJson` untuk list endpoint: boleh saja tidak ada / minimal (tergantung server). Jangan asumsi feed selalu bawa full doc.
 
+Cek berhasil (done criteria):
+
+- Kamu bisa parse response list dan response detail ke DTO tanpa crash ketika field optional null/missing.
+- Kamu punya minimal 2 fixture JSON (1 list, 1 detail) yang bisa dipakai untuk unit test parsing.
+- Kamu sudah memastikan rule cursor pair diterapkan: tidak ada kondisi “createdAt ada tapi id null” yang lolos.
+
 ### Step 3 — Buat Remote Data Source (HTTP) dengan request params yang jelas
 
 Checklist fungsi yang kamu butuhkan:
@@ -449,6 +461,13 @@ Error handling minimal:
 - 5xx/timeout/no-network → `NetworkError`
 - 4xx (selain 404) → `ApiError`
 - parse JSON gagal → `ParseError`
+
+Cek berhasil (done criteria):
+
+- Request list tanpa cursor tidak mengirim param cursor apa pun.
+- Request list dengan cursor selalu mengirim **dua** param: `cursorCreatedAt` dan `cursorId`.
+- 404 pada detail bisa dibedakan dari error lain (supaya UI bisa tampil “tidak ditemukan”).
+- Ada minimal 1 unit test / sanity check yang memastikan mapping status code → error type sesuai daftar di atas.
 
 ### Step 4 — Buat Domain model + mapping DTO → domain
 
@@ -475,6 +494,12 @@ Mapping rules:
 - Fail fast di mapping jika field wajib missing.
 - `nextCursor` diperlakukan opaque: simpan dan kirim kembali apa adanya.
 
+Cek berhasil (done criteria):
+
+- UI layer tidak lagi butuh akses ke JSON mentah untuk title/slug/publishedAt.
+- Domain model bersifat immutable (setidaknya secara kebiasaan: tidak dimutasi setelah dibuat).
+- Mapping gagal cepat untuk field wajib (lebih baik fail fast daripada silent bug).
+
 ### Step 5 — Buat Repository (domain contract + impl)
 
 Checklist:
@@ -487,6 +512,12 @@ Checklist:
 1. Impl memanggil remote datasource
 1. Impl melakukan mapping DTO → domain
 1. Impl translate error ke domain error
+
+Cek berhasil (done criteria):
+
+- Semua caller di atas repository cukup menangani 3–5 tipe error domain (bukan error teknis HTTP).
+- Repository tidak “bocorin” detail cursor. UI cuma pegang `nextCursor` sebagai token.
+- Ada test mapping error teknis → error domain (minimal 2 skenario: network + 404 detail).
 
 ### Step 6 — Implement state management (2 Bloc)
 
@@ -507,12 +538,23 @@ Kontrak UX:
 - Pagination error tidak boleh menghapus items yang sudah ada.
 - Ketika `nextCursor == null`: UI stop infinite scroll.
 
+Cek berhasil (done criteria):
+
+- State feed tidak pernah punya kondisi illegal (misalnya: `loading` tapi juga punya `error` untuk request yang sama).
+- Pagination error **tidak** menghapus items yang sudah sukses dimuat sebelumnya.
+- Refresh selalu menghasilkan state yang konsisten: items reset dulu, lalu load ulang.
+
 #### 6B) Detail bloc
 
 Checklist behavior:
 
 1. Start(slug) → load detail
 2. Handle 404 seperti “Artikel tidak ditemukan” (bukan generic error)
+
+Cek berhasil (done criteria):
+
+- Kamu bisa deep-link ke sebuah slug dan state detail akan: loading → success atau loading → notFound.
+- Error network untuk detail tidak tersamar jadi notFound.
 
 ### Step 7 — Wiring UI: `DevotionPage` (feed)
 
@@ -532,6 +574,13 @@ Checklist:
 
 - tampilkan retry yang memicu `Refreshed`
 
+Cek berhasil (done criteria):
+
+- Initial load: tampilan loading → list items.
+- Infinite scroll: ada indikator loading di bagian bawah, dan tidak memicu multi-request bersamaan.
+- Empty state: copy tampil dan sesuai tone LIVEIT (actionable), tidak “kosong tanpa arah”.
+- Error state: tombol retry jelas dan benar-benar memicu reload.
+
 ### Step 8 — Buat Reader page (detail)
 
 Checklist UI:
@@ -545,6 +594,12 @@ Checklist UI:
 
 - jika contentJson empty/invalid → tampilkan “Konten tidak dapat ditampilkan”
 
+Cek berhasil (done criteria):
+
+- Reader tidak crash walaupun `contentJson` invalid / node tidak dikenal.
+- Link di konten (mark link) bisa ditekan (minimal: muncul intent/handler).
+- Jika 404: user dapat pesan “Artikel tidak ditemukan” dan punya jalan kembali.
+
 ### Step 9 — Implement renderer v1 (minimum)
 
 Ikuti spec renderer v1.
@@ -557,6 +612,12 @@ Checklist minimal done:
 - embed YouTube-only
 - unknown nodes → safe fallback
 
+Cek berhasil (done criteria):
+
+- Renderer mampu render fixture JSON untuk tiap node yang didukung.
+- Jika menemukan node/mark unknown: renderer tidak throw, dan output tetap terbaca (fallback).
+- Embed selain YouTube tidak dirender (atau dirender sebagai fallback text/link), sesuai batas MVP.
+
 ### Step 10 — Tests (paling worth it untuk menghindari regresi)
 
 Minimal tests yang murah tapi impactful:
@@ -566,6 +627,209 @@ Minimal tests yang murah tapi impactful:
 3. Feed bloc: success page 1, next page, stop when nextCursor null
 4. Detail bloc: success + 404
 5. Renderer: fixtures JSON (heading/paragraph/list/image/youtube)
+
+Cek berhasil (done criteria):
+
+- Ada minimal 1 test per layer (DTO parsing, mapping, feed bloc, detail bloc, renderer).
+- Kamu punya fixture JSON yang disimpan rapi agar gampang ditambah ketika backend menambah node type.
+
+---
+
+## 12.2 Failure modes wajib kamu cover (biar implementasi tahan banting)
+
+Tujuan bagian ini: kamu tahu “bug paling mungkin” yang akan kejadian, lalu kamu paksa sistemmu aman lewat kontrak tipe + tests + UI fallback.
+
+### Cursor & pagination
+
+1. Cursor pair tidak lengkap
+
+- Kasus: `cursorCreatedAt` ada tapi `cursorId` kosong (atau kebalikannya).
+- Harus terjadi: request **jangan dikirim** (fail fast) + error yang jelas untuk developer.
+
+1. Next page dipanggil berulang
+
+- Kasus: user scroll cepat; trigger `NextPageRequested` berkali-kali.
+- Harus terjadi: hanya **1 request pagination aktif**; event lainnya diabaikan/ditahan.
+
+1. `nextCursor == null`
+
+- Kasus: server bilang tidak ada halaman berikut.
+- Harus terjadi: UI stop infinite scroll (tidak ada request tambahan).
+
+1. Pagination error tidak boleh “menghilangkan” data
+
+- Kasus: page 1 sukses, page 2 500/timeout.
+- Harus terjadi: items page 1 tetap tampil + tampilkan error ringan (banner/snackbar/row error), bukan blank screen.
+
+### Feed loading & refresh
+
+1. Refresh saat sedang pagination
+
+- Kasus: user pull-to-refresh ketika sedang load next page.
+- Harus terjadi: tentukan policy dan konsisten (umumnya: cancel/ignore pagination lalu refresh dari awal).
+
+1. Empty state
+
+- Kasus: server mengembalikan `items: []`.
+- Harus terjadi: empty state tampil dengan copy yang actionable (sesuai brand voice), bukan hanya placeholder.
+
+### Detail (Reader)
+
+1. 404 harus dibedakan dari network error
+
+- Kasus: `GET /articles/public/:slug` 404 vs timeout.
+- Harus terjadi: 404 → “Artikel tidak ditemukan”; timeout → “Koneksi bermasalah” + retry.
+
+1. Slug invalid / karakter aneh
+
+- Kasus: slug dari deep link invalid.
+- Harus terjadi: treated sebagai not found / invalid input (tidak crash).
+
+### Renderer v1 (ProseMirror JSON)
+
+1. Unknown node/mark
+
+- Kasus: backend/cms menambah node baru (misal blockquote) sebelum app update.
+- Harus terjadi: renderer fallback aman (skip / placeholder text), tidak throw.
+
+1. Asset reference missing
+
+- Kasus: node image refer ke asset id yang tidak ada di manifest.
+- Harus terjadi: tampilkan placeholder (atau skip image) + jangan crash.
+
+1. Embed non-YouTube
+
+- Kasus: embed provider lain muncul.
+- Harus terjadi: tidak dirender sebagai embed; fallback sebagai link/text.
+
+---
+
+## 12.3 Sample payload (fixtures) untuk testing (tanpa secrets)
+
+Tujuan bagian ini: kamu bisa bikin unit test parsing/mapping tanpa harus "nembak-nembak" bentuk JSON dari backend.
+
+Catatan:
+
+- Sample di bawah ini mengikuti **shape server-accurate** dari `docs/devotional-page/ARTICLES_PUBLIC_API_RESPONSES.md`.
+- Kamu tetap boleh mengganti nilai string dengan `...` (redaction), tapi jangan ubah nama field/struktur.
+- Idealnya fixture kamu berasal dari response real dari:
+
+1. `GET /articles/public?section=devotional&limit=2`
+1. `GET /articles/public/:slug`
+
+### A) Response list (public feed)
+
+Butuh minimal:
+
+- 2 item (biar bisa test list rendering)
+- Ada `nextCursor` (biar bisa test pagination)
+
+Tempel JSON response (redact value sensitif kalau ada):
+
+```json
+{
+  "items": [
+    {
+      "id": "...",
+      "title": "...",
+      "subtitle": null,
+      "slug": "...",
+      "snippet": null,
+      "coverImage": null,
+      "coverAssetId": null,
+      "coverAsset": { "url": "..." },
+      "authorDisplayName": "...",
+      "tags": [],
+      "section": "devotional",
+      "seriesId": null,
+      "seriesOrder": 0,
+      "wordCount": 0,
+      "readingTimeMinutes": 0,
+      "contentVersion": 1,
+      "publishedAt": "2025-12-27T00:00:00.000Z",
+      "createdAt": "2025-12-27T00:00:00.000Z",
+      "updatedAt": "2025-12-27T00:00:00.000Z",
+      "coverUrl": "..."
+    }
+  ],
+  "nextCursor": {
+    "createdAt": "2025-12-27T00:00:00.000Z",
+    "id": "..."
+  }
+}
+```
+
+Catatan penting:
+
+- List endpoint **tidak** mengirim `contentJson` / `contentHtml`.
+- Ketika tidak ada hasil berikutnya, `nextCursor` bisa **di-omit** (service mengembalikan `undefined`) atau jadi `null` tergantung serialization.
+
+### B) Response detail (public by slug)
+
+Butuh minimal:
+
+- `contentJson` yang punya setidaknya:
+  - 1 heading
+  - 2 paragraph
+  - 1 list
+  - 1 image node (kalau ada di CMS)
+  - 1 YouTube embed (kalau ada di CMS)
+- `assets` manifest yang cukup untuk resolve image referenced
+
+Tempel JSON response (redact value sensitif kalau ada):
+
+```json
+{
+  "id": "...",
+  "title": "...",
+  "subtitle": null,
+  "slug": "...",
+  "snippet": null,
+  "contentJson": {
+    "type": "doc",
+    "content": []
+  },
+  "contentHtml": null,
+  "coverUrl": "...",
+  "authorDisplayName": "...",
+  "tags": [],
+  "section": "devotional",
+  "seriesId": null,
+  "seriesOrder": 0,
+  "wordCount": 0,
+  "readingTimeMinutes": 0,
+  "contentVersion": 1,
+  "publishedAt": "2025-12-27T00:00:00.000Z",
+  "createdAt": "2025-12-27T00:00:00.000Z",
+  "updatedAt": "2025-12-27T00:00:00.000Z",
+  "assets": [
+    {
+      "id": "...",
+      "kind": "IMAGE",
+      "url": "https://...",
+      "mime": "image/jpeg",
+      "sizeBytes": 1234,
+      "width": 1080,
+      "height": 720,
+      "durationSeconds": null
+    }
+  ]
+}
+```
+
+### C) Optional: contoh error 404
+
+Kalau kamu bisa capture bentuk error body (kalau ada), tempel juga. Kalau server 404 tanpa body, itu juga ok.
+
+Kalau backend kamu pakai default NestJS response body, bentuknya biasanya:
+
+```json
+{
+  "statusCode": 404,
+  "message": "Article not found",
+  "error": "Not Found"
+}
+```
 
 ---
 

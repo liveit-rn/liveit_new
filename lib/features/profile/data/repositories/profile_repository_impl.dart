@@ -26,6 +26,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<void> updateTimezone(String timezone) async {
+    await _remoteDataSource.updateTimezone(timezone);
+  }
+
+  @override
   Future<void> deleteAccount() async {
     await _remoteDataSource.deleteProfile();
   }

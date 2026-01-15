@@ -34,7 +34,7 @@ class ProfileRemoteDataSource {
   /// Update profile display name
   Future<ProfileModel> updateDisplayName(String displayName) async {
     try {
-      final response = await _dioClient.patch(
+      final response = await _dioClient.put(
         '/profiles/me',
         data: {'displayName': displayName},
       );
@@ -57,7 +57,7 @@ class ProfileRemoteDataSource {
   /// Update profile avatar
   Future<ProfileModel> updateAvatar(String avatarUrl) async {
     try {
-      final response = await _dioClient.patch(
+      final response = await _dioClient.put(
         '/profiles/me',
         data: {'avatarUrl': avatarUrl},
       );
@@ -80,7 +80,7 @@ class ProfileRemoteDataSource {
   /// Update profile timezone (silent sync)
   Future<ProfileModel> updateTimezone(String timezone) async {
     try {
-      final response = await _dioClient.patch(
+      final response = await _dioClient.put(
         '/profiles/me',
         data: {'timezone': timezone},
       );

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../../domain/usecases/check_username_availability_usecase.dart';
 import '../../domain/usecases/claim_username_usecase.dart';
@@ -6,6 +7,7 @@ import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../../profile/domain/repositories/profile_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -16,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase;
   final ClaimUsernameUseCase claimUsernameUseCase;
   final AuthRepository authRepository;
+  final ProfileRepository profileRepository;
   final Logger logger = Logger();
 
   AuthBloc({
@@ -25,6 +28,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.checkUsernameAvailabilityUseCase,
     required this.claimUsernameUseCase,
     required this.authRepository,
+    required this.profileRepository,
   }) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<AuthRegisterRequested>(_onAuthRegisterRequested);
@@ -34,6 +38,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _onUsernameAvailabilityCheckRequested,
     );
     on<UsernameClaimRequested>(_onUsernameClaimRequested);
+  }
+
+  /// Get device timezone in IANA format
+  String _getDeviceTimezone() {
+    final offset = DateTime.now().timeZoneOffset;
+    final hours = offset.inHours;
+    switch (hours) {
+      case 7:
+        return 'Asia/Jakarta';
+      case 8:
+        return 'Asia/Makassar';
+      case 9:
+        return 'Asia/Jayapura';
+      default:
+        return hours >= 0 ? 'Etc/GMT-$hours' : 'Etc/GMT+${hours.abs()}';
+    }
+  }
+
+  /// Silent timezone sync - ensures profile has timezone before proceeding
+  Future<void> _ensureTimezoneSync() async {
+    try {
+      final profile = await profileRepository.fetchProfile();
+      if (profile.timezone == null || profile.timezone!.isEmpty) {
+        final deviceTimezone = _getDeviceTimezone();
+        await profileRepository.updateTimezone(deviceTimezone);
+        debugPrint('[AuthBloc] Timezone synced: $deviceTimezone');
+      }
+    } catch (e) {
+      // Silent fail - don't block auth flow
+      debugPrint('[AuthBloc] Timezone sync failed (silent): $e');
+    }
   }
 
   Future<void> _onAuthCheckRequested(
@@ -56,6 +91,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         logger.i('   - Username: ${user.username}');
         logger.i('   - Name: ${user.name}');
         logger.i('   - NeedsUsername: ${user.needsUsername}');
+
+        // Ensure timezone is synced before proceeding
+        await _ensureTimezoneSync();
 
         emit(AuthAuthenticated(user));
       } else {
@@ -90,6 +128,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       logger.i('✅ Register successful! User ID: ${authResponse.user.id}');
       logger.d('📋 User data: ${authResponse.user.toString()}');
 
+      // Ensure timezone is synced before proceeding
+      await _ensureTimezoneSync();
+
       emit(AuthAuthenticated(authResponse.user));
     } catch (e, stackTrace) {
       logger.e('❌ Register failed', error: e, stackTrace: stackTrace);
@@ -113,6 +154,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       logger.i('✅ Login successful! User ID: ${authResponse.user.id}');
       logger.d('📋 User data: ${authResponse.user.toString()}');
+
+      // Ensure timezone is synced before proceeding
+      await _ensureTimezoneSync();
 
       emit(AuthAuthenticated(authResponse.user));
     } catch (e, stackTrace) {

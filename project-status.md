@@ -235,3 +235,29 @@ Next Steps:
 - Verify integration with running backend.
 - Implement gamification visual feedback (animations).
 - Add offline caching (Hive) if needed for robust offline support (currently relies on API).
+
+---
+
+Initial Ask (2026-01-15):
+
+- Update Devotion page to fetch articles from `GET /articles/public`.
+
+Initial Response:
+
+- Added a small remote datasource + DTOs for the public feed.
+- Updated DevotionPage to load `section=devotional` and render `DevotionalCard` from API data.
+
+Checklist:
+
+- [x] Add DTOs for `/articles/public` response
+- [x] Add remote datasource using `DioClient`
+- [x] Register datasource in DI
+- [x] Replace hardcoded cards with API-driven list + loading/error/empty states
+
+Current Status:
+
+- DevotionPage now fetches and displays devotional articles from backend.
+
+Next Steps:
+
+- Implement article detail page and route by `slug` (`GET /articles/public/{slug}`).

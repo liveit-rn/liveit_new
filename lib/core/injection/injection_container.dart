@@ -20,6 +20,7 @@ import '../../features/habit_tracker/data/datasources/habit_remote_data_source.d
 import '../../features/habit_tracker/data/repositories/habit_repository_impl.dart';
 import '../../features/habit_tracker/domain/repositories/habit_repository.dart';
 import '../../features/habit_tracker/presentation/bloc/habit_bloc.dart';
+import '../../features/inspire/data/datasources/articles_public_remote_datasource.dart';
 
 final getIt = GetIt.instance;
 
@@ -94,5 +95,10 @@ void configureDependencies() {
 
   getIt.registerFactory<HabitBloc>(
     () => HabitBloc(repository: getIt<HabitRepository>()),
+  );
+
+  // Inspire / Articles (public)
+  getIt.registerLazySingleton<ArticlesPublicRemoteDataSource>(
+    () => ArticlesPublicRemoteDataSource(dioClient: getIt<DioClient>()),
   );
 }

@@ -27,6 +27,58 @@ class AddHabitRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [ArticleDetailPage]
+class ArticleDetailRoute extends PageRouteInfo<ArticleDetailRouteArgs> {
+  ArticleDetailRoute({
+    required String slug,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         ArticleDetailRoute.name,
+         args: ArticleDetailRouteArgs(slug: slug, key: key),
+         rawPathParams: {'slug': slug},
+         initialChildren: children,
+       );
+
+  static const String name = 'ArticleDetailRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final pathParams = data.inheritedPathParams;
+      final args = data.argsAs<ArticleDetailRouteArgs>(
+        orElse: () =>
+            ArticleDetailRouteArgs(slug: pathParams.getString('slug')),
+      );
+      return ArticleDetailPage(slug: args.slug, key: args.key);
+    },
+  );
+}
+
+class ArticleDetailRouteArgs {
+  const ArticleDetailRouteArgs({required this.slug, this.key});
+
+  final String slug;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'ArticleDetailRouteArgs{slug: $slug, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ArticleDetailRouteArgs) return false;
+    return slug == other.slug && key == other.key;
+  }
+
+  @override
+  int get hashCode => slug.hashCode ^ key.hashCode;
+}
+
+/// generated route for
 /// [ClaimUsernamePage]
 class ClaimUsernameRoute extends PageRouteInfo<void> {
   const ClaimUsernameRoute({List<PageRouteInfo>? children})
@@ -54,6 +106,22 @@ class DevotionRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const DevotionPage();
+    },
+  );
+}
+
+/// generated route for
+/// [HabitTrackerPage]
+class HabitTrackerRoute extends PageRouteInfo<void> {
+  const HabitTrackerRoute({List<PageRouteInfo>? children})
+    : super(HabitTrackerRoute.name, initialChildren: children);
+
+  static const String name = 'HabitTrackerRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const HabitTrackerPage();
     },
   );
 }

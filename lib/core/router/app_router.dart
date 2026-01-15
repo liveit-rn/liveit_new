@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
 import 'package:liveit_new/core/navigation/presentation/pages/navigation_shell_page.dart';
 import 'package:liveit_new/features/auth/presentation/pages/login_page.dart';
+import 'package:liveit_new/features/habit_tracker/presentation/pages/habit_tracker_page.dart';
+import 'package:liveit_new/features/inspire/presentation/pages/article_detail_page.dart';
 import 'package:liveit_new/features/inspire/presentation/pages/devotion_page.dart';
 import 'package:liveit_new/features/library/presentation/pages/habits_page.dart';
 import 'package:liveit_new/features/profile/presentation/pages/profile_page.dart';
@@ -33,5 +36,6 @@ class AppRouter extends RootStackRouter {
       ],
     ),
     AutoRoute(page: AddHabitRoute.page, path: '/add-habit'),
+    AutoRoute(page: ArticleDetailRoute.page, path: '/articles/:slug'),
   ];
 }

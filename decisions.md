@@ -700,3 +700,29 @@ This file is append-only. Each entry must include:
 **Impact:**
 
 - No functional changes; file added
+
+---
+
+## 2026-01-15 — DevotionPage fetches Articles public feed
+
+**Context:**
+
+- User requested Devotion page to fetch devotional articles from `GET /articles/public`
+- API returns cursor-paginated list with fields like `title`, `slug`, `snippet`, `coverUrl`, `publishedAt`
+
+**Choice:**
+
+- Implement lightweight DTOs for the public feed response and items
+- Use existing `DioClient` + interceptors via `GetIt` for network calls
+- Map `subtitle` → “verse” line in UI, fallback to `authorDisplayName`, and show `snippet` fallback when null
+- Keep likes UI as `0` because public feed does not expose like/clap totals
+
+**Rationale:**
+
+- Keeps implementation consistent with existing networking layer (timeouts/errors/auth)
+- Avoids adding state management or pagination UX not requested (YAGNI)
+
+**Impact:**
+
+- DevotionPage now renders real data from backend in place of hardcoded cards
+- Article detail navigation remains TODO (needs route/page for `/articles/public/{slug}`)

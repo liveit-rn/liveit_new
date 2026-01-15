@@ -58,19 +58,7 @@ void configureDependencies() {
   getIt.registerLazySingleton(() => CheckUsernameAvailabilityUseCase(getIt()));
   getIt.registerLazySingleton(() => ClaimUsernameUseCase(getIt()));
 
-  // Auth BLoC
-  getIt.registerFactory(
-    () => AuthBloc(
-      registerUseCase: getIt(),
-      loginUseCase: getIt(),
-      logoutUseCase: getIt(),
-      checkUsernameAvailabilityUseCase: getIt(),
-      claimUsernameUseCase: getIt(),
-      authRepository: getIt(),
-    ),
-  );
-
-  // Profile DataSources
+  // Profile DataSources (needed by AuthBloc for timezone sync)
   getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSource(dioClient: getIt<DioClient>()),
   );
@@ -82,19 +70,29 @@ void configureDependencies() {
     ),
   );
 
+  // Auth BLoC
+  getIt.registerFactory(
+    () => AuthBloc(
+      registerUseCase: getIt(),
+      loginUseCase: getIt(),
+      logoutUseCase: getIt(),
+      checkUsernameAvailabilityUseCase: getIt(),
+      claimUsernameUseCase: getIt(),
+      authRepository: getIt(),
+      profileRepository: getIt<ProfileRepository>(),
+    ),
+  );
+
   // Habit Tracker Feature
   getIt.registerLazySingleton<HabitRemoteDataSource>(
     () => HabitRemoteDataSourceImpl(getIt<DioClient>()),
   );
 
   getIt.registerLazySingleton<HabitRepository>(
-    () => HabitRepositoryImpl(
-      remoteDataSource: getIt<HabitRemoteDataSource>(),
-    ),
+    () => HabitRepositoryImpl(remoteDataSource: getIt<HabitRemoteDataSource>()),
   );
 
   getIt.registerFactory<HabitBloc>(
     () => HabitBloc(repository: getIt<HabitRepository>()),
   );
 }
-

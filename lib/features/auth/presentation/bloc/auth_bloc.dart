@@ -56,15 +56,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// Silent timezone sync - ensures profile has timezone before proceeding
+  /// Silent timezone sync - always update on login (idempotent)
   Future<void> _ensureTimezoneSync() async {
     try {
-      final profile = await profileRepository.fetchProfile();
-      if (profile.timezone == null || profile.timezone!.isEmpty) {
-        final deviceTimezone = _getDeviceTimezone();
-        await profileRepository.updateTimezone(deviceTimezone);
-        debugPrint('[AuthBloc] Timezone synced: $deviceTimezone');
-      }
+      final deviceTimezone = _getDeviceTimezone();
+      await profileRepository.updateTimezone(deviceTimezone);
+      debugPrint('[AuthBloc] Timezone synced: $deviceTimezone');
     } catch (e) {
       // Silent fail - don't block auth flow
       debugPrint('[AuthBloc] Timezone sync failed (silent): $e');

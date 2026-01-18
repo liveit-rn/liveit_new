@@ -11,21 +11,21 @@ help:
 	@echo ""
 
 # 🛠️ Development (Debug APK)
+# 🛠️ Development (Debug APK)
 dev:
 	@echo "🛠️ Building Debug APK..."
-	cd android && bundle exec fastlane build_debug_apk
+	flutter build apk --debug
 
 # 🚀 Staging (Release APK)
 stage:
 	@echo "🚀 Building Release APK..."
-	cd android && bundle exec fastlane build_release_apk
+	flutter build apk --release
 
 # 📦 Production (Release Bundle/AAB)
 prod:
 	@echo "📦 Building Release Bundle (AAB)..."
-	cd android && bundle exec fastlane build_bundle
+	flutter build appbundle --release
 
 # 🧹 Clean
 clean:
-	cd android && ./gradlew clean
 	flutter clean

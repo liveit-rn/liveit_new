@@ -62,30 +62,62 @@ DO NOT push secrets or environment-specific files. If this repository is used lo
 - Make the minimal change that solves the problem, then refactor.
 - Prefer readability over clever tricks.
 
-## Developer workflow & agent-specific addendum (decisions & project status)
+## Development flow:
 
-To keep work traceable when an automated agent or developer makes changes, maintain the following append-only files at the repository root:
+- One feature → verify → refactor
+- Comment the WHY, not the what
+- Commit each working thought (updates to strict consistency files)
+- Not working? Stash/revert
+- Readable > optimized (prematurely)
+- Meaningful error logging
+- Review every change
+- REMOVE DEADCODE
 
-- `decisions.md` — append-only log of choices. Each entry should include: Date, Context, Choice, Rationale, Impact.
-- `project-status.md` — running checklist for the current task/session with these sections: Initial Ask, Initial Response, Checklist, Current Status, Next Steps.
+## Agent Workflow Addendum: Decisions & Status Files
 
-### Session flow for the agent
+To ensure reliable context and traceable progress, maintain the following files at the repository root. This process is idempotent and append-only.
 
-1. Read this `AGENTS.md` to align on repo style and constraints.
-2. Ensure `decisions.md` exists; append new choices when making changes.
-3. Ensure `project-status.md` exists; update the checklist and status.
-4. Implement planned steps and append to `decisions.md` after significant choices.
-5. Keep changes minimal and style-compliant.
+- decisions.md
+  - Purpose: Append-only log of choices made during work.
+  - Format per entry: Date, Context, Choice, Rationale, Impact.
+  - Policy: Do not rewrite or remove entries; append new entries at the end.
+
+- project-status.md
+  - Purpose: Consolidate the initial ask, initial response, and a running Checklist that serves as the single TODO list.
+  - Sections: Initial Ask, Initial Response, Checklist, Current Status, Next Steps.
+  - Policy: Keep the Checklist current; mark items with `[ ]` or `[x]`.
+
+### Step-by-Step Flow (each task/session)
+
+1. Read this AGENTS.md to align on scope, style, and constraints.
+2. Ensure `decisions.md` exists; append any new choices with Date, Context, Choice, Rationale, Impact.
+3. Ensure `project-status.md` exists; update the Checklist (add/check items) and Current Status.
+4. Implement planned steps; after each significant choice, append to `decisions.md` and sync the Checklist.
+5. Keep changes minimal and style-compliant; do not commit/PR per guidelines.
+
+### TODO List Policy
+
+- Treat `project-status.md` → Checklist as the single source of truth for TODOs.
+- Represent tasks with `- [ ]` and mark completion with `- [x]`.
+- Update the Checklist at the end of each working session.
 
 ### Idempotency & logging
 
 - File creation/updates should be append-only (do not overwrite or remove historical entries from the status files).
 - Log every significant decision that affects scope, structure, dependencies, or user-facing behavior.
 
-### Auto-sync status (recommended)
+### Auto‑Sync Status (Mandatory)
 
-- When you apply code or doc patches, add or remove files, or change behaviors, append an entry to `decisions.md` and update `project-status.md`.
-- Before finishing a batch of changes, append the decision entry and refresh the Checklist and Current Status.
+- Always update `decisions.md` and `project-status.md` proactively without user prompts whenever you:
+  - Apply code/doc patches, add/remove files, or change behaviors.
+  - Make architecture/config/infrastructure choices (e.g., enable rate limits, add modules, adjust envs).
+  - Finalize a mini‑milestone (feature, spec, deployment prep, costs).
+- Sync cadence:
+  - Before yielding control after a batch of changes, append a decisions entry and refresh the Checklist, Current Status, and Next Steps.
+  - If a change is reverted, append a new decision explaining the rollback.
+- Format discipline:
+  - `decisions.md` is append‑only (Date, Context, Choice, Rationale, Impact).
+  - `project-status.md` uses `[x]/[ ]` checklist and keeps descriptions concise and action‑oriented.
 
 ---
 

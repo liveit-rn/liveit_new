@@ -40,6 +40,21 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     Emitter<HabitState> emit,
   ) async {
     emit(HabitLoading());
+
+    // 1. Try to load from cache first (Instant UI)
+    try {
+      final cachedHabits = await _repository.getCachedHabits();
+      if (cachedHabits.isNotEmpty) {
+        emit(HabitLoaded(
+          habits: cachedHabits,
+          lastUpdated: DateTime.now(),
+        ));
+      }
+    } catch (_) {
+      // Ignore cache errors
+    }
+
+    // 2. Fetch fresh data from API (Source of Truth)
     try {
       final habits = await _repository.getUserHabits();
 
@@ -53,7 +68,11 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
         celebration: celebration,
       ));
     } catch (e) {
-      emit(HabitError(e.toString()));
+      // If we already emitted cached data, don't show error screen,
+      // just stay on cached data (maybe show snackbar later)
+      if (state is! HabitLoaded) {
+        emit(HabitError(e.toString()));
+      }
     }
   }
 
@@ -63,30 +82,78 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
   ) async {
     if (state is! HabitLoaded) return;
     final currentState = state as HabitLoaded;
-    final habits = List<UserHabit>.from(currentState.habits);
-    final index = habits.indexWhere((h) => h.id == event.userHabitId);
+    final originalHabits = List<UserHabit>.from(currentState.habits);
+    final index = originalHabits.indexWhere((h) => h.id == event.userHabitId);
 
     if (index == -1) return;
 
-    final habit = habits[index];
+    final habit = originalHabits[index];
     final habitName = habit.title ?? habit.habit?.name ?? 'Habit';
 
+    // ============================================
+    // OPTIMISTIC UI: Update instantly (Me+ style)
+    // ============================================
+    // 1. Create optimistic version with checkedInToday = true
+    final optimisticHabit = UserHabit(
+      id: habit.id,
+      userId: habit.userId,
+      habitId: habit.habitId,
+      notes: habit.notes,
+      isCustom: habit.isCustom,
+      title: habit.title,
+      visibility: habit.visibility,
+      reach: habit.reach,
+      repeatPeriod: habit.repeatPeriod,
+      repeatStartDate: habit.repeatStartDate,
+      repeatEndDate: habit.repeatEndDate,
+      frequency: habit.frequency,
+      frequencyDays: habit.frequencyDays,
+      currentStreak: habit.currentStreak + 1, // Optimistic streak increment
+      longestStreak: habit.longestStreak,
+      totalCompletions: habit.totalCompletions + 1,
+      color: habit.color,
+      icon: habit.icon,
+      order: habit.order,
+      checkedInToday: true, // The key change!
+      lastCheckinAt: DateTime.now(),
+      habit: habit.habit,
+    );
+
+    // 2. Replace in list and emit immediately (user sees instant check!)
+    final optimisticHabits = List<UserHabit>.from(originalHabits);
+    optimisticHabits[index] = optimisticHabit;
+
+    emit(HabitLoaded(
+      habits: optimisticHabits,
+      lastUpdated: DateTime.now(),
+    ));
+
+    // ============================================
+    // BACKGROUND: Send to server
+    // ============================================
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(event.date);
       final response = await _repository.checkIn(event.userHabitId, dateStr);
 
-      // Calculate celebration data from response
+      // Calculate celebration data from actual server response
       _pendingCelebration = _calculateCelebration(
         response,
         habitName,
-        habits,
+        originalHabits, // Use original to calculate "all done" correctly
         event.userHabitId,
       );
 
-      // Refresh to get updated state
+      // Refresh to get accurate state from server + show celebration
       add(HabitStarted());
     } catch (e) {
-      emit(HabitError(e.toString()));
+      // ============================================
+      // ROLLBACK: Revert if server failed
+      // ============================================
+      emit(HabitLoaded(
+        habits: originalHabits,
+        lastUpdated: DateTime.now(),
+      ));
+      emit(HabitError('Gagal menyimpan check-in: ${e.toString()}'));
     }
   }
 
@@ -150,12 +217,67 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     HabitUndoCheckInRequested event,
     Emitter<HabitState> emit,
   ) async {
+    if (state is! HabitLoaded) return;
+    final currentState = state as HabitLoaded;
+    final originalHabits = List<UserHabit>.from(currentState.habits);
+    final index = originalHabits.indexWhere((h) => h.id == event.userHabitId);
+
+    if (index == -1) return;
+
+    final habit = originalHabits[index];
+
+    // ============================================
+    // OPTIMISTIC UI: Undo instantly
+    // ============================================
+    final optimisticHabit = UserHabit(
+      id: habit.id,
+      userId: habit.userId,
+      habitId: habit.habitId,
+      notes: habit.notes,
+      isCustom: habit.isCustom,
+      title: habit.title,
+      visibility: habit.visibility,
+      reach: habit.reach,
+      repeatPeriod: habit.repeatPeriod,
+      repeatStartDate: habit.repeatStartDate,
+      repeatEndDate: habit.repeatEndDate,
+      frequency: habit.frequency,
+      frequencyDays: habit.frequencyDays,
+      currentStreak: habit.currentStreak > 0 ? habit.currentStreak - 1 : 0,
+      longestStreak: habit.longestStreak,
+      totalCompletions:
+          habit.totalCompletions > 0 ? habit.totalCompletions - 1 : 0,
+      color: habit.color,
+      icon: habit.icon,
+      order: habit.order,
+      checkedInToday: false, // Unchecked!
+      lastCheckinAt: habit.lastCheckinAt,
+      habit: habit.habit,
+    );
+
+    final optimisticHabits = List<UserHabit>.from(originalHabits);
+    optimisticHabits[index] = optimisticHabit;
+
+    emit(HabitLoaded(
+      habits: optimisticHabits,
+      lastUpdated: DateTime.now(),
+    ));
+
+    // ============================================
+    // BACKGROUND: Send to server
+    // ============================================
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(event.date);
       await _repository.undoCheckIn(event.userHabitId, dateStr);
+      // Refresh to get accurate state
       add(HabitStarted());
     } catch (e) {
-      emit(HabitError(e.toString()));
+      // Rollback
+      emit(HabitLoaded(
+        habits: originalHabits,
+        lastUpdated: DateTime.now(),
+      ));
+      emit(HabitError('Gagal membatalkan check-in: ${e.toString()}'));
     }
   }
 

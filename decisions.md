@@ -712,9 +712,9 @@ This file is append-only. Each entry must include:
 
 **Choice:**
 
-- Implement lightweight DTOs for the public feed response and items
+- Implement lightweight DTOs for public feed response and items
 - Use existing `DioClient` + interceptors via `GetIt` for network calls
-- Map `subtitle` → “verse” line in UI, fallback to `authorDisplayName`, and show `snippet` fallback when null
+- Map `subtitle` → "verse" line in UI, fallback to `authorDisplayName`, and show `snippet` fallback when null
 - Keep likes UI as `0` because public feed does not expose like/clap totals
 
 **Rationale:**
@@ -726,3 +726,150 @@ This file is append-only. Each entry must include:
 
 - DevotionPage now renders real data from backend in place of hardcoded cards
 - Article detail navigation remains TODO (needs route/page for `/articles/public/{slug}`)
+
+---
+
+## 2026-01-21 — Habit Tracker Phase 2A Implementation Planning
+
+**Context:**
+
+- User requested full Habit Tracker implementation aligned with backend specification
+- Backend at `C:\Users\Kevin\liveit-server` has complete Phase 2A features (repeat periods, frequency control, streak tracking, visual customization, custom ordering)
+- Flutter currently implements only basic MVP (~30% coverage) with basic CRUD operations
+
+**Choice:**
+
+- Create comprehensive implementation plan with 101 tasks across 6 phases
+- Use backend documentation at `C:\Users\Kevin\liveit-server\docs\liveit-habitTracker-feature.md` as source of truth
+- Plan sequential implementation: Data Layer → State Management → Basic UI → Advanced UI → Polish → Testing
+
+**Rationale:**
+
+- Backend Phase 2A is production-ready and complete
+- Flutter needs systematic upgrade to match backend capabilities
+- Layer-by-layer approach minimizes confusion and ensures proper data flow
+- Comprehensive checklist enables tracking progress and identifying remaining work
+
+**Impact:**
+
+- Implementation plan created at `docs/habit-tracker-implementation-plan.md`
+- 101 tasks identified across 6 phases:
+  - Phase 1: Data Layer Phase 2A Support (20 tasks)
+  - Phase 2: State Management Phase 2A Support (12 tasks)
+  - Phase 3: UI Layer - Basic Phase 2A (12 tasks)
+  - Phase 4: UI Layer - Advanced Features (23 tasks)
+  - Phase 5: Polish & Optimization (19 tasks)
+  - Phase 6: Testing (15 tasks)
+- Ready to begin Phase 1: Data Layer updates to support all Phase 2A fields
+- Backend at `C:\Users\Kevin\liveit-server\docs\` is the definitive source of truth for all API contracts
+
+---
+
+## 2026-01-21 — Habit Tracker Phase 2A Data Layer Implementation
+
+**Context:**
+
+- Completed Phase 1 Data Layer updates for Habit Tracker Phase 2A
+- Updated all layers to support backend Phase 2A specification
+
+**Choice:**
+
+- Updated `HabitRemoteDataSource` with all Phase 2A fields and new methods:
+  - `addHabit()` with repeatPeriod, frequency, frequencyDays, color, icon, order
+  - `createCustomHabit()` with same Phase 2A fields
+  - `updateHabit()` PATCH endpoint for editing habits
+  - `archiveHabit()` DELETE endpoint (soft delete via archivedAt)
+  - `reorderHabits()` PATCH endpoint with updates array
+- Updated `HabitRepository` interface with all methods and Phase 2A parameters
+- Updated `HabitRepositoryImpl` with full implementation
+- Updated `HabitEvent` with Phase 2A fields for add/create and new events:
+  - `HabitAdded` with all Phase 2A fields
+  - `CustomHabitCreated` with all Phase 2A fields
+  - `HabitUpdated` for editing existing habits
+  - `HabitArchived` for soft delete
+  - `HabitReordered` for drag & drop reordering
+- Updated `HabitBloc` with handlers for all new events
+- Updated `AddHabitPage` to use new repository method signatures with named parameters
+- Ran `dart run build_runner build` to regenerate .g.dart files
+- Ran `dart format` to format all modified files
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/data/datasources/habit_remote_data_source.dart`
+- `lib/features/habit_tracker/domain/repositories/habit_repository.dart`
+- `lib/features/habit_tracker/data/repositories/habit_repository_impl.dart`
+- `lib/features/habit_tracker/presentation/bloc/habit_event.dart`
+- `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart`
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart`
+
+**Rationale:**
+
+- Complete Data Layer implementation to support all Phase 2A fields
+- Follows backend API contract exactly as specified in `C:\Users\Kevin\liveit-server\docs\liveit-habitTracker-feature.md`
+- Named parameters for clarity and type safety
+- Clean separation of concerns across data/domain/presentation layers
+
+**Impact:**
+
+- Phase 1 Data Layer complete (~20 tasks)
+- Ready to proceed to Phase 2: State Management updates (already integrated in Phase 1)
+- Ready to proceed to Phase 3: UI Layer updates (AddHabitPage form fields for Phase 2A)
+- All code passes `flutter analyze` and `build_runner`
+- Next: Update UI components to display Phase 2A fields and add form inputs
+
+---
+
+## 2026-01-21 — Habit Tracker Phase 2A UI Layer Implementation
+
+**Context:**
+
+- Completed Phase 3 UI Layer updates for Habit Tracker Phase 2A
+- Updated HabitCard, HabitTrackerPage, and AddHabitPage with all Phase 2A features
+
+**Choice:**
+
+- Updated `HabitCard` with complete Phase 2A UI:
+  - Color indicator (colored container with hex color parsing)
+  - Icon display (emoji from `icon` field)
+  - Repeat period badge (1 Hari/Minggu/Bulan/Tahun/Selamanya)
+  - Frequency badge (Harian/Mingguan/Custom days)
+  - Streak badges (current streak 🔥, longest streak 🏆, total completions ✓)
+  - Edit and Archive action buttons with bottom sheet menu
+  - Color-coded borders and backgrounds based on habit color
+- Updated `HabitTrackerPage`:
+  - Uses new `HabitCard` with `UserHabit` object
+  - Shows habit options bottom sheet with Edit and Archive actions
+  - Archive confirmation dialog before soft delete
+  - Passes `onEdit` and `onArchive` callbacks to HabitCard
+- Updated `AddHabitPage` with Phase 2A form inputs:
+  - Catalog tab: ExpansionTile for each habit with advanced options
+  - Custom tab: Inline advanced options toggle
+  - Repeat Period dropdown (Selamanya, 1 Hari, 1 Minggu, 1 Bulan, 1 Tahun)
+  - Frequency dropdown (Harian, Mingguan, Custom)
+  - Custom Days picker with FilterChips for Sun-Sat selection
+  - Color picker with 10 preset colors in circular swatches
+  - Icon picker with 12 preset emojis in colored circles
+  - Auto-incremented order (default behavior)
+
+**Files Modified:**
+
+- `lib/features/home/presentation/widgets/habit_card.dart`
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart`
+
+**Rationale:**
+
+- Complete UI Layer implementation matching backend Phase 2A specification
+- User-friendly form inputs with clear labels and Indonesian translations
+- Visual feedback through color coding and icons
+- Consistent UX across catalog and custom habit creation
+- Smooth integration with updated BLoC events and handlers
+
+**Impact:**
+
+- Phase 3 UI Layer Basic complete (~12 tasks)
+- HabitCard now displays color, icon, repeat period, frequency, and streak stats
+- AddHabitPage supports all Phase 2A configuration options
+- HabitTrackerPage has archive functionality with confirmation
+- Ready to proceed to Phase 4: Advanced Features (EditHabitPage, drag & drop, gamification)
+- All code passes `flutter analyze` with only deprecation info messages

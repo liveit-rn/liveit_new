@@ -4,6 +4,7 @@ import '../../data/models/habit_checkin_response_model.dart';
 
 abstract class HabitRepository {
   Future<List<UserHabit>> getUserHabits();
+  Future<List<UserHabit>> getCachedHabits(); // Explicit cache access
   Future<List<Habit>> getHabitCatalog();
   Future<HabitCheckinResponseModel> checkIn(String userHabitId, String date);
   Future<void> undoCheckIn(String userHabitId, String date);

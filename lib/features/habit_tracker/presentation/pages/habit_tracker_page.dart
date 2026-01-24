@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:liveit_new/core/router/app_router.dart';
+import 'package:liveit_new/features/habit_tracker/domain/entities/user_habit.dart';
 import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_bloc.dart';
 import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_event.dart';
 import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_state.dart';
@@ -20,6 +21,77 @@ class _HabitTrackerPageState extends State<HabitTrackerPage> {
   void initState() {
     super.initState();
     context.read<HabitBloc>().add(HabitStarted());
+  }
+
+  void _showHabitOptions(UserHabit habit) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit Habit'),
+                onTap: () {
+                  context.router.pop();
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.archive_outlined,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: Text(
+                  'Arsipkan',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+                onTap: () {
+                  context.router.pop();
+                  _confirmArchive(habit);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmArchive(UserHabit habit) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Arsipkan Habit?'),
+        content: Text(
+          'Apakah kamu ingin mengarsipkan "${habit.title ?? habit.habit?.name}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => context.router.pop(),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.router.pop();
+              context.read<HabitBloc>().add(
+                HabitArchived(userHabitId: habit.id),
+              );
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Arsipkan'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -124,14 +196,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage> {
                 itemBuilder: (context, index) {
                   final userHabit = state.habits[index];
                   return HabitCard(
-                    title:
-                        userHabit.title ??
-                        userHabit.habit?.name ??
-                        'Unknown Habit',
-                    description:
-                        userHabit.notes ?? userHabit.habit?.description ?? '',
-                    completed: userHabit.checkedInToday,
-                    streak: userHabit.currentStreak,
+                    userHabit: userHabit,
                     onToggle: () {
                       if (userHabit.checkedInToday) {
                         context.read<HabitBloc>().add(
@@ -148,6 +213,12 @@ class _HabitTrackerPageState extends State<HabitTrackerPage> {
                           ),
                         );
                       }
+                    },
+                    onEdit: () {
+                      _showHabitOptions(userHabit);
+                    },
+                    onArchive: () {
+                      _showHabitOptions(userHabit);
                     },
                   );
                 },

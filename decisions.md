@@ -1006,3 +1006,36 @@ This file is append-only. Each entry must include:
   - Streak Celebration dialogs on days 7, 30, 100
   - "All Done" celebration when finishing last habit
 - Enhances user engagement and satisfaction
+
+---
+
+## 2026-01-24 — Offline Caching Strategy (Me+ Benchmark)
+
+**Context:**
+
+- User requested "Me+ like experience" (Instant load, Optimistic UI).
+- Current implementation was "Online-First" (Loading spinners, wait for server).
+- Risk of ANR/Lag if using heavy database solutions on main thread.
+
+**Choice:**
+
+- Adopted **Hive** (NoSQL, Pure Dart) for caching `UserHabit` data.
+- Implemented **Hybrid Repository Pattern**:
+    1.  `getCachedHabits()`: Direct Hive read (Instant).
+    2.  `getUserHabits()`: Network fetch + Write to Hive (Background update).
+- Implemented **Optimistic UI** in `HabitBloc`:
+    - Check-in/Undo events immediately update state (`emit`) before awaiting API.
+    - Rollback state if API fails.
+
+**Rationale:**
+
+- **UX:** Matches "Me+" standard where data is always available and interaction is instant.
+- **Performance:** Hive is significantly faster than SQLite/Drift for simple JSON lists and doesn't block UI thread (Anti-ANR).
+- **Reliability:** App works in "Airplane Mode" using last known data.
+
+**Impact:**
+
+- Added `hive` and `hive_flutter` dependencies.
+- Created `HabitLocalDataSource` and registered in DI.
+- `HabitBloc` now emits state twice on load: Cache (Instant) -> API (Fresh).
+- UI feels significantly faster; Check-in is instant.

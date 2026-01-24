@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/di/service_locator.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/services.dart';
+import '../../../../core/injection/injection_container.dart';
+import '../../domain/repositories/habit_repository.dart';
 import '../../domain/entities/habit.dart';
 import '../../domain/repositories/habit_repository.dart';
 
@@ -231,9 +234,8 @@ class _AddHabitPageState extends State<AddHabitPage>
                   habit.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: habit.description != null
-                    ? Text(habit.description!)
-                    : null,
+                subtitle:
+                    habit.description != null ? Text(habit.description!) : null,
                 trailing: const Icon(Icons.add_circle_outline),
                 children: [
                   _buildAdvancedOptions(),
@@ -381,8 +383,8 @@ class _AddHabitPageState extends State<AddHabitPage>
         Text(
           'Durasi Commit',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
@@ -411,8 +413,8 @@ class _AddHabitPageState extends State<AddHabitPage>
         Text(
           'Frekuensi',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
@@ -446,8 +448,8 @@ class _AddHabitPageState extends State<AddHabitPage>
         Text(
           'Pilih Hari',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -482,8 +484,8 @@ class _AddHabitPageState extends State<AddHabitPage>
         Text(
           'Warna',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -531,8 +533,8 @@ class _AddHabitPageState extends State<AddHabitPage>
         Text(
           'Ikon',
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -549,9 +551,8 @@ class _AddHabitPageState extends State<AddHabitPage>
                   color: _parseColor(_color).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected
-                        ? _parseColor(_color)
-                        : Colors.transparent,
+                    color:
+                        isSelected ? _parseColor(_color) : Colors.transparent,
                     width: 2,
                   ),
                 ),

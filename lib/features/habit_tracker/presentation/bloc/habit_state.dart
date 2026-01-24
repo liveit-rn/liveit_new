@@ -3,7 +3,7 @@ import '../../domain/entities/user_habit.dart';
 
 abstract class HabitState extends Equatable {
   const HabitState();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -20,11 +20,12 @@ class HabitLoaded extends HabitState {
 
   @override
   List<Object?> get props => [habits, lastUpdated];
-  
+
   // Helpers for stats
   int get completedToday => habits.where((h) => h.checkedInToday).length;
   int get totalHabits => habits.length;
-  int get progress => totalHabits == 0 ? 0 : ((completedToday / totalHabits) * 100).round();
+  int get progress =>
+      totalHabits == 0 ? 0 : ((completedToday / totalHabits) * 100).round();
 }
 
 class HabitError extends HabitState {

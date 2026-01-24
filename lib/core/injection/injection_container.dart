@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../network/dio_client.dart';
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
@@ -17,6 +18,7 @@ import '../../features/profile/data/datasources/profile_remote_datasource.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/habit_tracker/data/datasources/habit_remote_data_source.dart';
+import '../../features/habit_tracker/data/datasources/habit_local_data_source.dart';
 import '../../features/habit_tracker/data/repositories/habit_repository_impl.dart';
 import '../../features/habit_tracker/domain/repositories/habit_repository.dart';
 import '../../features/habit_tracker/presentation/bloc/habit_bloc.dart';
@@ -24,7 +26,9 @@ import '../../features/inspire/data/datasources/articles_public_remote_datasourc
 
 final getIt = GetIt.instance;
 
-void configureDependencies() {
+/// Configure all dependencies.
+/// WHY: Changed to async Future to support Hive box opening (offline cache).
+Future<void> configureDependencies() async {
   // Core
   getIt.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
@@ -84,13 +88,29 @@ void configureDependencies() {
     ),
   );
 
-  // Habit Tracker Feature
+  // ============================================
+  // Habit Tracker Feature (with Offline Caching)
+  // ============================================
+
+  // Open Hive box for habit caching (Singleton - opened once, reused forever)
+  final habitCacheBox = await HabitLocalDataSourceImpl.openBox();
+
+  // Local DataSource (Hive-based cache)
+  getIt.registerLazySingleton<HabitLocalDataSource>(
+    () => HabitLocalDataSourceImpl(habitCacheBox),
+  );
+
+  // Remote DataSource (API)
   getIt.registerLazySingleton<HabitRemoteDataSource>(
     () => HabitRemoteDataSourceImpl(getIt<DioClient>()),
   );
 
+  // Repository (Hybrid: Cache + API)
   getIt.registerLazySingleton<HabitRepository>(
-    () => HabitRepositoryImpl(remoteDataSource: getIt<HabitRemoteDataSource>()),
+    () => HabitRepositoryImpl(
+      remoteDataSource: getIt<HabitRemoteDataSource>(),
+      localDataSource: getIt<HabitLocalDataSource>(),
+    ),
   );
 
   getIt.registerFactory<HabitBloc>(

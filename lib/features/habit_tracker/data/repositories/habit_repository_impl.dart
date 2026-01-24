@@ -8,7 +8,7 @@ class HabitRepositoryImpl implements HabitRepository {
   final HabitRemoteDataSource _remoteDataSource;
 
   HabitRepositoryImpl({required HabitRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   @override
   Future<List<UserHabit>> getUserHabits() async {
@@ -21,7 +21,10 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<HabitCheckinResponseModel> checkIn(String userHabitId, String date) async {
+  Future<HabitCheckinResponseModel> checkIn(
+    String userHabitId,
+    String date,
+  ) async {
     return await _remoteDataSource.checkIn(userHabitId, date);
   }
 
@@ -31,12 +34,83 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<UserHabit> addHabit(String habitId, {String? notes}) async {
-    return await _remoteDataSource.addHabit(habitId, notes: notes);
+  Future<UserHabit> addHabit({
+    required String habitId,
+    String? notes,
+    String? repeatPeriod,
+    String? frequency,
+    String? frequencyDays,
+    String? color,
+    String? icon,
+    int? order,
+  }) async {
+    return await _remoteDataSource.addHabit(
+      habitId: habitId,
+      notes: notes,
+      repeatPeriod: repeatPeriod,
+      frequency: frequency,
+      frequencyDays: frequencyDays,
+      color: color,
+      icon: icon,
+      order: order,
+    );
   }
-  
+
   @override
-  Future<UserHabit> createCustomHabit(String title, {String? notes, String? description}) async {
-    return await _remoteDataSource.createCustomHabit(title, notes: notes, description: description);
+  Future<UserHabit> createCustomHabit({
+    required String title,
+    String? description,
+    String? notes,
+    String? repeatPeriod,
+    String? frequency,
+    String? frequencyDays,
+    String? color,
+    String? icon,
+    int? order,
+  }) async {
+    return await _remoteDataSource.createCustomHabit(
+      title: title,
+      description: description,
+      notes: notes,
+      repeatPeriod: repeatPeriod,
+      frequency: frequency,
+      frequencyDays: frequencyDays,
+      color: color,
+      icon: icon,
+      order: order,
+    );
+  }
+
+  @override
+  Future<UserHabit> updateHabit(
+    String userHabitId, {
+    String? notes,
+    String? repeatPeriod,
+    String? frequency,
+    String? frequencyDays,
+    String? color,
+    String? icon,
+    int? order,
+  }) async {
+    return await _remoteDataSource.updateHabit(
+      userHabitId,
+      notes: notes,
+      repeatPeriod: repeatPeriod,
+      frequency: frequency,
+      frequencyDays: frequencyDays,
+      color: color,
+      icon: icon,
+      order: order,
+    );
+  }
+
+  @override
+  Future<void> archiveHabit(String userHabitId) async {
+    await _remoteDataSource.archiveHabit(userHabitId);
+  }
+
+  @override
+  Future<void> reorderHabits(List<Map<String, dynamic>> updates) async {
+    await _remoteDataSource.reorderHabits(updates);
   }
 }

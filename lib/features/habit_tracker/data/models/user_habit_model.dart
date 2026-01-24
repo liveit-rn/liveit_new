@@ -45,10 +45,7 @@ class UserHabitModel extends UserHabit {
     super.checkedInToday = false,
     super.lastCheckinAt,
     this.habit,
-  }) : super(
-          frequencyDays: frequencyDays,
-          habit: habit,
-        );
+  }) : super(frequencyDays: frequencyDays, habit: habit);
 
   factory UserHabitModel.fromJson(Map<String, dynamic> json) =>
       _$UserHabitModelFromJson(json);

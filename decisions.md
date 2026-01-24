@@ -873,3 +873,136 @@ This file is append-only. Each entry must include:
 - HabitTrackerPage has archive functionality with confirmation
 - Ready to proceed to Phase 4: Advanced Features (EditHabitPage, drag & drop, gamification)
 - All code passes `flutter analyze` with only deprecation info messages
+
+---
+
+## 2026-01-24 — Habit Tracker Phase 4 Advanced Features Implementation
+
+**Context:**
+
+- Completed Phase 4 UI Layer Advanced Features for Habit Tracker
+- Implemented EditHabitPage, HabitStatsPage, drag & drop reordering, gamification visual feedback
+
+**Choice:**
+
+- Rebuilt `HabitTrackerPage` with distinctive "Grounded Growth" design:
+  - Custom header with greeting, date, motivational message, and progress ring
+  - SliverReorderableList for drag & drop habit reordering
+  - Pending habits sorted first, completed habits moved to bottom
+  - Integration with new HabitCard widget
+
+- Created new `HabitCard` widget (`lib/features/habit_tracker/presentation/widgets/habit_card.dart`):
+  - Gradient backgrounds based on completion state
+  - Animated check button with haptic feedback (280ms easeOutBack)
+  - Streak badges with milestone indicators (⚡ 7 days, 🔥 30 days, 👑 100 days)
+  - Drag handle support for reordering mode
+  - Long-press to open options menu
+
+- Created `EditHabitPage` for editing existing habits:
+  - Pre-filled form with current habit data
+  - Habit preview card at top
+  - Notes, schedule (repeat period, frequency, custom days), personalization (color, icon)
+  - Unsaved changes confirmation dialog
+  - Bottom save button
+
+- Created `HabitStatsPage` with detailed statistics:
+  - Habit header with icon, name, frequency
+  - Stats cards (current streak, longest streak, total completions)
+  - Calendar heatmap with month navigation
+  - Streak timeline with milestone markers (7, 30, 100, 365 days)
+  - Next milestone progress card
+
+- Created `celebrations.dart` with gamification visual feedback:
+  - `ConfettiOverlay` - Custom confetti animation with brand colors
+  - `StreakCelebration` - Modal dialog for streak milestones
+  - `AllDoneCelebration` - Modal dialog when all habits completed
+  - `ZoePointsPopup` - Animated popup for Zoe Points earned
+
+- Updated router with new routes:
+  - `/edit-habit` - EditHabitRoute with UserHabit parameter
+  - `/habit-stats` - HabitStatsRoute with UserHabit parameter
+
+**Files Created:**
+
+- `lib/features/habit_tracker/presentation/widgets/habit_card.dart`
+- `lib/features/habit_tracker/presentation/pages/edit_habit_page.dart`
+- `lib/features/habit_tracker/presentation/pages/habit_stats_page.dart`
+- `lib/features/habit_tracker/presentation/widgets/celebrations.dart`
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart` (full rebuild)
+- `lib/core/router/app_router.dart` (added EditHabit and HabitStats routes)
+
+**Rationale:**
+
+- Distinctive design following "Grounded Growth" brand palette (Deep Teal, Warm Sand, Coral)
+- Organic UI language with rounded corners, gradients, and subtle shadows
+- Meaningful animations that reinforce positive behavior (check-in celebration)
+- Gamification elements (streak badges, milestones) encourage consistency
+- Calendar heatmap provides visual progress tracking
+- Reorder functionality via SliverReorderableList for better habit prioritization
+
+**Impact:**
+
+- Phase 4 Advanced Features COMPLETED
+- HabitTrackerPage now has professional, distinctive UI
+- EditHabitPage allows full habit customization
+- HabitStatsPage provides detailed progress visualization
+- Gamification widgets ready for integration
+- All code passes `flutter analyze` with only deprecation warnings (withOpacity → withValues)
+- Router regenerated with build_runner
+
+**Design Specifications:**
+
+- Progress Ring: 72px diameter, 6px stroke, animated 1200ms easeOutCubic
+- HabitCard: 20px border radius, gradient backgrounds, 12px bottom margin
+- Streak Badges: 12px border radius, gradient fills, shadow glow
+- Check Button: 44px diameter, 2px border, elasticOut animation
+- Calendar: 6px cell spacing, 8px border radius, completion fill with habit color
+- Milestone Markers: 40px diameter circles, 18px emoji icons
+
+**Animation Specifications:**
+
+- Progress ring: 1200ms, Curves.easeOutCubic
+- Check button scale: 300ms, Curves.easeOutBack
+- Card tap feedback: 300ms scale to 0.95
+- Confetti: 3000ms duration, 50 particles
+- Zoe Points popup: 2000ms with slide + scale + fade
+
+---
+
+## 2026-01-24 — Habit Tracker Gamification Integration
+
+**Context:**
+
+- Need to wire up celebration widgets (Confetti, Dialogs) with actual check-in events
+- Visual feedback is crucial for habit reinforcement (Atomic Habits principle: Make it Satisfying)
+
+**Choice:**
+
+- Integrated `ConfettiOverlay` and celebration dialogs directly into `HabitTrackerPage` via BlocListener
+- Implemented `CelebrationData` in `HabitState` to hold transient celebration events
+- Added logic in `HabitBloc` to calculate points and detect milestones from check-in response
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/presentation/bloc/habit_state.dart` (added CelebrationData)
+- `lib/features/habit_tracker/presentation/bloc/habit_event.dart` (added HabitCelebrationCleared)
+- `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart` (added calculation logic)
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart` (added listener and UI overlay)
+
+**Rationale:**
+
+- Keeps UI logic (showing dialogs) separated from business logic (calculating milestones)
+- Using a transient state (`CelebrationData`) ensures celebrations survive screen rotation but can be cleared
+- `ConfettiOverlay` wrapper provides a non-intrusive way to show global effects
+
+**Impact:**
+
+- Users now see:
+  - Confetti rain on every check-in
+  - "Zoe Points +10" popup on check-in
+  - Streak Celebration dialogs on days 7, 30, 100
+  - "All Done" celebration when finishing last habit
+- Enhances user engagement and satisfaction

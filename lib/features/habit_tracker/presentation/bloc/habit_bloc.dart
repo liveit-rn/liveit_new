@@ -1,16 +1,29 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../domain/repositories/habit_repository.dart';
+import '../../data/models/habit_checkin_response_model.dart';
 import 'habit_event.dart';
 import 'habit_state.dart';
 import '../../domain/entities/user_habit.dart';
 
+/// Streak milestones that trigger celebrations
+const _streakMilestones = [7, 30, 100, 365];
+
+/// Points awarded for different actions (matches backend)
+const _pointsPerCheckin = 10;
+const _pointsStreak7 = 50;
+const _pointsStreak30 = 100;
+const _pointsAllDone = 20;
+
 class HabitBloc extends Bloc<HabitEvent, HabitState> {
   final HabitRepository _repository;
 
+  /// Pending celebration to show after next refresh
+  CelebrationData? _pendingCelebration;
+
   HabitBloc({required HabitRepository repository})
-    : _repository = repository,
-      super(HabitInitial()) {
+      : _repository = repository,
+        super(HabitInitial()) {
     on<HabitStarted>(_onHabitStarted);
     on<HabitCheckInRequested>(_onHabitCheckInRequested);
     on<HabitUndoCheckInRequested>(_onHabitUndoCheckInRequested);
@@ -19,6 +32,7 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     on<HabitUpdated>(_onHabitUpdated);
     on<HabitArchived>(_onHabitArchived);
     on<HabitReordered>(_onHabitReordered);
+    on<HabitCelebrationCleared>(_onCelebrationCleared);
   }
 
   Future<void> _onHabitStarted(
@@ -28,7 +42,16 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     emit(HabitLoading());
     try {
       final habits = await _repository.getUserHabits();
-      emit(HabitLoaded(habits: habits, lastUpdated: DateTime.now()));
+
+      // Include any pending celebration from recent check-in
+      final celebration = _pendingCelebration;
+      _pendingCelebration = null;
+
+      emit(HabitLoaded(
+        habits: habits,
+        lastUpdated: DateTime.now(),
+        celebration: celebration,
+      ));
     } catch (e) {
       emit(HabitError(e.toString()));
     }
@@ -45,12 +68,81 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
 
     if (index == -1) return;
 
+    final habit = habits[index];
+    final habitName = habit.title ?? habit.habit?.name ?? 'Habit';
+
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(event.date);
       final response = await _repository.checkIn(event.userHabitId, dateStr);
+
+      // Calculate celebration data from response
+      _pendingCelebration = _calculateCelebration(
+        response,
+        habitName,
+        habits,
+        event.userHabitId,
+      );
+
+      // Refresh to get updated state
       add(HabitStarted());
     } catch (e) {
       emit(HabitError(e.toString()));
+    }
+  }
+
+  /// Calculate celebration data based on check-in response
+  CelebrationData _calculateCelebration(
+    HabitCheckinResponseModel response,
+    String habitName,
+    List<UserHabit> currentHabits,
+    String checkedHabitId,
+  ) {
+    int? streakMilestone;
+    int pointsEarned = _pointsPerCheckin;
+    String pointsReason = 'Check-in';
+
+    // Check if we hit a streak milestone
+    final streak = response.currentStreak;
+    if (_streakMilestones.contains(streak)) {
+      streakMilestone = streak;
+
+      // Add bonus points for streak milestones
+      if (streak >= 30) {
+        pointsEarned += _pointsStreak30;
+        pointsReason = 'Streak $streak hari!';
+      } else if (streak >= 7) {
+        pointsEarned += _pointsStreak7;
+        pointsReason = 'Streak $streak hari!';
+      }
+    }
+
+    // Check if all habits are now completed for today
+    // (Count habits that were already checked + this one)
+    final completedBefore = currentHabits.where((h) => h.checkedInToday).length;
+    final totalHabits = currentHabits.length;
+    final willBeCompleted = completedBefore + 1;
+
+    final allDone = willBeCompleted >= totalHabits && totalHabits > 0;
+    if (allDone) {
+      pointsEarned += _pointsAllDone;
+      pointsReason = 'Semua selesai!';
+    }
+
+    return CelebrationData(
+      streakMilestone: streakMilestone,
+      habitName: habitName,
+      allDone: allDone,
+      pointsEarned: pointsEarned,
+      pointsReason: pointsReason,
+    );
+  }
+
+  void _onCelebrationCleared(
+    HabitCelebrationCleared event,
+    Emitter<HabitState> emit,
+  ) {
+    if (state is HabitLoaded) {
+      emit((state as HabitLoaded).clearCelebration());
     }
   }
 

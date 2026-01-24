@@ -4,8 +4,8 @@ import 'habit.dart';
 class UserHabit extends Equatable {
   final String id;
   final String?
-  userId; // Optional as sometimes we might just have the id or it's implied
-  final String habitId;
+      userId; // Optional as sometimes we might just have the id or it's implied
+  final String? habitId; // Nullable for custom habits (no catalog reference)
   final String? notes;
   final bool isCustom;
   final String? title;
@@ -31,7 +31,7 @@ class UserHabit extends Equatable {
   const UserHabit({
     required this.id,
     this.userId,
-    required this.habitId,
+    this.habitId, // Now optional for custom habits
     this.notes,
     this.isCustom = false,
     this.title,
@@ -55,27 +55,27 @@ class UserHabit extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    userId,
-    habitId,
-    notes,
-    isCustom,
-    title,
-    visibility,
-    reach,
-    repeatPeriod,
-    repeatStartDate,
-    repeatEndDate,
-    frequency,
-    frequencyDays,
-    currentStreak,
-    longestStreak,
-    totalCompletions,
-    color,
-    icon,
-    order,
-    checkedInToday,
-    lastCheckinAt,
-    habit,
-  ];
+        id,
+        userId,
+        habitId,
+        notes,
+        isCustom,
+        title,
+        visibility,
+        reach,
+        repeatPeriod,
+        repeatStartDate,
+        repeatEndDate,
+        frequency,
+        frequencyDays,
+        currentStreak,
+        longestStreak,
+        totalCompletions,
+        color,
+        icon,
+        order,
+        checkedInToday,
+        lastCheckinAt,
+        habit,
+      ];
 }

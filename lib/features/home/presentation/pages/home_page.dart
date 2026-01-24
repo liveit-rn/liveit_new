@@ -54,6 +54,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
+        heroTag: 'home_page_fab', // Unique hero tag to avoid conflicts
         onPressed: () async {
           final result = await context.router.push(const AddHabitRoute());
           if (result == true && context.mounted) {
@@ -116,7 +117,8 @@ class _HomePageState extends State<HomePage> {
                               padding: const EdgeInsets.only(bottom: 24),
                               child: Text(
                                 'Error: $errorMessage',
-                                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                                style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error),
                               ),
                             ),
                           if (isLoading && habits.isEmpty)
@@ -435,89 +437,91 @@ class _HabitGroupCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           if (habits.isEmpty)
-             Padding(
-               padding: const EdgeInsets.symmetric(vertical: 20),
-               child: Center(
-                 child: Text(
-                   'Belum ada habit. Tambahkan sekarang!',
-                   style: theme.textTheme.bodyMedium?.copyWith(
-                     color: colorScheme.onSurfaceVariant,
-                   ),
-                 ),
-               ),
-             )
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  'Belum ada habit. Tambahkan sekarang!',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            )
           else
-          ...List.generate(habits.length, (index) {
-            final habit = habits[index];
-            final bool completed = habit.checkedInToday;
-            final String title = habit.title ?? habit.habit?.name ?? 'Untitled';
-            final String description = habit.notes ?? habit.habit?.description ?? '';
-            final int streak = habit.currentStreak;
+            ...List.generate(habits.length, (index) {
+              final habit = habits[index];
+              final bool completed = habit.checkedInToday;
+              final String title =
+                  habit.title ?? habit.habit?.name ?? 'Untitled';
+              final String description =
+                  habit.notes ?? habit.habit?.description ?? '';
+              final int streak = habit.currentStreak;
 
-            return Column(
-              children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  splashColor: colorScheme.primary.withValues(alpha: 0.08),
-                  highlightColor: colorScheme.primary.withValues(alpha: 0.04),
-                  onTap: () => onToggle(habit.id, completed),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Row(
-                      children: [
-                        _HabitCheckbox(completed: completed),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  decoration: completed
-                                      ? TextDecoration.lineThrough
-                                      : null,
-                                  color: completed
-                                      ? colorScheme.onSurfaceVariant
-                                      : colorScheme.onSurface,
-                                ),
-                              ),
-                              if (description.isNotEmpty) ...[
-                                const SizedBox(height: 4),
+              return Column(
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    splashColor: colorScheme.primary.withValues(alpha: 0.08),
+                    highlightColor: colorScheme.primary.withValues(alpha: 0.04),
+                    onTap: () => onToggle(habit.id, completed),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: Row(
+                        children: [
+                          _HabitCheckbox(completed: completed),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  description,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
+                                  title,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
                                     decoration: completed
                                         ? TextDecoration.lineThrough
                                         : null,
+                                    color: completed
+                                        ? colorScheme.onSurfaceVariant
+                                        : colorScheme.onSurface,
                                   ),
                                 ),
+                                if (description.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    description,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      decoration: completed
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        _HabitTrailingBadge(
-                          completed: completed,
-                          streak: streak,
-                        ),
-                      ],
+                          _HabitTrailingBadge(
+                            completed: completed,
+                            streak: streak,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                if (index != habits.length - 1)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 60),
-                    child: Divider(
-                      height: 1,
-                      thickness: 0.5,
-                      color: colorScheme.outline.withValues(alpha: 0.1),
+                  if (index != habits.length - 1)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 60),
+                      child: Divider(
+                        height: 1,
+                        thickness: 0.5,
+                        color: colorScheme.outline.withValues(alpha: 0.1),
+                      ),
                     ),
-                  ),
-              ],
-            );
-          }),
+                ],
+              );
+            }),
         ],
       ),
     );

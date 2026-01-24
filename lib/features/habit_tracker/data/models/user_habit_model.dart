@@ -25,7 +25,7 @@ class UserHabitModel extends UserHabit {
   const UserHabitModel({
     required super.id,
     super.userId,
-    required super.habitId,
+    super.habitId, // Now optional for custom habits
     super.notes,
     super.isCustom = false,
     super.title,

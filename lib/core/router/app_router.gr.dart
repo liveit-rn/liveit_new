@@ -111,6 +111,100 @@ class DevotionRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [EditHabitPage]
+class EditHabitRoute extends PageRouteInfo<EditHabitRouteArgs> {
+  EditHabitRoute({
+    Key? key,
+    required UserHabit userHabit,
+    List<PageRouteInfo>? children,
+  }) : super(
+         EditHabitRoute.name,
+         args: EditHabitRouteArgs(key: key, userHabit: userHabit),
+         initialChildren: children,
+       );
+
+  static const String name = 'EditHabitRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<EditHabitRouteArgs>();
+      return EditHabitPage(key: args.key, userHabit: args.userHabit);
+    },
+  );
+}
+
+class EditHabitRouteArgs {
+  const EditHabitRouteArgs({this.key, required this.userHabit});
+
+  final Key? key;
+
+  final UserHabit userHabit;
+
+  @override
+  String toString() {
+    return 'EditHabitRouteArgs{key: $key, userHabit: $userHabit}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! EditHabitRouteArgs) return false;
+    return key == other.key && userHabit == other.userHabit;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ userHabit.hashCode;
+}
+
+/// generated route for
+/// [HabitStatsPage]
+class HabitStatsRoute extends PageRouteInfo<HabitStatsRouteArgs> {
+  HabitStatsRoute({
+    Key? key,
+    required UserHabit userHabit,
+    List<PageRouteInfo>? children,
+  }) : super(
+         HabitStatsRoute.name,
+         args: HabitStatsRouteArgs(key: key, userHabit: userHabit),
+         initialChildren: children,
+       );
+
+  static const String name = 'HabitStatsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<HabitStatsRouteArgs>();
+      return HabitStatsPage(key: args.key, userHabit: args.userHabit);
+    },
+  );
+}
+
+class HabitStatsRouteArgs {
+  const HabitStatsRouteArgs({this.key, required this.userHabit});
+
+  final Key? key;
+
+  final UserHabit userHabit;
+
+  @override
+  String toString() {
+    return 'HabitStatsRouteArgs{key: $key, userHabit: $userHabit}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! HabitStatsRouteArgs) return false;
+    return key == other.key && userHabit == other.userHabit;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ userHabit.hashCode;
+}
+
+/// generated route for
 /// [HabitTrackerPage]
 class HabitTrackerRoute extends PageRouteInfo<void> {
   const HabitTrackerRoute({List<PageRouteInfo>? children})

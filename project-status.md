@@ -278,27 +278,13 @@ Checklist:
 
 - [x] Analyze backend Phase 2A specification
 - [x] Create implementation plan with detailed checklist (docs/habit-tracker-implementation-plan.md)
-- [ ] Phase 1: Data Layer Phase 2A Support (20 tasks)
-  - [ ] Update Domain Layer (entities, enums)
-  - [ ] Update Data Models (JSON parsing, validation)
-  - [ ] Update Datasource Layer (add update, delete, reorder methods)
-  - [ ] Update Repository Layer (interface + impl)
-  - [ ] Update Dependency Injection
-- [ ] Phase 2: State Management Phase 2A Support (12 tasks)
-  - [ ] Add new events (HabitUpdated, HabitArchived, HabitReordered)
-  - [ ] Update BLoC handlers
-  - [ ] Add error handling
-- [ ] Phase 3: UI Layer - Basic Phase 2A (12 tasks)
-  - [ ] Update HabitCard to show Phase 2A fields
-  - [ ] Update AddHabitPage with Phase 2A forms
-  - [ ] Update HabitTrackerPage with progress summary
-- [ ] Phase 4: UI Layer - Advanced Features (23 tasks)
-  - [ ] Create EditHabitPage
-  - [ ] Implement drag & drop reordering
-  - [ ] Implement archive/delete with undo
-  - [ ] Gamification visual feedback (animations, streak milestones)
-  - [ ] Habit Statistics View
+- [x] Phase 1: Data Layer Phase 2A Support (20 tasks)
+- [x] Phase 2: State Management Phase 2A Support (12 tasks)
+- [x] Phase 3: UI Layer - Basic Phase 2A (12 tasks)
+- [x] Phase 4: UI Layer - Advanced Features (23 tasks)
 - [ ] Phase 5: Polish & Optimization (19 tasks)
+  - [x] Integrate celebrations with check-in flow
+  - [ ] Replace deprecated `withOpacity` with `withValues(alpha: ...)`
   - [ ] Offline support (Isar/Hive)
   - [ ] Animations & transitions
   - [ ] Accessibility improvements
@@ -312,9 +298,8 @@ Checklist:
 Current Status:
 
 - Implementation plan created with 101 tasks across 6 phases.
-- Phase 1 Data Layer COMPLETED (2026-01-21)
-- Phase 2 State Management COMPLETED (integrated in Phase 1)
-- Ready to proceed to Phase 3: UI Layer updates
+- Phase 1-4 COMPLETED (Data, State, UI Basic, UI Advanced).
+- Phase 5 Polish IN PROGRESS (Celebrations integrated).
 
 **Phase 1 Completed Tasks:**
 - [x] Update HabitRemoteDataSource abstract class with Phase 2A methods
@@ -327,38 +312,44 @@ Current Status:
 - [x] Run build_runner to regenerate .g.dart files
 - [x] Run dart format on all modified files
 
-Next Steps:
-
-- Proceed to Phase 3: UI Layer - Basic Phase 2A
-  - [ ] Update HabitCard to display Phase 2A fields (color, icon, repeatPeriod, frequency, streak)
-  - [ ] Update AddHabitPage with Phase 2A form inputs (dropdowns, color picker, etc.)
-  - [ ] Update HabitTrackerPage with progress summary
-
----
-
-**Update 2026-01-21 - Phase 3 UI Layer COMPLETED**
-
 **Phase 3 Completed Tasks:**
 - [x] Update HabitCard with Phase 2A fields (color, icon, repeatPeriod, frequency, streak badges)
 - [x] Update HabitCard with Edit and Archive action buttons
 - [x] Update HabitTrackerPage with options bottom sheet and archive confirmation
-- [x] Update AddHabitPage with Phase 2A form inputs:
-  - Repeat Period dropdown
-  - Frequency dropdown with Custom Days picker
-  - Color picker with preset colors
-  - Icon picker with preset emojis
-  - Advanced options toggle
+- [x] Update AddHabitPage with Phase 2A form inputs
 
-**Phase 3 Progress:**
-- ✅ HabitCard displays: color indicator, icon, repeat period badge, frequency badge, streak stats
-- ✅ AddHabitPage supports all Phase 2A configuration
-- ✅ Archive functionality with confirmation dialog
-- ✅ UI formatted and passes analysis
+**Phase 4 Completed Tasks:**
+- [x] Rebuild HabitTrackerPage with distinctive "Grounded Growth" design
+- [x] Create new HabitCard widget with animations and streak badges
+- [x] Create EditHabitPage for editing existing habits
+- [x] Implement drag & drop reordering with SliverReorderableList
+- [x] Add gamification visual feedback widgets (Confetti, Dialogs)
+- [x] Create HabitStatsPage with calendar heatmap and streak timeline
+- [x] Update router with EditHabitRoute and HabitStatsRoute
 
-**Next Steps:**
+**Phase 5 Progress:**
+- [x] Integrate celebrations with check-in flow (Confetti, Points, Dialogs wired to Bloc)
 
-- Proceed to Phase 4: UI Layer - Advanced Features
-  - [ ] Create EditHabitPage for editing existing habits
-  - [ ] Implement drag & drop reordering (requires reorderable_list library)
-  - [ ] Add gamification visual feedback (confetti, streak milestones)
-  - [ ] Create HabitStatsPage for statistics view
+Next Steps:
+
+- Proceed with remaining Phase 5 Polish items:
+  - [ ] Replace deprecated `withOpacity` with `withValues(alpha: ...)`
+  - [ ] Add offline caching (Hive/Isar)
+  - [ ] Implement pull-to-refresh caching
+
+---
+
+**Update 2026-01-24 - Phase 4 Completed & Celebrations Integrated**
+
+**Recent Accomplishments:**
+- ✅ Phase 4: Advanced Features fully implemented (Edit, Stats, Drag&Drop).
+- ✅ Phase 5: Celebrations integration completed.
+  - Wired `HabitBloc` to detect streaks/all-done from check-in response.
+  - Added `CelebrationData` to state for transient events.
+  - Wrapped `HabitTrackerPage` with `ConfettiOverlay` and listener.
+  - Now showing: Confetti, Zoe Points popup, Streak Milestone dialogs, All Done dialog.
+
+**Pending Actions:**
+- Fix `withOpacity` deprecation warnings (Flutter 3.27+).
+- Implement offline caching layer.
+- Write unit/widget tests.

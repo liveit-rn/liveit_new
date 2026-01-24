@@ -10,21 +10,23 @@ help:
 	@echo "  make clean     - Clean build artifacts"
 	@echo ""
 
-# 🛠️ Development (Debug APK)
-# 🛠️ Development (Debug APK)
 dev:
+	fvm flutter run -t lib/main_dev.dart
+	
+# 🛠️ Development (Debug APK)
+build-dev:
 	@echo "🛠️ Building Debug APK..."
-	flutter build apk --debug
+	fvm flutter build apk --debug
 
 # 🚀 Staging (Release APK)
-stage:
+build-stage:
 	@echo "🚀 Building Release APK..."
-	flutter build apk --release
+	fvm flutter build apk --release
 
 # 📦 Production (Release Bundle/AAB)
-prod:
+build-prod:
 	@echo "📦 Building Release Bundle (AAB)..."
-	flutter build appbundle --release
+	fvm flutter build appbundle --release
 
 # 🧹 Clean
 clean:

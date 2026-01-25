@@ -12,7 +12,7 @@ help:
 
 dev:
 	fvm flutter run -t lib/main_dev.dart
-	
+
 # 🛠️ Development (Debug APK)
 build-dev:
 	@echo "🛠️ Building Debug APK..."

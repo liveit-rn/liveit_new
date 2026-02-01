@@ -110,9 +110,9 @@ class PublicArticleDetail {
     final rawAssets = json['assets'];
     final assets = rawAssets is List
         ? rawAssets
-              .whereType<Map<String, dynamic>>()
-              .map(PublicArticleAsset.fromJson)
-              .toList(growable: false)
+            .whereType<Map<String, dynamic>>()
+            .map(PublicArticleAsset.fromJson)
+            .toList(growable: false)
         : const <PublicArticleAsset>[];
 
     return PublicArticleDetail(

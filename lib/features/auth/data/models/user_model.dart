@@ -63,8 +63,7 @@ class UserModel extends User {
       computedNeedsUsername = needsRaw;
     } else if (needsRaw == null) {
       final u = safeJson['username'];
-      computedNeedsUsername =
-          u == null || (u is String && u.trim().isEmpty);
+      computedNeedsUsername = u == null || (u is String && u.trim().isEmpty);
     } else if (needsRaw is String) {
       final lower = needsRaw.toLowerCase();
       if (lower == 'true' || lower == '1') {
@@ -73,15 +72,13 @@ class UserModel extends User {
         computedNeedsUsername = false;
       } else {
         final u = safeJson['username'];
-        computedNeedsUsername =
-            u == null || (u is String && u.trim().isEmpty);
+        computedNeedsUsername = u == null || (u is String && u.trim().isEmpty);
       }
     } else if (needsRaw is num) {
       computedNeedsUsername = needsRaw != 0;
     } else {
       final u = safeJson['username'];
-      computedNeedsUsername =
-          u == null || (u is String && u.trim().isEmpty);
+      computedNeedsUsername = u == null || (u is String && u.trim().isEmpty);
     }
 
     safeJson['needsUsername'] = computedNeedsUsername;

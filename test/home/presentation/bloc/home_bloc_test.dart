@@ -43,10 +43,12 @@ void main() {
       'moves habit to completed and raises success feedback on check-in',
       build: () => HomeBloc(InMemoryHomeRepository(seed: sample)),
       seed: () => HomeState(status: HomeStatus.success, uiState: sample),
-      act: (HomeBloc bloc) => bloc.add(const HabitCheckInRequested('habit-scripture')),
+      act: (HomeBloc bloc) =>
+          bloc.add(const HabitCheckInRequested('habit-scripture')),
       wait: const Duration(milliseconds: 250),
       expect: () => <dynamic>[
-        isA<HomeState>().having((HomeState s) => s.status, 'status', HomeStatus.mutating),
+        isA<HomeState>()
+            .having((HomeState s) => s.status, 'status', HomeStatus.mutating),
         isA<HomeState>()
             .having((HomeState s) => s.status, 'status', HomeStatus.success)
             .having(
@@ -69,7 +71,8 @@ void main() {
       act: (HomeBloc bloc) => bloc.add(const DevotionalHabitCreateRequested()),
       wait: const Duration(milliseconds: 250),
       expect: () => <dynamic>[
-        isA<HomeState>().having((HomeState s) => s.status, 'status', HomeStatus.mutating),
+        isA<HomeState>()
+            .having((HomeState s) => s.status, 'status', HomeStatus.mutating),
         isA<HomeState>()
             .having((HomeState s) => s.status, 'status', HomeStatus.success)
             .having(

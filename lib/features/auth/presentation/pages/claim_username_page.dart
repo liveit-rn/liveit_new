@@ -33,8 +33,8 @@ class _ClaimUsernamePageState extends State<ClaimUsernamePage> {
     if (username.isNotEmpty && username.length >= 3) {
       setState(() => _isCheckingUsername = true);
       context.read<AuthBloc>().add(
-        UsernameAvailabilityCheckRequested(username),
-      );
+            UsernameAvailabilityCheckRequested(username),
+          );
     } else {
       setState(() {
         _isUsernameAvailable = false;
@@ -46,8 +46,8 @@ class _ClaimUsernamePageState extends State<ClaimUsernamePage> {
   void _claimUsername() {
     if (_formKey.currentState!.validate() && _isUsernameAvailable) {
       context.read<AuthBloc>().add(
-        UsernameClaimRequested(_usernameController.text.trim()),
-      );
+            UsernameClaimRequested(_usernameController.text.trim()),
+          );
     }
   }
 
@@ -205,8 +205,7 @@ class _ClaimUsernamePageState extends State<ClaimUsernamePage> {
                   // Claim Button
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
-                      final isLoading =
-                          state is UsernameClaimLoading ||
+                      final isLoading = state is UsernameClaimLoading ||
                           state is UsernameCheckLoading;
                       return AuthButton(
                         text: 'Lanjutkan',

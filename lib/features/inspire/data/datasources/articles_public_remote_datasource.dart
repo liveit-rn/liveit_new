@@ -9,7 +9,7 @@ class ArticlesPublicRemoteDataSource {
   final DioClient _dioClient;
 
   ArticlesPublicRemoteDataSource({required DioClient dioClient})
-    : _dioClient = dioClient;
+      : _dioClient = dioClient;
 
   Future<PublicArticleFeedResponse> getPublicFeed({
     String? section,

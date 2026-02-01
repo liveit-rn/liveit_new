@@ -12,22 +12,25 @@ class DioClient {
   final FlutterSecureStorage _storage;
 
   DioClient({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage() {
+      : _storage = storage ?? const FlutterSecureStorage() {
     _dio = Dio(_baseOptions);
     _setupInterceptors();
   }
 
   BaseOptions get _baseOptions => BaseOptions(
-    baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000',
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 30),
-    sendTimeout: const Duration(seconds: 30),
-    headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-    validateStatus: (status) {
-      // Accept all status codes to handle them in interceptors
-      return status != null && status < 500;
-    },
-  );
+        baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000',
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        validateStatus: (status) {
+          // Accept all status codes to handle them in interceptors
+          return status != null && status < 500;
+        },
+      );
 
   void _setupInterceptors() {
     _dio.interceptors.addAll([

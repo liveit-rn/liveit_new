@@ -114,9 +114,8 @@ class HabitCard extends StatelessWidget {
                         _title,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          decoration: completed
-                              ? TextDecoration.lineThrough
-                              : null,
+                          decoration:
+                              completed ? TextDecoration.lineThrough : null,
                           color: completed
                               ? colorScheme.onSurfaceVariant
                               : colorScheme.onSurface,
@@ -128,9 +127,8 @@ class HabitCard extends StatelessWidget {
                           _description,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
-                            decoration: completed
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                completed ? TextDecoration.lineThrough : null,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

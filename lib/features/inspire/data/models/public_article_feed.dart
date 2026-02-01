@@ -50,8 +50,7 @@ class PublicArticleFeedItem {
   });
 
   factory PublicArticleFeedItem.fromJson(Map<String, dynamic> json) {
-    final coverUrl =
-        _readString(json, 'coverUrl') ??
+    final coverUrl = _readString(json, 'coverUrl') ??
         _readStringMap(json, 'coverAsset', 'url');
 
     return PublicArticleFeedItem(
@@ -117,9 +116,9 @@ class PublicArticleFeedResponse {
     final rawItems = json['items'];
     final items = rawItems is List
         ? rawItems
-              .whereType<Map<String, dynamic>>()
-              .map(PublicArticleFeedItem.fromJson)
-              .toList(growable: false)
+            .whereType<Map<String, dynamic>>()
+            .map(PublicArticleFeedItem.fromJson)
+            .toList(growable: false)
         : const <PublicArticleFeedItem>[];
 
     final rawCursor = json['nextCursor'];

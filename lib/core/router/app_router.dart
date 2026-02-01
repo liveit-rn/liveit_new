@@ -32,7 +32,7 @@ class AppRouter extends RootStackRouter {
           page: NavigationShellRoute.page,
           path: '/home',
           children: [
-            AutoRoute(page: RoutineRoute.page, path: 'routine', initial: true),
+            AutoRoute(page: HomeRoute.page, path: '', initial: true),
             AutoRoute(page: DevotionRoute.page, path: 'devotion'),
             AutoRoute(page: HabitsRoute.page, path: 'habits'),
             AutoRoute(page: ProfileRoute.page, path: 'profile'),

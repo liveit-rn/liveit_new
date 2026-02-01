@@ -1115,12 +1115,22 @@ This file is append-only. Each entry must include:
    - Coming soon snackbars for menu items (Edit Profil, Badge, etc.)
    - Glass-morphism logout dialog with brand-styled buttons
 
+6. **Added flutter_animate package:**
+   - Added `flutter_animate: ^4.2.0` for smooth entry animations
+   - Staggered reveal animations for header, stats, and menu sections
+
+7. **Extended ProfileModel:**
+   - Added `currentStreak` field to support streak display
+   - Updated `copyWith`, `fromJson`, and `toJson` methods
+
 **Files Modified:**
 
 - `lib/core/injection/injection_container.dart` (added ProfileBloc registration)
 - `lib/main_dev.dart` (added ProfileBloc provider)
 - `lib/main_prod.dart` (added ProfileBloc provider)
 - `lib/features/profile/presentation/pages/profile_page.dart` (complete rewrite)
+- `lib/features/profile/domain/models/profile_model.dart` (added currentStreak)
+- `pubspec.yaml` (added flutter_animate)
 
 **Rationale:**
 
@@ -1133,12 +1143,13 @@ This file is append-only. Each entry must include:
 **Impact:**
 
 - ProfilePage now has distinctive, modern iOS glass-morphism aesthetic
-- Real gamification data (Zoe Points, Level) fetched from `/profiles/me` endpoint
+- Real gamification data (Zoe Points, Level, Streak) fetched from `/profiles/me` endpoint
 - Consistent with HabitTrackerPage "Grounded Growth" design language
 - All menu items show "Coming Soon" feedback instead of TODO comments
-- Member duration shows human-readable format ("3 bulan yang lalu")
-- Avatar supports network images from `profileImageId` when available
+- Member duration shows human-readable format ("3 bulan")
+- Avatar supports network images from `avatarUrl` when available
 - Logout flow maintains same functionality with improved glass-morphism dialog
+- Entry animations provide smooth, polished user experience
 - Ready for future features: Edit Profile, Badges, Activity History, Settings
 
 **Design Specifications:**
@@ -1150,11 +1161,88 @@ This file is append-only. Each entry must include:
 - **Avatar Ring**: 4px gradient border (Primary → Secondary → Tertiary)
 - **Stat Cards**: Glass surface with colored borders matching stat type
 - **Menu Items**: Icon containers with primaryContainer alpha 30%
+- **Animations**: 1200ms header, 800ms stats, staggered reveals
 
 **Color Usage:**
 
 - Primary (Deep Teal #2F5D62): Level stats, headers, menu icons
-- Tertiary (Coral #FF7B54): Zoe Points stats, accents
+- Tertiary (Coral #FF7B54): Zoe Points stats, accents, streak badges
 - Secondary (Warm Sand #C3B49A): Subtle backgrounds
 - Surface alpha 60-80%: Glass card backgrounds
 - Outline alpha 10-20%: Subtle borders and dividers
+
+---
+
+## 2026-02-01 — Navigation Shell Glass-Morphism Pill Design
+
+**Context:**
+
+- User requested refactor of NavigationShellPage with modern iOS 2026 glass-morphism aesthetic
+- Requested floating pill style navigation bar matching ProfilePage design language
+- Consistent with "Grounded Growth" brand (Deep Teal, Coral, Warm Sand)
+
+**Choice:**
+
+1. **Floating Pill Design:**
+   - Converted bottom navigation to floating pill container
+   - 32px border radius for pill shape
+   - Positioned with margin (16px horizontal) for floating effect
+   - Extended body behind nav (`extendBody: true`)
+
+2. **Glass-Morphism Implementation:**
+   - `BackdropFilter` blur sigma 20 for frosted glass effect
+   - Gradient surface (surface alpha 85-92%)
+   - Subtle border (outline alpha 20%)
+   - Dual shadow layer: primary-tinted (blur 20) + black (blur 30)
+
+3. **Navigation Items:**
+   - 4 items: Home, Devotion, Habits, Profile
+   - Active state: Gradient background (primary alpha 15%), border (primary alpha 25%)
+   - Inactive state: Transparent with muted icons
+   - Animated scale effect on state change (300ms easeOutBack)
+
+4. **Animations:**
+   - Entry animation: Slide up + fade in (600ms)
+   - Scale animation on tab change (300ms easeOutBack)
+   - SizedBox transitions for label reveal
+
+5. **Technical Changes:**
+   - Converted _NavigationShellView from StatelessWidget to StatefulWidget
+   - Added AnimationController for entry animation
+   - Updated pillController lifecycle management
+
+**Files Modified:**
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart` (complete redesign)
+
+**Rationale:**
+
+- **Floating Pill**: iOS 2026 trend - detached, floating navigation instead of docked bar
+- **Glass Effect**: Matches ProfilePage glass-morphism language
+- **Brand Consistency**: Uses same primary/tertiary colors, blur amounts, shadow patterns
+- **Animation**: flutter_animate scale effects provide tactile feedback on tab selection
+
+**Design Specifications:**
+
+- **Pill Shape**: 32px border radius, 16px horizontal margin
+- **Glass Blur**: sigmaX/Y = 20
+- **Shadows**: Primary alpha 15% (blur 20, offset 0,8) + Black alpha 10% (blur 30, offset 0,15)
+- **Active Item**: 16h/10v padding, gradient fill, 1px border, scale to 1.0
+- **Inactive Item**: 16h/10v padding, transparent, scale to 1.0
+- **Animation**: 300ms easeOutBack scale, 600ms slide-up entry
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Active icons, text, gradient fill, borders
+- Surface alpha 85-92%: Glass background
+- Outline alpha 20%: Subtle border
+- Inactive: onSurfaceVariant alpha 60%
+
+**Impact:**
+
+- Navigation bar now matches ProfilePage iOS 2026 glass-morphism aesthetic
+- Floating pill design creates modern, elevated navigation experience
+- Consistent animations and visual language across app
+- Better visual separation from content (extendBody: true)
+- Improved tactile feedback with scale animations
+- Ready for future enhancements (badges, notifications on nav items)

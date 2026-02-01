@@ -21,6 +21,7 @@ import '../../features/habit_tracker/data/datasources/habit_local_data_source.da
 import '../../features/habit_tracker/data/repositories/habit_repository_impl.dart';
 import '../../features/habit_tracker/domain/repositories/habit_repository.dart';
 import '../../features/habit_tracker/presentation/bloc/habit_bloc.dart';
+import '../../features/profile/presentation/bloc/profile_bloc.dart';
 import '../../features/inspire/data/datasources/articles_public_remote_datasource.dart';
 
 final getIt = GetIt.instance;
@@ -119,5 +120,10 @@ Future<void> configureDependencies() async {
   // Inspire / Articles (public)
   getIt.registerLazySingleton<ArticlesPublicRemoteDataSource>(
     () => ArticlesPublicRemoteDataSource(dioClient: getIt<DioClient>()),
+  );
+
+  // Profile BLoC (for profile page data including gamification stats)
+  getIt.registerFactory<ProfileBloc>(
+    () => ProfileBloc(repository: getIt<ProfileRepository>()),
   );
 }

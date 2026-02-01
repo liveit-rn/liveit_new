@@ -8,7 +8,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource _remoteDataSource;
 
   ProfileRepositoryImpl({required ProfileRemoteDataSource remoteDataSource})
-    : _remoteDataSource = remoteDataSource;
+      : _remoteDataSource = remoteDataSource;
 
   @override
   Future<ProfileModel> fetchProfile() async {

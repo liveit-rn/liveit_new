@@ -9,7 +9,7 @@ class ProfileRemoteDataSource {
   final DioClient _dioClient;
 
   ProfileRemoteDataSource({required DioClient dioClient})
-    : _dioClient = dioClient;
+      : _dioClient = dioClient;
 
   /// Get current user profile
   Future<ProfileModel> getProfile() async {

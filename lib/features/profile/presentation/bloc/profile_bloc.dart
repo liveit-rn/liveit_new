@@ -8,8 +8,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository _repository;
 
   ProfileBloc({required ProfileRepository repository})
-    : _repository = repository,
-      super(const ProfileState()) {
+      : _repository = repository,
+        super(const ProfileState()) {
     on<ProfileRequested>(_onProfileRequested);
     on<ProfileDisplayNameChanged>(_onDisplayNameChanged);
     on<ProfileAvatarChanged>(_onAvatarChanged);

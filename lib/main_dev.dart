@@ -10,6 +10,8 @@ import 'package:liveit_new/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:liveit_new/features/auth/presentation/bloc/auth_event.dart';
 import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_bloc.dart';
 import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_event.dart';
+import 'package:liveit_new/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:liveit_new/features/profile/presentation/bloc/profile_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +40,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<HabitBloc>(
           create: (context) => getIt<HabitBloc>()..add(HabitStarted()),
+        ),
+        BlocProvider<ProfileBloc>(
+          create: (context) => getIt<ProfileBloc>(),
         ),
       ],
       child: MaterialApp.router(

@@ -1039,3 +1039,122 @@ This file is append-only. Each entry must include:
 - Created `HabitLocalDataSource` and registered in DI.
 - `HabitBloc` now emits state twice on load: Cache (Instant) -> API (Fresh).
 - UI feels significantly faster; Check-in is instant.
+
+## 2026-01-25 — Restoration of Missing Habit Tracker Files
+
+**Context:**
+
+- User encountered compilation errors `Target kernel_snapshot_program failed` because several files were missing from the project directory.
+- Missing files: `lib/features/habit_tracker/presentation/pages/edit_habit_page.dart` and `lib/features/habit_tracker/data/datasources/habit_local_data_source.dart`.
+- These files were referenced in `AppRouter` and `injection_container.dart` but were not present on disk.
+
+**Choice:**
+
+- Recreated `HabitLocalDataSource` with Hive support, including the `openBox()` static method required by the injection container.
+- Recreated `EditHabitPage` with full Phase 2A support:
+    - Pre-filled form fields (Notes, Schedule, Personalization).
+    - Habit preview card for real-time feedback.
+    - Unsaved changes confirmation logic using `PopScope`.
+- Ran `build_runner` to regenerate `app_router.gr.dart` and ensure route definitions match the restored page.
+- Cleaned up duplicate/unused imports in `injection_container.dart` and `add_habit_page.dart`.
+
+**Rationale:**
+
+- **Stability:** Restores the project to a buildable state after local file loss.
+- **Consistency:** Re-implements features (Hive caching, Edit page) exactly as described in previous technical blueprints and decision logs.
+
+**Impact:**
+
+- Build error "The system cannot find the file specified" is resolved.
+- Habit Tracker editing and offline caching functionality is fully restored.
+- Project now passes static analysis (with only deprecation warnings from Flutter 3.27).
+
+---
+
+## 2026-02-01 — Profile Page Modern Glass-Morphism Refactor
+
+**Context:**
+
+- User requested complete refactor of ProfilePage with modern iOS 2026 glass-morphism aesthetic
+- Must follow LIVEIT "Grounded Growth" brand colors (Deep Teal, Warm Sand, Coral)
+- Must maintain all existing functionality while improving UX
+- ProfileBloc was not integrated - ProfilePage only used AuthBloc with hardcoded stats
+
+**Choice:**
+
+1. **Registered ProfileBloc in DI and Global Providers:**
+   - Added `ProfileBloc` registration in `injection_container.dart`
+   - Added `ProfileBloc` provider to `MultiBlocProvider` in `main_dev.dart` and `main_prod.dart`
+   - ProfilePage now uses both `AuthBloc` (auth state) and `ProfileBloc` (gamification data)
+
+2. **Implemented iOS 2026 Glass-Morphism Design:**
+   - **Glass Header**: Gradient background with `BackdropFilter` blur (sigmaX/Y: 20), frosted glass ring around avatar
+   - **Gradient Overlay**: Multi-color gradient using brand palette (Primary 15%, Secondary 10%, Tertiary 5%)
+   - **Frosted Cards**: Stats cards with glass-morphism effect, colored borders, and soft shadows
+   - **Glass Menu**: BackdropFilter blur (sigmaX/Y: 10) with transparent surface and subtle borders
+   - **Member Since Badge**: Glass container showing membership duration calculation
+
+3. **Enhanced Visual Hierarchy:**
+   - Centered vertical layout (avatar top, name/username/email stacked)
+   - Display name in uppercase with w800 weight and -0.3 letter-spacing
+   - Username in gradient container with primary color
+   - Stat cards use brand colors: Tertiary (Coral) for Zoe Points, Primary (Deep Teal) for Level
+   - Level names mapped (1: "Langkah Pertama", 2: "Membangun Irama", etc.)
+
+4. **Improved Functionality:**
+   - Profile data fetched from `/profiles/me` endpoint on page load
+   - Real Zoe Points and Level displayed from `ProfileModel`
+   - Smart member duration calculation (days/months/years)
+   - Loading states with shimmer-like placeholders
+   - Unauthenticated view with glass-morphism card
+
+5. **UX Enhancements:**
+   - Subtle shadows with color-tinted glow (elevation + blur)
+   - Consistent 20-24px border radius throughout
+   - Haptic-ready InkWell with themed splash colors
+   - Coming soon snackbars for menu items (Edit Profil, Badge, etc.)
+   - Glass-morphism logout dialog with brand-styled buttons
+
+**Files Modified:**
+
+- `lib/core/injection/injection_container.dart` (added ProfileBloc registration)
+- `lib/main_dev.dart` (added ProfileBloc provider)
+- `lib/main_prod.dart` (added ProfileBloc provider)
+- `lib/features/profile/presentation/pages/profile_page.dart` (complete rewrite)
+
+**Rationale:**
+
+- **Glass-Morphism**: iOS 2026 design trend - frosted glass, layered depth, subtle transparency
+- **Brand Alignment**: Uses LIVEIT "Grounded Growth" palette throughout (Deep Teal primary, Coral tertiary)
+- **Real Data**: Integrates ProfileBloc to display actual Zoe Points and Level from backend
+- **Progressive Disclosure**: Clean, minimal UI that reveals more on interaction
+- **Accessibility**: Maintains WCAG contrast ratios while using glass effects
+
+**Impact:**
+
+- ProfilePage now has distinctive, modern iOS glass-morphism aesthetic
+- Real gamification data (Zoe Points, Level) fetched from `/profiles/me` endpoint
+- Consistent with HabitTrackerPage "Grounded Growth" design language
+- All menu items show "Coming Soon" feedback instead of TODO comments
+- Member duration shows human-readable format ("3 bulan yang lalu")
+- Avatar supports network images from `profileImageId` when available
+- Logout flow maintains same functionality with improved glass-morphism dialog
+- Ready for future features: Edit Profile, Badges, Activity History, Settings
+
+**Design Specifications:**
+
+- **Glass Blur**: Header sigma 20, Menu sigma 10
+- **Border Radius**: 20-24px for cards, 12px for containers, 56px for avatar
+- **Gradient**: 3-color brand palette overlay (alpha 5-15%)
+- **Shadows**: Color-tinted with 20px blur and 8px vertical offset
+- **Avatar Ring**: 4px gradient border (Primary → Secondary → Tertiary)
+- **Stat Cards**: Glass surface with colored borders matching stat type
+- **Menu Items**: Icon containers with primaryContainer alpha 30%
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Level stats, headers, menu icons
+- Tertiary (Coral #FF7B54): Zoe Points stats, accents
+- Secondary (Warm Sand #C3B49A): Subtle backgrounds
+- Surface alpha 60-80%: Glass card backgrounds
+- Outline alpha 10-20%: Subtle borders and dividers

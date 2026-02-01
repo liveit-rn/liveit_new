@@ -284,9 +284,10 @@ Checklist:
 - [x] Phase 4: UI Layer - Advanced Features (23 tasks)
 - [x] Phase 5: Polish & Optimization (19 tasks)
   - [x] Integrate celebrations with check-in flow
-  - [x] Add offline caching (Hive/Isar)
+  - [x] Add offline caching (Hive)
   - [x] Implement pull-to-refresh caching
   - [x] Optimistic UI for Check-in/Undo
+  - [x] Fix missing files causing build failures (HabitLocalDataSource, EditHabitPage)
   - [ ] Replace deprecated `withOpacity` with `withValues(alpha: ...)`
   - [ ] Animations & transitions
   - [ ] Accessibility improvements
@@ -301,7 +302,7 @@ Current Status:
 
 - Implementation plan created with 101 tasks across 6 phases.
 - Phase 1-4 COMPLETED (Data, State, UI Basic, UI Advanced).
-- Phase 5 Polish COMPLETED (Celebrations, Offline Caching).
+- Phase 5 Polish PROGRESSING (Celebrations, Offline Caching, and Restoration of missing files).
 
 **Phase 1 Completed Tasks:**
 - [x] Update HabitRemoteDataSource abstract class with Phase 2A methods
@@ -360,5 +361,62 @@ Next Steps:
 
 **Pending Actions:**
 - Fix `withOpacity` deprecation warnings (Flutter 3.27+).
-- Implement offline caching layer.
 - Write unit/widget tests.
+
+---
+
+## Initial Ask (2026-02-01):
+
+- Refactor ProfilePage dengan modern iOS glass-morphism aesthetic sesuai LIVEIT brand colors dan konteks spiritual app.
+
+## Initial Response:
+
+- Menganalisis struktur existing, mendaftarkan ProfileBloc ke DI, dan merefactor complete ProfilePage dengan glass-morphism design.
+
+## Checklist:
+
+- [x] Register ProfileBloc di injection_container.dart
+- [x] Add ProfileBloc ke global providers (main_dev.dart & main_prod.dart)
+- [x] Implement glass-morphism header dengan gradient dan BackdropFilter
+- [x] Create frosted glass avatar ring dengan brand gradient
+- [x] Build glass stat cards untuk Zoe Points dan Level
+- [x] Implement glass menu section dengan BackdropFilter
+- [x] Integrasi ProfileBloc untuk fetch real data dari `/profiles/me`
+- [x] Display real Zoe Points dan Level dari ProfileModel
+- [x] Add member duration calculation (smart formatting)
+- [x] Enhance unauthenticated view dengan glass card
+- [x] Implement glass-morphism logout dialog
+- [x] Add coming soon feedback untuk menu items (Edit, Badge, History, Settings)
+
+## Current Status:
+
+- ProfilePage fully refactored dengan iOS 2026 glass-morphism aesthetic.
+- Menggunakan LIVEIT brand colors: Deep Teal (Primary), Coral (Tertiary), Warm Sand (Secondary).
+- ProfileBloc terintegrasi dan mengambil data real dari backend.
+- Semua menu items memiliki UX feedback (coming soon snackbars).
+- Avatar mendukung network image dari profileImageId.
+- Member duration ditampilkan dalam format human-readable.
+- Design konsisten dengan HabitTrackerPage "Grounded Growth" aesthetic.
+
+## Files Modified:
+
+- `lib/core/injection/injection_container.dart`
+- `lib/main_dev.dart`
+- `lib/main_prod.dart`
+- `lib/features/profile/presentation/pages/profile_page.dart`
+
+## Design Features:
+
+- **Glass Header**: BackdropFilter blur sigma 20, gradient overlay brand colors
+- **Avatar Ring**: 4px gradient border (Primary → Secondary → Tertiary)
+- **Glass Stats Cards**: Frosted surface dengan colored borders dan soft shadows
+- **Glass Menu**: BackdropFilter blur sigma 10, transparent surface
+- **Animations**: Haptic-ready InkWell dengan themed splash colors
+- **Typography**: Uppercase display names, bold weights (w800), tight letter-spacing
+
+## Next Steps:
+
+- Implement Edit Profile page
+- Implement Badge & Achievements page
+- Implement Activity History page
+- Implement Settings page (Privacy, Notifications)

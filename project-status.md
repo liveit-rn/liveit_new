@@ -379,24 +379,29 @@ Next Steps:
 - [x] Add ProfileBloc ke global providers (main_dev.dart & main_prod.dart)
 - [x] Implement glass-morphism header dengan gradient dan BackdropFilter
 - [x] Create frosted glass avatar ring dengan brand gradient
-- [x] Build glass stat cards untuk Zoe Points dan Level
+- [x] Build glass stat cards untuk Zoe Points, Level, Streak, dan Badge
 - [x] Implement glass menu section dengan BackdropFilter
 - [x] Integrasi ProfileBloc untuk fetch real data dari `/profiles/me`
-- [x] Display real Zoe Points dan Level dari ProfileModel
+- [x] Display real Zoe Points, Level, dan Streak dari ProfileModel
 - [x] Add member duration calculation (smart formatting)
 - [x] Enhance unauthenticated view dengan glass card
 - [x] Implement glass-morphism logout dialog
 - [x] Add coming soon feedback untuk menu items (Edit, Badge, History, Settings)
+- [x] Add flutter_animate package untuk smooth entry animations
+- [x] Extend ProfileModel dengan currentStreak field
+- [x] Update decisions.md dengan detail refactor
 
 ## Current Status:
 
 - ProfilePage fully refactored dengan iOS 2026 glass-morphism aesthetic.
 - Menggunakan LIVEIT brand colors: Deep Teal (Primary), Coral (Tertiary), Warm Sand (Secondary).
 - ProfileBloc terintegrasi dan mengambil data real dari backend.
+- flutter_animate package installed untuk staggered entry animations.
 - Semua menu items memiliki UX feedback (coming soon snackbars).
-- Avatar mendukung network image dari profileImageId.
-- Member duration ditampilkan dalam format human-readable.
+- Avatar mendukung network image dari avatarUrl.
+- Member duration ditampilkan dalam format human-readable ("3 bulan").
 - Design konsisten dengan HabitTrackerPage "Grounded Growth" aesthetic.
+- Ready untuk testing dan further enhancement.
 
 ## Files Modified:
 
@@ -404,6 +409,10 @@ Next Steps:
 - `lib/main_dev.dart`
 - `lib/main_prod.dart`
 - `lib/features/profile/presentation/pages/profile_page.dart`
+- `lib/features/profile/domain/models/profile_model.dart`
+- `pubspec.yaml`
+- `decisions.md`
+- `project-status.md`
 
 ## Design Features:
 
@@ -411,12 +420,67 @@ Next Steps:
 - **Avatar Ring**: 4px gradient border (Primary → Secondary → Tertiary)
 - **Glass Stats Cards**: Frosted surface dengan colored borders dan soft shadows
 - **Glass Menu**: BackdropFilter blur sigma 10, transparent surface
-- **Animations**: Haptic-ready InkWell dengan themed splash colors
+- **Animations**: flutter_animate staggered reveals (1200ms header, 800ms stats)
 - **Typography**: Uppercase display names, bold weights (w800), tight letter-spacing
+- **New Stats**: Added Streak dan Badge cards untuk complete gamification display
 
 ## Next Steps:
 
-- Implement Edit Profile page
-- Implement Badge & Achievements page
-- Implement Activity History page
-- Implement Settings page (Privacy, Notifications)
+- [ ] Run `fvm flutter run` untuk testing di device/emulator
+- [ ] Implement Edit Profile page
+- [ ] Implement Badge & Achievements page
+- [ ] Implement Activity History page
+- [ ] Implement Settings page (Privacy, Notifications)
+
+---
+
+## Initial Ask (2026-02-01 - Navigation Shell):
+
+- Refactor NavigationShellPage dengan modern iOS glass-morphism pill navigation style yang matching dengan ProfilePage.
+
+## Initial Response:
+
+- Menganalisis struktur existing, convert ke floating pill design dengan glass-morphism effect yang konsisten dengan ProfilePage.
+
+## Checklist:
+
+- [x] Convert bottom nav ke floating pill container (32px radius, 16px margin)
+- [x] Implement glass-morphism dengan BackdropFilter blur sigma 20
+- [x] Add dual shadow layer (primary-tinted + black)
+- [x] Build pill dengan gradient surface dan subtle border
+- [x] Create animated nav items dengan active/inactive states
+- [x] Add scale animation pada tab change (300ms easeOutBack)
+- [x] Implement entry animation (slide up + fade, 600ms)
+- [x] Convert _NavigationShellView ke StatefulWidget untuk AnimationController
+- [x] Add flutter_animate package untuk scale effects
+- [x] Update decisions.md dengan detail perubahan
+
+## Current Status:
+
+- NavigationShellPage fully refactored dengan iOS 2026 floating pill aesthetic.
+- Menggunakan LIVEIT brand colors: Deep Teal (Primary), Coral accents.
+- Glass-morphism effect matching ProfilePage design language.
+- 4 nav items: Home, Devotion, Habits, Profile.
+- Smooth scale animations pada tab selection.
+- Entry animation dengan slide-up effect.
+- Extend body untuk visual continuity dengan content.
+
+## Files Modified:
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+
+## Design Features:
+
+- **Floating Pill**: 32px radius, 16px horizontal margin, detached from bottom
+- **Glass Surface**: BackdropFilter blur 20, gradient surface (85-92% alpha)
+- **Dual Shadows**: Primary-tinted glow + soft black shadow
+- **Active State**: Gradient fill, border, colored icon/text
+- **Inactive State**: Transparent, muted icons
+- **Animations**: Scale (300ms easeOutBack), Entry slide-up (600ms)
+- **Typography**: Label reveal on active, w600 weight
+
+## Next Steps:
+
+- [ ] Test navigation interactions di device/emulator
+- [ ] Add notification badges pada nav items (future enhancement)
+- [ ] Consider haptic feedback integration

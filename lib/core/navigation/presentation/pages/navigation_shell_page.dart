@@ -56,7 +56,7 @@ class _NavigationShellViewState extends State<_NavigationShellView> {
   Widget build(BuildContext context) {
     return AutoTabsRouter(
       routes: const [
-        RoutineRoute(),
+        HomeRoute(),
         DevotionRoute(),
         HabitsRoute(),
         ProfileRoute(),
@@ -134,7 +134,7 @@ class _GlassPillNavigation extends StatelessWidget {
       _NavItemData(
         icon: Icons.home_outlined,
         activeIcon: Icons.home_rounded,
-        label: 'Home',
+        label: 'Beranda',
       ),
       _NavItemData(
         icon: Icons.menu_book_outlined,
@@ -205,8 +205,8 @@ class _GlassPillNavigation extends StatelessWidget {
                         currentIndex: state.currentIndex,
                         onTap: () {
                           context.read<NavigationBloc>().add(
-                            NavigationTabChanged(index),
-                          );
+                                NavigationTabChanged(index),
+                              );
                         },
                       ),
                     );
@@ -253,68 +253,66 @@ class _GlassNavItem extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            splashColor: colorScheme.primary.withValues(alpha: 0.15),
-            highlightColor: colorScheme.primary.withValues(alpha: 0.08),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-              margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: isActive
-                    ? LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.primary.withValues(alpha: 0.15),
-                          colorScheme.primary.withValues(alpha: 0.08),
-                        ],
-                      )
-                    : null,
-                border: isActive
-                    ? Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.25),
-                        width: 1,
-                      )
-                    : null,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isActive ? item.activeIcon : item.icon,
-                    color: isActive
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                    size: 20,
-                  ),
-                  if (isActive) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      item.label,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.1,
-                        fontSize: 9,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        splashColor: colorScheme.primary.withValues(alpha: 0.15),
+        highlightColor: colorScheme.primary.withValues(alpha: 0.08),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: isActive
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.primary.withValues(alpha: 0.15),
+                      colorScheme.primary.withValues(alpha: 0.08),
+                    ],
+                  )
+                : null,
+            border: isActive
+                ? Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.25),
+                    width: 1,
+                  )
+                : null,
           ),
-        )
-        .animate(target: isActive ? 1 : 0)
-        .scale(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isActive ? item.activeIcon : item.icon,
+                color: isActive
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                size: 20,
+              ),
+              if (isActive) ...[
+                const SizedBox(height: 2),
+                Text(
+                  item.label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.1,
+                    fontSize: 9,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ).animate(target: isActive ? 1 : 0).scale(
           begin: const Offset(0.95, 0.95),
           end: const Offset(1.0, 1.0),
           duration: const Duration(milliseconds: 300),

@@ -85,7 +85,7 @@ This file is append-only. Each entry must include:
 
 **Details:**
 
-**\_ProfileHeader Widget:**
+**_ProfilePage Widget:**
 
 - Avatar radius: 56 → 48 (better proportion)
 - Display name: fontSize 22 → 20, fontWeight bold → w800, letterSpacing -0.2
@@ -93,21 +93,21 @@ This file is append-only. Each entry must include:
 - Bio: color onSurfaceVariant.withOpacity(0.8) → onSurface.withValues(alpha: 0.7), fontSize → 13
 - Spacing adjustments: height 8→6 after name, 12→10 after username
 
-**\_StatsCard Widget:**
+**_StatsCard Widget:**
 
 - Added elevation: 1 for subtle shadow
 - Added border: RoundedRectangleBorder with outline alpha 0.08
 - Padding: symmetric vertical 20, horizontal 12 (was all 20)
 - Border radius: 12px for modern look
 
-**\_StatItem Widget:**
+**_StatItem Widget:**
 
 - Icon size: 28 → 24 (consistency)
 - Value fontSize: default → 28, fontWeight bold → w800, letterSpacing -0.5
 - Label fontSize: default → 12, fontWeight → w500
 - Spacing: icon-to-value 8→10, value-to-label 4→6
 
-**\_MenuSection Widget:**
+**_MenuSection Widget:**
 
 - All icons: size 22, color onSurface (theme-based)
 - All titles: fontWeight w600 for prominence
@@ -272,8 +272,8 @@ This file is append-only. Each entry must include:
 
 1. Scaffold background changed to Color(0xFFF9F9F9) for cleaner look
 2. Bottom navigation bar now has red background with white icons/labels
-3. Email field removed from \_ProfileHeader widget
-4. Added optional showTooltip parameter to \_StatItem with help icon for Zoe Points
+3. Email field removed from _ProfileHeader widget
+4. Added optional showTooltip parameter to _StatItem with help icon for Zoe Points
 5. Logout icon and text explicitly use colorScheme.error to maintain red accent
 
 **Impact:**
@@ -1040,6 +1040,8 @@ This file is append-only. Each entry must include:
 - `HabitBloc` now emits state twice on load: Cache (Instant) -> API (Fresh).
 - UI feels significantly faster; Check-in is instant.
 
+---
+
 ## 2026-01-25 — Restoration of Missing Habit Tracker Files
 
 **Context:**
@@ -1246,3 +1248,176 @@ This file is append-only. Each entry must include:
 - Better visual separation from content (extendBody: true)
 - Improved tactile feedback with scale animations
 - Ready for future enhancements (badges, notifications on nav items)
+
+---
+
+## 2026-02-01 — Homepage Refactor with Glass-Morphism Design
+
+**Context:**
+
+- User requested complete refactor of HomePage to serve as main landing page for LiveIt app
+- Must display key features prominently: Habit Tracker (primary), Zoe Points, Community, Profile
+- Must follow modern iOS 2026 glass-morphism aesthetic like ProfilePage
+- Must replace RoutineRoute as first tab in NavigationShellPage
+
+**Choice:**
+
+1. **Complete HomePage Rewrite:**
+   - Complete rewrite of `home_page.dart` dengan glass-morphism design system
+   - 5 main sections: Hero Section, Progress Overview, Main Features Grid, Quick Stats, Community Preview
+   - Consistent dengan ProfilePage glass-morphism aesthetic
+
+2. **Hero Section:**
+   - Date badge dengan glass container dan primary gradient
+   - Personalized greeting dengan dynamic time-based greeting (Pagi/Siang/Sore/Malam)
+   - Tagline app: "Bangun kebiasaan rohani, hidupi iman setiap hari"
+   - Entry animation: Slide up + fade (Transform translate 30px)
+
+3. **Progress Overview Card:**
+   - Gradient primary card dengan progress bar dan ring indicator
+   - Shows completed/total habits dengan percentage
+   - CTA untuk navigate ke HabitTrackerPage
+   - Real-time progress dari HabitBloc
+
+4. **Main Features Grid:**
+   - 2x2 grid dengan glass cards (BackdropFilter blur 12)
+   - Features: Habit Tracker, Zoe Points, Community, Profile
+   - Each card has icon container dengan brand color
+   - Navigation ke respective routes (or coming soon snackbar)
+
+5. **Quick Stats Grid:**
+   - 2x2 grid dengan glass stat cards
+   - Zoe Points, Streak, Level, Badge
+   - Colored borders matching stat type (Tertiary coral, Primary teal, etc.)
+   - Large typography (28px w800) untuk values
+
+6. **Community Preview:**
+   - Avatar stack showing 1.2k+ active users
+   - Glass card dengan BackdropFilter blur 16
+   - Description dan CTA button
+   - Coming soon feedback
+
+7. **Glass-Morphism Effects:**
+   - `BackdropFilter` blur sigma 12-16 untuk cards
+   - Gradient backgrounds dengan brand colors (Primary 6%, Tertiary 4%)
+   - Border dengan outline alpha 12-20%
+   - Soft shadows dengan color-tinted glow
+
+8. **Navigation Update:**
+   - Changed NavigationShellPage first tab dari RoutineRoute ke HomeRoute
+   - Updated nav items label "Home" menjadi "Beranda"
+   - Updated app_router.dart routing configuration
+   - Regenerated auto_route files
+
+**Files Modified:**
+
+- `lib/features/home/presentation/pages/home_page.dart` (complete rewrite, ~600 lines)
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart` (updated routes)
+- `lib/core/router/app_router.dart` (updated nested routes)
+- `lib/core/router/app_router.gr.dart` (auto-generated)
+
+**Design Specifications:**
+
+- **Glass Blur**: Cards sigma 12-16, Header subtle gradient
+- **Border Radius**: 24-28px untuk cards, 20px untuk badges
+- **Gradient**: Primary 6% + Surface + Tertiary 4% untuk background
+- **Typography**: Display 36px w800, Title 22px w700, Body 15px
+- **Animations**: Entry slide-up (30-70px translate), 1000ms duration
+- **Spacing**: 20-24px horizontal padding, 16-32px vertical gaps
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Progress card, headers
+- Tertiary (Coral #FF7B54): Zoe Points stats, accents
+- Surface alpha 45-85%: Glass card backgrounds
+- Outline alpha 12-20%: Subtle borders
+
+**Impact:**
+
+- HomePage sekarang adalah true landing page yang showcase fitur utama LiveIt
+- Design konsisten dengan ProfilePage glass-morphism aesthetic
+- Real-time habit progress integration dengan HabitBloc
+- Navigation flow lebih intuitive: Home → Feature Details
+- Glass-morphism cards create modern iOS 2026 look
+- Semua feature cards memberikan feedback "Coming Soon" jika belum implement
+- Floating Action Button untuk quick add habit (later replaced with inline button)
+- Analyzer clean (no errors, deprecated warnings only)
+
+---
+
+## 2026-02-01 — Devotion & Article Detail Pages Glass-Morphism Refactor
+
+**Context:**
+
+- User requested refactor of DevotionPage and ArticleDetailPage to follow same glass-morphism style as HomePage
+- Must maintain all existing functionality while improving UX with iOS 2026 aesthetic
+- Consistent design language across all pages
+
+**Choice:**
+
+1. **DevotionPage Complete Rewrite:**
+
+   - **Header Section**: Glass badge dengan tertiary gradient, bold title "Renungan" (36px w800), tagline subtitle
+   - **Entry Animations**: Slide-up + fade (1000ms) untuk header dan content
+   - **Loading State**: Centered glass card dengan progress indicator
+   - **Error State**: Glass card dengan error icon, message, dan retry button
+   - **Empty State**: Centered glass card dengan placeholder icon dan message
+   - **Article Cards**: Glass cards (BackdropFilter blur 12), cover images, badges, dan read more CTA
+
+2. **ArticleDetailPage Complete Rewrite:**
+
+   - **Glass AppBar**: Gradient surface dengan back button dan title truncation
+   - **Cover Image**: Full-width dengan gradient overlay
+   - **Typography**: Bold hierarchy - title 28px w800, meta info dengan colored chips
+   - **Quote Block**: Styled container untuk subtitle dengan italic text
+   - **Meta Chips**: Date, reading time, author dengan brand colors
+   - **Footer**: Glass container dengan branding dan publication info
+   - **Loading/Error/NotFound States**: Glass cards dengan consistent styling
+
+3. **Glass-Morphism Effects:**
+   - `BackdropFilter` blur sigma 12-16 untuk cards dan overlays
+   - Gradient surfaces dengan brand colors (primary 5-10%, tertiary 5-15%)
+   - Subtle borders (outline alpha 10-20%)
+   - Soft shadows dengan color-tinted glow
+
+4. **Design Specifications:**
+   - **Border Radius**: 24-28px untuk cards, 20px untuk badges
+   - **Animations**: Entry slide-up (30-40px translate), 800-1000ms duration
+   - **Typography**: Display 36px, Title 28px, Body 15px, Labels 12-14px
+   - **Spacing**: 20-24px horizontal padding, 16-24px vertical gaps
+
+5. **Removed:**
+   - FloatingActionButton dari HomePage (diganti dengan inline button)
+   - Old DevotionalCard widget import (not needed anymore)
+   - Hardcoded Scaffold backgrounds (replaced with gradient containers)
+
+**Files Modified:**
+
+- `lib/features/inspire/presentation/pages/devotion_page.dart` (complete rewrite, ~550 lines)
+- `lib/features/inspire/presentation/pages/article_detail_page.dart` (complete rewrite, ~500 lines)
+
+**Design Features:**
+
+- **Glass Cards**: BackdropFilter blur 12-16, gradient surfaces, subtle borders
+- **Meta Chips**: Date (primary), Reading Time (tertiary), Author (secondary)
+- **Quote Block**: Styled container untuk verse/subtitle
+- **Animations**: Entry slide-up + fade, consistent across pages
+- **AppBar**: Glass surface dengan gradient, consistent dengan page design
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Date badges, primary UI elements
+- Tertiary (Coral #FF7B54): Reading time, quote blocks, accents
+- Secondary (Warm Sand #C3B49A): Author chips
+- Surface alpha 45-90%: Glass card backgrounds
+- Outline alpha 10-20%: Subtle borders
+
+**Impact:**
+
+- DevotionPage now has consistent glass-morphism design dengan HomePage
+- ArticleDetailPage provides premium reading experience dengan glass effects
+- All loading/error/empty states use glass card styling
+- Entry animations provide smooth user experience
+- Code is cleaner dengan inline widgets (no separate DevotionalCard needed)
+- Analyzer clean (no errors, no warnings)
+- Ready untuk further enhancement (share feature, bookmark, etc.)

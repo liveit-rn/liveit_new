@@ -484,3 +484,124 @@ Next Steps:
 - [ ] Test navigation interactions di device/emulator
 - [ ] Add notification badges pada nav items (future enhancement)
 - [ ] Consider haptic feedback integration
+
+---
+
+## Initial Ask (2026-02-01 - Homepage):
+
+- Refactor HomePage menjadi landing page utama dengan glass-morphism design seperti ProfilePage, ganti RoutineRoute dengan HomeRoute sebagai tab pertama.
+
+## Initial Response:
+
+- Complete rewrite HomePage dengan 5 sections: Hero, Progress, Features, Stats, Community. Update navigation routing.
+
+## Checklist:
+
+- [x] Rewrite HomePage dengan glass-morphism aesthetic
+- [x] Hero Section dengan date badge dan greeting
+- [x] Progress Overview Card dengan real-time habit data
+- [x] Main Features Grid (2x2): Habit Tracker, Zoe Points, Community, Profile
+- [x] Quick Stats Grid: Zoe Points, Streak, Level, Badge
+- [x] Community Preview dengan avatar stack
+- [x] Implement glass cards dengan BackdropFilter blur
+- [x] Add entry animations (slide-up + fade)
+- [x] Update NavigationShellPage: RoutineRoute → HomeRoute
+- [x] Update app_router.dart routing configuration
+- [x] Regenerate auto_route files dengan build_runner
+- [x] Fix analyzer issues (deprecated background, unused imports)
+
+## Current Status:
+
+- HomePage fully refactored sebagai landing page utama LiveIt.
+- Glass-morphism design konsisten dengan ProfilePage.
+- Real-time habit progress integration dengan HabitBloc.
+- Navigation routing updated: HomeRoute jadi tab pertama.
+- Semua feature cards navigable ke respective routes.
+- FAB untuk quick add habit.
+- Analyzer clean (no errors).
+
+## Files Modified:
+
+- `lib/features/home/presentation/pages/home_page.dart` (complete rewrite, ~600 lines)
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart` (updated routes)
+- `lib/core/router/app_router.dart` (updated nested routes)
+- `lib/core/router/app_router.gr.dart` (auto-generated)
+- `decisions.md` (added entry)
+
+## Design Features:
+
+- **Glass Cards**: BackdropFilter blur 12-16, gradient surfaces
+- **Border Radius**: 24-28px cards, 20px badges, 32px progress card
+- **Animations**: 1000ms entry, slide-up translate (30-70px)
+- **Typography**: Bold weights (w800), tight letter-spacing
+- **Colors**: Primary (Deep Teal), Tertiary (Coral), Surface alpha 45-85%
+
+## Next Steps:
+
+- [ ] Test di device/emulator
+- [ ] Integrasi dengan ProfileBloc untuk real stats (saat ini hardcoded)
+- [ ] Implementasi Community page
+- [ ] Implementasi Badge & Achievements
+
+---
+
+## Initial Ask (2026-02-01 - Devotion Pages):
+
+- Refactor DevotionPage dan ArticleDetailPage mengikuti glass-morphism style yang sama seperti HomePage.
+
+## Initial Response:
+
+- Complete rewrite kedua halaman dengan glass-morphism design system yang konsisten.
+
+## Checklist:
+
+- [x] Rewrite DevotionPage dengan glass-morphism aesthetic
+- [x] Glass header dengan date badge dan bold typography
+- [x] Glass article cards dengan cover images dan meta info
+- [x] Loading/Error/Empty states dengan glass cards
+- [x] Entry animations (slide-up + fade, 1000ms)
+- [x] Rewrite ArticleDetailPage dengan glass-morphism aesthetic
+- [x] Glass AppBar dengan gradient surface
+- [x] Cover image dengan gradient overlay
+- [x] Meta chips (date, reading time, author) dengan brand colors
+- [x] Quote block container untuk subtitle
+- [x] Article footer dengan branding
+- [x] Loading/Error/NotFound states dengan glass cards
+- [x] Fix analyzer issues (unused imports, TickerProvider)
+
+## Current Status:
+
+- DevotionPage fully refactored dengan glass-morphism design.
+- ArticleDetailPage fully refactored dengan glass-morphism design.
+- Consistent design language across all pages (Home, Devotion, Article).
+- Entry animations provide smooth user experience.
+- All states (loading/error/empty) use glass card styling.
+- Analyzer clean (no errors).
+
+## Files Modified:
+
+- `lib/features/inspire/presentation/pages/devotion_page.dart` (~550 lines)
+- `lib/features/inspire/presentation/pages/article_detail_page.dart` (~500 lines)
+- `decisions.md` (added entry)
+
+## Design Features (DevotionPage):
+
+- **Glass Header**: Date badge, title 36px w800, tagline subtitle
+- **Article Cards**: Glass cards dengan cover images, badges, CTA
+- **Meta Info**: Date (primary), Reading Time (tertiary), Author (secondary)
+- **Animations**: Entry slide-up (30px translate), 1000ms duration
+
+## Design Features (ArticleDetailPage):
+
+- **Glass AppBar**: Gradient surface, back button, title
+- **Cover Image**: Full-width dengan gradient overlay
+- **Meta Chips**: Colored chips untuk date, reading time, author
+- **Quote Block**: Styled container untuk verse/subtitle
+- **Footer**: Glass container dengan branding
+
+## Next Steps:
+
+- [ ] Test di device/emulator
+- [ ] Add share functionality ke ArticleDetailPage
+- [ ] Add bookmark/favorite feature
+- [ ] Add reading progress indicator

@@ -7,13 +7,13 @@ part of 'habit_model.dart';
 // **************************************************************************
 
 HabitModel _$HabitModelFromJson(Map<String, dynamic> json) => HabitModel(
-      id: json['id'] as String,
-      key: json['key'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String?,
-      category: json['category'] as String?,
-      isActive: json['isActive'] as bool? ?? true,
-    );
+  id: json['id'] as String,
+  key: json['key'] as String,
+  name: json['name'] as String,
+  description: json['description'] as String?,
+  category: json['category'] as String?,
+  isActive: json['isActive'] as bool? ?? true,
+);
 
 Map<String, dynamic> _$HabitModelToJson(HabitModel instance) =>
     <String, dynamic>{

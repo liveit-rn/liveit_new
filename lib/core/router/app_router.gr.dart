@@ -14,7 +14,7 @@ part of 'app_router.dart';
 /// [AddHabitPage]
 class AddHabitRoute extends PageRouteInfo<void> {
   const AddHabitRoute({List<PageRouteInfo>? children})
-    : super(AddHabitRoute.name, initialChildren: children);
+      : super(AddHabitRoute.name, initialChildren: children);
 
   static const String name = 'AddHabitRoute';
 
@@ -34,11 +34,11 @@ class ArticleDetailRoute extends PageRouteInfo<ArticleDetailRouteArgs> {
     Key? key,
     List<PageRouteInfo>? children,
   }) : super(
-         ArticleDetailRoute.name,
-         args: ArticleDetailRouteArgs(slug: slug, key: key),
-         rawPathParams: {'slug': slug},
-         initialChildren: children,
-       );
+          ArticleDetailRoute.name,
+          args: ArticleDetailRouteArgs(slug: slug, key: key),
+          rawPathParams: {'slug': slug},
+          initialChildren: children,
+        );
 
   static const String name = 'ArticleDetailRoute';
 
@@ -82,7 +82,7 @@ class ArticleDetailRouteArgs {
 /// [ClaimUsernamePage]
 class ClaimUsernameRoute extends PageRouteInfo<void> {
   const ClaimUsernameRoute({List<PageRouteInfo>? children})
-    : super(ClaimUsernameRoute.name, initialChildren: children);
+      : super(ClaimUsernameRoute.name, initialChildren: children);
 
   static const String name = 'ClaimUsernameRoute';
 
@@ -98,7 +98,7 @@ class ClaimUsernameRoute extends PageRouteInfo<void> {
 /// [DevotionPage]
 class DevotionRoute extends PageRouteInfo<void> {
   const DevotionRoute({List<PageRouteInfo>? children})
-    : super(DevotionRoute.name, initialChildren: children);
+      : super(DevotionRoute.name, initialChildren: children);
 
   static const String name = 'DevotionRoute';
 
@@ -118,10 +118,10 @@ class EditHabitRoute extends PageRouteInfo<EditHabitRouteArgs> {
     required UserHabit userHabit,
     List<PageRouteInfo>? children,
   }) : super(
-         EditHabitRoute.name,
-         args: EditHabitRouteArgs(key: key, userHabit: userHabit),
-         initialChildren: children,
-       );
+          EditHabitRoute.name,
+          args: EditHabitRouteArgs(key: key, userHabit: userHabit),
+          initialChildren: children,
+        );
 
   static const String name = 'EditHabitRoute';
 
@@ -165,10 +165,10 @@ class HabitStatsRoute extends PageRouteInfo<HabitStatsRouteArgs> {
     required UserHabit userHabit,
     List<PageRouteInfo>? children,
   }) : super(
-         HabitStatsRoute.name,
-         args: HabitStatsRouteArgs(key: key, userHabit: userHabit),
-         initialChildren: children,
-       );
+          HabitStatsRoute.name,
+          args: HabitStatsRouteArgs(key: key, userHabit: userHabit),
+          initialChildren: children,
+        );
 
   static const String name = 'HabitStatsRoute';
 
@@ -208,7 +208,7 @@ class HabitStatsRouteArgs {
 /// [HabitTrackerPage]
 class HabitTrackerRoute extends PageRouteInfo<void> {
   const HabitTrackerRoute({List<PageRouteInfo>? children})
-    : super(HabitTrackerRoute.name, initialChildren: children);
+      : super(HabitTrackerRoute.name, initialChildren: children);
 
   static const String name = 'HabitTrackerRoute';
 
@@ -224,7 +224,7 @@ class HabitTrackerRoute extends PageRouteInfo<void> {
 /// [HabitsPage]
 class HabitsRoute extends PageRouteInfo<void> {
   const HabitsRoute({List<PageRouteInfo>? children})
-    : super(HabitsRoute.name, initialChildren: children);
+      : super(HabitsRoute.name, initialChildren: children);
 
   static const String name = 'HabitsRoute';
 
@@ -240,7 +240,7 @@ class HabitsRoute extends PageRouteInfo<void> {
 /// [HomePage]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})
-    : super(HomeRoute.name, initialChildren: children);
+      : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
@@ -256,7 +256,7 @@ class HomeRoute extends PageRouteInfo<void> {
 /// [LoginPage]
 class LoginRoute extends PageRouteInfo<void> {
   const LoginRoute({List<PageRouteInfo>? children})
-    : super(LoginRoute.name, initialChildren: children);
+      : super(LoginRoute.name, initialChildren: children);
 
   static const String name = 'LoginRoute';
 
@@ -272,7 +272,7 @@ class LoginRoute extends PageRouteInfo<void> {
 /// [NavigationShellPage]
 class NavigationShellRoute extends PageRouteInfo<void> {
   const NavigationShellRoute({List<PageRouteInfo>? children})
-    : super(NavigationShellRoute.name, initialChildren: children);
+      : super(NavigationShellRoute.name, initialChildren: children);
 
   static const String name = 'NavigationShellRoute';
 
@@ -288,7 +288,7 @@ class NavigationShellRoute extends PageRouteInfo<void> {
 /// [ProfilePage]
 class ProfileRoute extends PageRouteInfo<void> {
   const ProfileRoute({List<PageRouteInfo>? children})
-    : super(ProfileRoute.name, initialChildren: children);
+      : super(ProfileRoute.name, initialChildren: children);
 
   static const String name = 'ProfileRoute';
 
@@ -304,7 +304,7 @@ class ProfileRoute extends PageRouteInfo<void> {
 /// [RegisterPage]
 class RegisterRoute extends PageRouteInfo<void> {
   const RegisterRoute({List<PageRouteInfo>? children})
-    : super(RegisterRoute.name, initialChildren: children);
+      : super(RegisterRoute.name, initialChildren: children);
 
   static const String name = 'RegisterRoute';
 
@@ -320,7 +320,7 @@ class RegisterRoute extends PageRouteInfo<void> {
 /// [RoutinePage]
 class RoutineRoute extends PageRouteInfo<void> {
   const RoutineRoute({List<PageRouteInfo>? children})
-    : super(RoutineRoute.name, initialChildren: children);
+      : super(RoutineRoute.name, initialChildren: children);
 
   static const String name = 'RoutineRoute';
 

@@ -190,22 +190,21 @@ class _HabitCardState extends State<HabitCard>
                                     ? habitColor
                                     : colorScheme.surfaceContainerHighest,
                                 shape: BoxShape.circle,
-                                boxShadow: isDone
-                                    ? [
-                                        BoxShadow(
-                                          color: habitColor.withOpacity(0.4),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        )
-                                      ]
-                                    : null,
+                                boxShadow: [
+                                  if (isDone)
+                                    BoxShadow(
+                                      color: habitColor.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                ],
                               ),
                               child: Icon(
                                 Icons.check_rounded,
                                 color: isDone
                                     ? Colors.white
                                     : colorScheme.onSurfaceVariant
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                 size: 24,
                               ),
                             ),

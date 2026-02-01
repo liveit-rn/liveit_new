@@ -7,6 +7,7 @@ class ProfileModel {
   final String? timezone;
   final int totalZoePoints;
   final int currentLevel;
+  final int? currentStreak;
   final DateTime joinedAt;
 
   const ProfileModel({
@@ -18,6 +19,7 @@ class ProfileModel {
     this.timezone,
     required this.totalZoePoints,
     required this.currentLevel,
+    this.currentStreak,
     required this.joinedAt,
   });
 
@@ -30,6 +32,7 @@ class ProfileModel {
     String? timezone,
     int? totalZoePoints,
     int? currentLevel,
+    int? currentStreak,
     DateTime? joinedAt,
   }) {
     return ProfileModel(
@@ -41,6 +44,7 @@ class ProfileModel {
       timezone: timezone ?? this.timezone,
       totalZoePoints: totalZoePoints ?? this.totalZoePoints,
       currentLevel: currentLevel ?? this.currentLevel,
+      currentStreak: currentStreak ?? this.currentStreak,
       joinedAt: joinedAt ?? this.joinedAt,
     );
   }
@@ -55,6 +59,7 @@ class ProfileModel {
       timezone: json['timezone'] as String?,
       totalZoePoints: json['totalZoePoints'] as int? ?? 0,
       currentLevel: json['currentLevel'] as int? ?? 1,
+      currentStreak: json['currentStreak'] as int?,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
     );
   }
@@ -69,6 +74,7 @@ class ProfileModel {
       'timezone': timezone,
       'totalZoePoints': totalZoePoints,
       'currentLevel': currentLevel,
+      'currentStreak': currentStreak,
       'joinedAt': joinedAt.toIso8601String(),
     };
   }

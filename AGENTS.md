@@ -16,14 +16,14 @@ Organize `lib/` into feature modules (feature directories or `src/`), e.g. `lib/
 ## Build, test, and development commands
 
 Use Flutter and Dart tooling:
-
-- `flutter pub get` — install dependencies.
-- `flutter run` — run on connected device or emulator.
-- `flutter run -d chrome` — run on web.
-- `flutter build apk` / `flutter build ios` / `flutter build web` — produce release artifacts.
-- `flutter analyze` / `dart analyze` — static analysis.
+add 'fvm' because we are using it for version management, so if you want to run flutter commands, you should use 'fvm flutter' instead of just 'flutter'.
+- `fvm flutter pub get` — install dependencies.
+- `fvm flutter run` — run on connected device or emulator.
+- `fvm flutter run -d chrome` — run on web.
+- `fvm flutter build apk` / `fvm flutter build ios` / `fvm flutter build web` — produce release artifacts.
+- `fvm flutter analyze` / `dart analyze` — static analysis.
 - `dart format .` or `flutter format .` — format code with the Dart formatter.
-- `flutter test` — run unit and widget tests.
+- `fvm flutter test` — run unit and widget tests.
 
 Prefer using the Flutter tasks in your editor (VS Code/Android Studio) for quick iteration.
 

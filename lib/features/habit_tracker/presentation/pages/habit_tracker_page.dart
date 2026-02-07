@@ -1,7 +1,9 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:liveit_new/core/router/app_router.dart';
 import 'package:liveit_new/features/habit_tracker/domain/entities/user_habit.dart';
@@ -11,8 +13,9 @@ import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_state.
 import '../widgets/habit_card.dart';
 import '../widgets/celebrations.dart';
 
-/// HabitTrackerPage - The main habits screen with distinctive "Grounded Growth" design.
-/// WHY: Creates a calming, encouraging environment for daily habit tracking.
+/// HabitTrackerPage - The main habits screen with iOS 2026 glass-morphism design.
+/// WHY: Creates a calming, encouraging environment for daily habit tracking
+/// with modern frosted glass aesthetic matching ProfilePage and HomePage.
 @RoutePage()
 class HabitTrackerPage extends StatefulWidget {
   const HabitTrackerPage({super.key});
@@ -61,7 +64,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
   String _getMotivationalMessage(int completed, int total) {
     if (total == 0) return 'Mulai hari ini dengan kebiasaan baru!';
     if (completed == 0) return 'Ayo mulai dengan langkah pertama!';
-    if (completed == total) return 'Luar biasa! Semua selesai hari ini!';
+    if (completed == total) return 'Luar biasa! Semua selesai hari ini! 🎉';
     if (completed / total >= 0.7) return 'Hampir selesai, terus semangat!';
     if (completed / total >= 0.5) return 'Setengah jalan, kamu bisa!';
     return 'Langkah kecil, dampak besar!';

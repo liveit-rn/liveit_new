@@ -530,52 +530,169 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
       onComplete: () => setState(() => _showConfetti = false),
       child: Scaffold(
         backgroundColor: colorScheme.surface,
-        body: BlocConsumer<HabitBloc, HabitState>(
-          listener: (context, state) {
-            if (state is HabitLoaded) {
-              _progressController.forward(from: 0);
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colorScheme.primary.withValues(alpha: 0.06),
+                colorScheme.surface,
+                colorScheme.tertiary.withValues(alpha: 0.02),
+              ],
+            ),
+          ),
+          child: BlocConsumer<HabitBloc, HabitState>(
+            listener: (context, state) {
+              if (state is HabitLoaded) {
+                _progressController.forward(from: 0);
 
-              // Handle celebration if present
-              if (state.celebration != null &&
-                  state.celebration!.hasCelebration) {
-                _handleCelebration(state.celebration!);
+                if (state.celebration != null &&
+                    state.celebration!.hasCelebration) {
+                  _handleCelebration(state.celebration!);
+                }
               }
-            }
-          },
-          builder: (context, state) {
-            if (state is HabitLoading) {
-              return _buildLoadingState(theme, colorScheme);
-            }
+            },
+            builder: (context, state) {
+              if (state is HabitLoading) {
+                return _buildLoadingState(theme, colorScheme);
+              }
 
-            if (state is HabitError) {
-              return _buildErrorState(theme, colorScheme, state.message);
-            }
+              if (state is HabitError) {
+                return _buildErrorState(theme, colorScheme, state.message);
+              }
 
-            if (state is HabitLoaded) {
-              return _buildLoadedState(theme, colorScheme, state.habits);
-            }
+              if (state is HabitLoaded) {
+                return _buildLoadedState(theme, colorScheme, state.habits);
+              }
 
-            return const SizedBox.shrink();
-          },
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          heroTag: 'habit_tracker_fab', // Unique hero tag to avoid conflicts
-          onPressed: () async {
-            HapticFeedback.lightImpact();
-            final result = await context.router.push(const AddHabitRoute());
-            // Refresh list if habit was added
-            if (result == true && mounted) {
-              context.read<HabitBloc>().add(HabitStarted());
-            }
-          },
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          elevation: 4,
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Tambah'),
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _navigateToAddHabit() async {
+    HapticFeedback.lightImpact();
+    final result = await context.router.push(const AddHabitRoute());
+    if (result == true && mounted) {
+      context.read<HabitBloc>().add(HabitStarted());
+    }
+  }
+
+  Widget _buildGlassIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isPrimary = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isPrimary
+              ? [
+                  colorScheme.primary,
+                  colorScheme.primary.withValues(alpha: 0.85)
+                ]
+              : [
+                  colorScheme.surface.withValues(alpha: 0.7),
+                  colorScheme.surface.withValues(alpha: 0.5)
+                ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isPrimary
+              ? colorScheme.primary.withValues(alpha: 0.3)
+              : colorScheme.outline.withValues(alpha: 0.12),
+        ),
+        boxShadow: isPrimary
+            ? [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          splashColor: isPrimary ? Colors.white.withValues(alpha: 0.2) : null,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Icon(
+              icon,
+              color: isPrimary
+                  ? colorScheme.onPrimary
+                  : colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddHabitCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.08),
+                  colorScheme.primary.withValues(alpha: 0.04),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.2),
+                width: 1.5,
+              ),
+            ),
+            child: InkWell(
+              onTap: _navigateToAddHabit,
+              borderRadius: BorderRadius.circular(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_rounded,
+                    color: colorScheme.primary,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Tambah Kebiasaan Baru',
+                    style: TextStyle(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    )
+        .animate()
+        .fadeIn(duration: 500.ms, delay: 200.ms)
+        .slideY(begin: 0.08, end: 0);
   }
 
   Widget _buildLoadingState(ThemeData theme, ColorScheme colorScheme) {
@@ -584,25 +701,50 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         _buildHeader(theme, colorScheme, 0, 0),
         SliverFillRemaining(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: colorScheme.primary,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colorScheme.surface.withValues(alpha: 0.8),
+                        colorScheme.surface.withValues(alpha: 0.6),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Memuat kebiasaan...',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Memuat kebiasaan...',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -793,15 +935,30 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
 
   Widget _buildHabitsList(List<UserHabit> habits) {
     return SliverList.builder(
-      itemCount: habits.length,
+      itemCount: habits.length + 1,
       itemBuilder: (context, index) {
+        if (index == habits.length) {
+          return _buildAddHabitCard();
+        }
         final habit = habits[index];
         return HabitCard(
           key: ValueKey(habit.id),
           userHabit: habit,
           onToggle: () => _handleToggle(habit),
           onEdit: () => _showHabitOptions(habit),
-        );
+        )
+            .animate()
+            .fadeIn(
+              duration: 500.ms,
+              delay: Duration(milliseconds: 100 + (index * 80)),
+            )
+            .slideY(
+              begin: 0.08,
+              end: 0,
+              duration: 500.ms,
+              delay: Duration(milliseconds: 100 + (index * 80)),
+              curve: Curves.easeOutCubic,
+            );
       },
     );
   }

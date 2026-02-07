@@ -605,3 +605,94 @@ Next Steps:
 - [ ] Add share functionality ke ArticleDetailPage
 - [ ] Add bookmark/favorite feature
 - [ ] Add reading progress indicator
+
+---
+
+## Initial Ask (2026-02-07):
+
+- Fix FAB "Tambah" yang tersembunyi di belakang floating pill navigation bar di HabitTrackerPage.
+
+## Initial Response:
+
+- Analisis root cause: Parent Scaffold dengan `extendBody: true` menyebabkan FAB berada di belakang nav bar. Implement fix dengan Padding widget.
+
+## Checklist:
+
+- [x] Identifikasi root cause (nested Scaffolds + extendBody)
+- [x] Wrap `_buildGlassFAB()` return value dengan `Padding(bottom: 80)`
+- [x] Test visual: FAB sekarang visible dengan proper clearance
+- [x] Update decisions.md dengan rationale fix
+- [x] Update project-status.md dengan task completion
+
+## Current Status:
+
+- Fix applied di `habit_tracker_page.dart` lines 572-637.
+- FAB "Tambah" sekarang visible dan tidak tertutup nav bar.
+- Padding 80px accounts for: nav bar height (64px) + bottom padding (8px) + safety margin (8px).
+
+## Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+## Next Steps:
+
+- [ ] Test di device/emulator untuk memastikan clearance cukup di berbagai screen sizes
+- [ ] Consider adjusting padding value jika nav bar height berubah di design update
+
+---
+
+## Initial Ask (2026-02-07 - FAB Refactor):
+
+- Refactor FAB "Tambah" menjadi kombinasi: Header "+" icon button dan Inline Add Card di akhir habits list.
+
+## Initial Response:
+
+- Remove FAB dan _buildGlassFAB method, implement header button dengan glass styling dan inline add card di _buildHabitsList.
+
+## Checklist:
+
+- [x] Remove FAB dari Scaffold property
+- [x] Delete _buildGlassFAB() method seluruhnya
+- [x] Buat _navigateToAddHabit() helper method
+- [x] Buat _buildGlassIconButton() reusable widget
+- [x] Add header "+" button di _buildHeader() sebelah settings
+- [x] Styling header button: primary gradient, shadow, 12px radius
+- [x] Buat _buildAddHabitCard() untuk inline card
+- [x] Modify _buildHabitsList(): itemCount +1, render add card di index terakhir
+- [x] Inline card styling: glass effect, gradient border, "Tambah Kebiasaan Baru"
+- [x] Both buttons navigate ke AddHabitPage dengan haptic feedback
+- [x] dart analyze clean (no issues)
+- [x] Update decisions.md dengan design rationale
+- [x] Update project-status.md dengan completion status
+
+## Current Status:
+
+- FAB fully removed dan digantikan dengan dua entry points yang lebih UX-friendly
+- Header button: glass icon button dengan primary styling (gradient teal + shadow)
+- Inline card: glass card di akhir list dengan border dan label descriptive
+- Kedua navigasi menggunakan _navigateToAddHabit() helper untuk consistency
+- Glass-morphism design konsisten dengan ProfilePage dan HomePage
+
+## Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+## Acceptance Criteria:
+
+- [x] FAB completely removed
+- [x] Header has glass "+" button next to settings
+- [x] Inline add card appears at end of habits list
+- [x] Both buttons navigate to AddHabitPage correctly
+- [x] Glass styling consistent with design system
+- [x] dart analyze passes with no issues
+
+## Next Steps:
+
+- [ ] Test navigation dan styling di device/emulator
+- [ ] Verify responsive layout di berbagai screen sizes
+
+---

@@ -10,6 +10,66 @@ This file is append-only. Each entry must include:
 
 ---
 
+## 2026-02-07 — Refactor FAB 'Tambah' to Header Button + Inline Card
+
+**Context:**
+
+- Design requirement: FAB 'Tambah' di HabitTrackerPage perlu di-refactor dari floating button menjadi dua entry points yang lebih integrated
+- Header butuh quick access button untuk power users
+- Inline card di akhir list memberikan discovery yang lebih natural untuk new users
+
+**Choice:**
+
+1. **Remove FAB completely**: Hapus `floatingActionButton` property dan `_buildGlassFAB()` method
+2. **Header '+' button**: Tambah glass icon button di `_buildHeader()` sebelah settings button dengan styling primary (gradient teal)
+3. **Inline Add Card**: Tambah card "Tambah Kebiasaan Baru" di akhir habits list dengan glass-morphism styling
+4. **Reusable helper**: Buat `_buildGlassIconButton()` dan `_navigateToAddHabit()` untuk consistency
+
+**Rationale:**
+
+- **UX Pattern**: FAB sering ter-hidden di mobile, dua entry points memberikan better discoverability
+- **Visual Hierarchy**: Header button untuk quick add, inline card untuk contextual discovery
+- **Consistency**: Glass-morphism styling sama dengan design system (ProfilePage, HomePage)
+- **YAGNI**: Tidak perlu FAB floating yang kompleks, inline approach lebih predictable
+
+**Impact:**
+
+- File modified: `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- FAB fully removed - no floating element anymore
+- Both buttons navigate ke `AddHabitRoute` dengan haptic feedback
+- Glass styling konsisten: BackdropFilter blur, gradient surfaces, border radius 12-20px
+- `dart analyze` clean - no issues
+
+---
+
+## 2026-02-07 — FAB Hidden Behind Bottom Navigation Fix
+
+**Context:**
+
+- Floating Action Button "Tambah" di HabitTrackerPage tertutup oleh floating pill navigation bar
+- Root cause: Parent Scaffold di NavigationShellPage memakai `extendBody: true` sehingga body meluas ke belakang bottom nav
+- FAB child Scaffold diposisikan di default 16px dari bottom edge layar, tepat di belakang nav bar
+
+**Choice:**
+
+- Wrap return value `_buildGlassFAB()` dengan `Padding` widget: `EdgeInsets.only(bottom: 80)`
+- Padding 80px mencakup: tinggi nav bar (64px) + padding (8px) + margin safety (8px)
+- Tidak mengubah parent Scaffold atau floatingActionButtonLocation untuk minimal change
+
+**Rationale:**
+
+- YAGNI: Solusi terkecil yang solve masalah, tidak perlu refactor struktur Scaffold
+- Maintainable: Isolasi fix di satu method, mudah diadjust jika design nav bar berubah
+- No breaking change: Tidak mempengaruhi behavior FAB lain atau layout page lain
+
+**Impact:**
+
+- File modified: `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart` (lines 572-637)
+- FAB sekarang visible dan tappable dengan clearance yang proper dari nav bar
+- Tidak ada perubahan behavior atau API lain
+
+---
+
 ## 2025-12-27 — Articles (Flutter) devotional feed contract
 
 **Context:**

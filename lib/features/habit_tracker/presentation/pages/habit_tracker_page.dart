@@ -165,111 +165,189 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
 
   void _showHabitOptions(UserHabit habit) {
     HapticFeedback.mediumImpact();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
-        final theme = Theme.of(context);
-        final colorScheme = theme.colorScheme;
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle indicator
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onSurfaceVariant.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    colorScheme.surface.withValues(alpha: 0.92),
+                    colorScheme.surface.withValues(alpha: 0.98),
+                  ],
                 ),
-                const SizedBox(height: 20),
-
-                // Habit info header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.12),
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Glass handle indicator
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: _parseColor(habit.color).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(14),
+                          gradient: LinearGradient(
+                            colors: [
+                              colorScheme.primary.withValues(alpha: 0.3),
+                              colorScheme.tertiary.withValues(alpha: 0.3),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        child: Center(
-                          child: Text(
-                            habit.icon,
-                            style: const TextStyle(fontSize: 22),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Habit info header with glass card
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                _parseColor(habit.color)
+                                    .withValues(alpha: 0.12),
+                                _parseColor(habit.color)
+                                    .withValues(alpha: 0.06),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _parseColor(habit.color)
+                                  .withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      _parseColor(habit.color)
+                                          .withValues(alpha: 0.25),
+                                      _parseColor(habit.color)
+                                          .withValues(alpha: 0.15),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: _parseColor(habit.color)
+                                        .withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    habit.icon,
+                                    style: const TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      habit.title ??
+                                          habit.habit?.name ??
+                                          'Habit',
+                                      style:
+                                          theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.local_fire_department_rounded,
+                                          size: 16,
+                                          color: colorScheme.tertiary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${habit.currentStreak} hari streak',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              habit.title ?? habit.habit?.name ?? 'Habit',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${habit.currentStreak} hari streak',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
+                      const SizedBox(height: 20),
+
+                      Divider(
+                        color: colorScheme.outline.withValues(alpha: 0.1),
+                        height: 1,
                       ),
+
+                      // Glass option tiles
+                      _buildGlassOptionTile(
+                        icon: Icons.bar_chart_rounded,
+                        label: 'Lihat Statistik',
+                        color: colorScheme.primary,
+                        onTap: () {
+                          context.router.maybePop();
+                          context.router
+                              .push(HabitStatsRoute(userHabit: habit));
+                        },
+                      ),
+                      _buildGlassOptionTile(
+                        icon: Icons.edit_outlined,
+                        label: 'Edit Habit',
+                        color: colorScheme.secondary,
+                        onTap: () {
+                          context.router.maybePop();
+                          context.router.push(EditHabitRoute(userHabit: habit));
+                        },
+                      ),
+                      _buildGlassOptionTile(
+                        icon: Icons.archive_outlined,
+                        label: 'Arsipkan',
+                        color: colorScheme.error,
+                        onTap: () {
+                          context.router.maybePop();
+                          _confirmArchive(habit);
+                        },
+                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                Divider(
-                  color: colorScheme.outline.withOpacity(0.15),
-                  height: 1,
-                ),
-
-                // Options
-                _buildOptionTile(
-                  icon: Icons.bar_chart_rounded,
-                  label: 'Lihat Statistik',
-                  onTap: () {
-                    context.router.maybePop();
-                    context.router.push(HabitStatsRoute(userHabit: habit));
-                  },
-                ),
-                _buildOptionTile(
-                  icon: Icons.edit_outlined,
-                  label: 'Edit Habit',
-                  onTap: () {
-                    context.router.maybePop();
-                    context.router.push(EditHabitRoute(userHabit: habit));
-                  },
-                ),
-                _buildOptionTile(
-                  icon: Icons.archive_outlined,
-                  label: 'Arsipkan',
-                  color: Theme.of(context).colorScheme.error,
-                  onTap: () {
-                    context.router.maybePop();
-                    _confirmArchive(habit);
-                  },
-                ),
-                const SizedBox(height: 8),
-              ],
+              ),
             ),
           ),
         );
@@ -277,23 +355,62 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
     );
   }
 
-  Widget _buildOptionTile({
+  Widget _buildGlassOptionTile({
     required IconData icon,
     required String label,
-    Color? color,
+    required Color color,
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final effectiveColor = color ?? theme.colorScheme.onSurface;
+    final colorScheme = theme.colorScheme;
 
-    return ListTile(
-      leading: Icon(icon, color: effectiveColor),
-      title: Text(
-        label,
-        style: theme.textTheme.bodyLarge?.copyWith(color: effectiveColor),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: color.withValues(alpha: 0.1),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      color.withValues(alpha: 0.15),
+                      color.withValues(alpha: 0.08),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
       ),
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
     );
   }
 
@@ -306,51 +423,98 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
   }
 
   void _confirmArchive(UserHabit habit) {
-    // Capture the bloc reference before opening dialog
     final habitBloc = context.read<HabitBloc>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
       context: context,
       builder: (dialogContext) {
-        final theme = Theme.of(dialogContext);
-        final colorScheme = theme.colorScheme;
-
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.archive_rounded,
-                color: colorScheme.error,
-                size: 28,
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: AlertDialog(
+            backgroundColor: colorScheme.surface.withValues(alpha: 0.95),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.15),
               ),
-              const SizedBox(width: 12),
-              const Text('Arsipkan Habit?'),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.error.withValues(alpha: 0.15),
+                        colorScheme.error.withValues(alpha: 0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.archive_rounded,
+                    color: colorScheme.error,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text('Arsipkan Habit?'),
+              ],
+            ),
+            content: Text(
+              'Habit "${habit.title ?? habit.habit?.name}" akan diarsipkan. '
+              'Kamu bisa mengembalikannya nanti dari pengaturan.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(
+                  'Batal',
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.error,
+                      colorScheme.error.withValues(alpha: 0.85),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.error.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(dialogContext).pop();
+                      habitBloc.add(HabitArchived(userHabitId: habit.id));
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Text(
+                        'Arsipkan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-          content: Text(
-            'Habit "${habit.title ?? habit.habit?.name}" akan diarsipkan. '
-            'Kamu bisa mengembalikannya nanti dari pengaturan.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Batal'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                // Use the captured bloc reference
-                habitBloc.add(HabitArchived(userHabitId: habit.id));
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: colorScheme.error,
-              ),
-              child: const Text('Arsipkan'),
-            ),
-          ],
         );
       },
     );

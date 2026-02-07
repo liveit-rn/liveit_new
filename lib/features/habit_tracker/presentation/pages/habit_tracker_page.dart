@@ -764,46 +764,124 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: colorScheme.errorContainer.withOpacity(0.3),
-                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colorScheme.surface.withValues(alpha: 0.85),
+                          colorScheme.surface.withValues(alpha: 0.7),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: colorScheme.error.withValues(alpha: 0.2),
+                      ),
                     ),
-                    child: Icon(
-                      Icons.error_outline_rounded,
-                      size: 40,
-                      color: colorScheme.error,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colorScheme.error.withValues(alpha: 0.15),
+                                colorScheme.error.withValues(alpha: 0.08),
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.error.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.error_outline_rounded,
+                            size: 40,
+                            color: colorScheme.error,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Oops! Terjadi kesalahan',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.primary.withValues(alpha: 0.85),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                context.read<HabitBloc>().add(HabitStarted());
+                              },
+                              borderRadius: BorderRadius.circular(14),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 14,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.refresh_rounded,
+                                      color: colorScheme.onPrimary,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Coba Lagi',
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Oops! Terjadi kesalahan',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () {
-                      context.read<HabitBloc>().add(HabitStarted());
-                    },
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Coba Lagi'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -838,50 +916,126 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         context.read<HabitBloc>().add(HabitStarted());
       },
       color: colorScheme.primary,
+      backgroundColor: colorScheme.surface,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           _buildHeader(theme, colorScheme, completed, total),
 
-          // Toggle reorder button
+          // Section header with glass styling
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _isReordering
-                        ? 'Geser untuk atur urutan'
-                        : 'Habits Hari Ini',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.surface.withValues(alpha: 0.8),
+                          colorScheme.surface.withValues(alpha: 0.5),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _isReordering
+                              ? Icons.swap_vert_rounded
+                              : Icons.checklist_rounded,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isReordering
+                              ? 'Geser untuk atur urutan'
+                              : 'Habits Hari Ini',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      setState(() {
-                        _isReordering = !_isReordering;
-                      });
-                    },
-                    icon: Icon(
-                      _isReordering
-                          ? Icons.check_rounded
-                          : Icons.swap_vert_rounded,
-                      size: 18,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _isReordering
+                            ? [
+                                colorScheme.primary.withValues(alpha: 0.15),
+                                colorScheme.primary.withValues(alpha: 0.08),
+                              ]
+                            : [
+                                colorScheme.surface.withValues(alpha: 0.8),
+                                colorScheme.surface.withValues(alpha: 0.5),
+                              ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _isReordering
+                            ? colorScheme.primary.withValues(alpha: 0.3)
+                            : colorScheme.outline.withValues(alpha: 0.12),
+                      ),
                     ),
-                    label: Text(_isReordering ? 'Selesai' : 'Urutkan'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: _isReordering
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() {
+                            _isReordering = !_isReordering;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isReordering
+                                    ? Icons.check_rounded
+                                    : Icons.swap_vert_rounded,
+                                size: 16,
+                                color: _isReordering
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _isReordering ? 'Selesai' : 'Urutkan',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: _isReordering
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(duration: 600.ms, delay: 400.ms)
+                .slideX(begin: -0.05, end: 0, duration: 600.ms),
           ),
 
           // Habits list
@@ -901,7 +1055,6 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
       itemCount: habits.length,
       onReorder: (oldIndex, newIndex) {
         HapticFeedback.mediumImpact();
-        // Build order updates list (API expects [{userHabitId, order}])
         final reordered = List<UserHabit>.from(habits);
         final item = reordered.removeAt(oldIndex);
         if (newIndex > oldIndex) newIndex--;
@@ -990,72 +1143,150 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Illustrated empty state
-                  Container(
-                    width: 120,
-                    height: 120,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(36),
                     decoration: BoxDecoration(
-                      gradient: RadialGradient(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: [
-                          colorScheme.primaryContainer.withOpacity(0.4),
-                          colorScheme.primaryContainer.withOpacity(0.1),
+                          colorScheme.surface.withValues(alpha: 0.85),
+                          colorScheme.surface.withValues(alpha: 0.7),
                         ],
                       ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '🌱',
-                        style: TextStyle(
-                          fontSize: 56,
-                          shadows: [
-                            Shadow(
-                              color: colorScheme.shadow.withOpacity(0.15),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.15),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.primary.withValues(alpha: 0.08),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
                         ),
-                      ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Illustrated empty state with glow
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              colors: [
+                                colorScheme.primary.withValues(alpha: 0.2),
+                                colorScheme.tertiary.withValues(alpha: 0.1),
+                                Colors.transparent,
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '🌱',
+                              style: TextStyle(
+                                fontSize: 56,
+                                shadows: [
+                                  Shadow(
+                                    color: colorScheme.shadow
+                                        .withValues(alpha: 0.2),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        Text(
+                          'Mulai Perjalananmu',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Setiap kebiasaan baik dimulai dari langkah pertama.\n'
+                          'Tambahkan habit untuk memulai.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.primary.withValues(alpha: 0.85),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.4),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                context.router.push(const AddHabitRoute());
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              splashColor: Colors.white.withValues(alpha: 0.2),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 16,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.add_rounded,
+                                      color: colorScheme.onPrimary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Tambah Habit Pertama',
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Mulai Perjalananmu',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Setiap kebiasaan baik dimulai dari langkah pertama.\n'
-                    'Tambahkan habit untuk memulai.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  FilledButton.icon(
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      context.router.push(const AddHabitRoute());
-                    },
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Tambah Habit Pertama'),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 800.ms)
+                  .scale(begin: const Offset(0.9, 0.9), duration: 800.ms),
             ),
           ),
         ),
@@ -1097,89 +1328,142 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         '${dayNames[now.weekday % 7]}, ${now.day} ${monthNames[now.month - 1]}';
 
     return SliverToBoxAdapter(
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          MediaQuery.of(context).padding.top + 16,
-          20,
-          24,
-        ),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primaryContainer.withOpacity(0.3),
-              colorScheme.surface,
-            ],
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              MediaQuery.of(context).padding.top + 16,
+              20,
+              28,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.12),
+                  colorScheme.primaryContainer.withValues(alpha: 0.2),
+                  colorScheme.surface.withValues(alpha: 0.8),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row: Date badge & Settings
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            colorScheme.surface.withValues(alpha: 0.85),
+                            colorScheme.surface.withValues(alpha: 0.6),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colorScheme.outline.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 14,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            dateString,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        _buildGlassIconButton(
+                          icon: Icons.settings_outlined,
+                          onTap: () {
+                            // TODO: Settings or profile
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _buildGlassIconButton(
+                          icon: Icons.add_rounded,
+                          onTap: _navigateToAddHabit,
+                          isPrimary: true,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Main content row
+                Row(
+                  children: [
+                    // Greeting & Message
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getGreeting(),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 28,
+                              letterSpacing: -0.5,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _getMotivationalMessage(completed, total),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Progress ring with glass effect
+                    if (total > 0)
+                      _buildGlassProgressRing(colorScheme, completed, total),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top row: Date & Settings
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  dateString,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    // TODO: Settings or profile
-                  },
-                  icon: Icon(
-                    Icons.settings_outlined,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Main content row
-            Row(
-              children: [
-                // Greeting & Message
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _getMotivationalMessage(completed, total),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Progress ring
-                if (total > 0)
-                  _buildProgressRing(colorScheme, completed, total),
-              ],
-            ),
-          ],
-        ),
-      ),
+      ).animate().fadeIn(duration: 800.ms).slideY(
+          begin: -0.05, end: 0, duration: 800.ms, curve: Curves.easeOut),
     );
   }
 
-  Widget _buildProgressRing(ColorScheme colorScheme, int completed, int total) {
+  Widget _buildGlassProgressRing(
+      ColorScheme colorScheme, int completed, int total) {
     final progress = total > 0 ? completed / total : 0.0;
     final allDone = completed == total && total > 0;
 
@@ -1187,48 +1471,94 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
       animation: _progressAnimation,
       builder: (context, child) {
         return Container(
-          width: 72,
-          height: 72,
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.primary.withValues(alpha: 0.2),
+                colorScheme.tertiary.withValues(alpha: 0.1),
+              ],
+            ),
             boxShadow: allDone
                 ? [
                     BoxShadow(
-                      color: colorScheme.primary.withOpacity(0.3),
-                      blurRadius: 16,
+                      color: colorScheme.tertiary.withValues(alpha: 0.4),
+                      blurRadius: 20,
                       spreadRadius: 2,
                     ),
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                      blurRadius: 32,
+                    ),
                   ]
-                : null,
+                : [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.15),
+                      blurRadius: 16,
+                    ),
+                  ],
           ),
-          child: CustomPaint(
-            painter: _ProgressRingPainter(
-              progress: progress * _progressAnimation.value,
-              backgroundColor: colorScheme.outline.withOpacity(0.2),
-              progressColor:
-                  allDone ? colorScheme.tertiary : colorScheme.primary,
-              strokeWidth: 6,
-            ),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '$completed',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+          child: ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.surface.withValues(alpha: 0.9),
+                      colorScheme.surface.withValues(alpha: 0.7),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: allDone
+                        ? colorScheme.tertiary.withValues(alpha: 0.4)
+                        : colorScheme.outline.withValues(alpha: 0.15),
+                    width: 2,
+                  ),
+                ),
+                child: CustomPaint(
+                  painter: _ProgressRingPainter(
+                    progress: progress * _progressAnimation.value,
+                    backgroundColor:
+                        colorScheme.outline.withValues(alpha: 0.15),
+                    progressColor:
+                        allDone ? colorScheme.tertiary : colorScheme.primary,
+                    strokeWidth: 5,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$completed',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: allDone
+                                ? colorScheme.tertiary
+                                : colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          'of $total',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    'of $total',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

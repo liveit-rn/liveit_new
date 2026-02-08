@@ -10,6 +10,41 @@ This file is append-only. Each entry must include:
 
 ---
 
+## 2026-02-08 — Navigation Shell Premium Frosted Glass Refactor
+
+**Context:**
+
+- Navigation shell perlu premium look dengan frosted glass effect yang lebih sophisticated
+- Current design: blur σ=20, height 64px, dengan labels yang clutter UI
+- Target: iOS 2026 aesthetic seperti di app-app premium (Instagram, Threads)
+
+**Choice:**
+
+1. **Enhanced blur**: Naik dari σ=20 ke σ=30 untuk lebih premium frosted look
+2. **Darker surface**: Ganti gradient dari `surface` ke `surfaceContainerHighest/High` dengan alpha lebih rendah (0.65/0.55)
+3. **Gradient border effect**: Double container pattern - outer container dengan gradient border (white alpha 0.2→0.15), inner container dengan 1px margin
+4. **Compact height**: Dari 64px turun ke 56px untuk lebih streamlined
+5. **Icon-only navigation**: Remove semua labels, icon-only dengan glow shadow untuk active state
+6. **Active icon glow**: Tambah `Shadow` dengan blur 8px dan primary color untuk active icon
+
+**Rationale:**
+
+- **Premium feel**: σ=30 blur memberikan depth yang lebih baik, mirip native iOS apps
+- **Minimalist**: Icon-only navigation mengurangi visual clutter, fokus pada content
+- **Modern aesthetic**: Gradient border + darker surface = contemporary glass-morphism
+- **YAGNI**: Height 56px cukup untuk touch target (minimum 44px), tidak perlu 64px
+- **Accessibility**: Glow shadow pada active icon memberikan visual feedback yang jelas tanpa label
+
+**Impact:**
+
+- File modified: `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+- Breaking change: Navigation jadi icon-only, users perlu adaptasi (tapi icons self-explanatory)
+- Design system consistency: Glass effect sekarang se-level dengan ProfilePage dan HomePage
+- Performance: σ=30 blur lebih heavy tapi modern devices handle dengan baik
+- `dart analyze` clean - no issues
+
+---
+
 ## 2026-02-07 — Refactor FAB 'Tambah' to Header Button + Inline Card
 
 **Context:**

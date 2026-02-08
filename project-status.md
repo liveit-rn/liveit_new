@@ -696,3 +696,69 @@ Next Steps:
 - [ ] Verify responsive layout di berbagai screen sizes
 
 ---
+
+## Initial Ask (2026-02-08):
+
+- Refactor Navigation Shell dengan premium frosted glass design - stronger blur, gradient border, icon-only navigation.
+
+## Initial Response:
+
+- Upgrade glass-morphism effect dengan blur σ=30, gradient border, compact height 56px, remove labels, add glow shadow untuk active icon.
+
+## Checklist:
+
+- [x] Enhanced blur dari σ=20 ke σ=30
+- [x] Darker frosted glass surface dengan surfaceContainerHigh/Highest
+- [x] Gradient border effect menggunakan double container pattern
+- [x] Compact height 56px (dari 64px)
+- [x] Refactor _GlassNavItem jadi icon-only (remove labels)
+- [x] Add glow shadow untuk active icon dengan primary color
+- [x] Update border radius: 28px outer, 27px inner (1px gradient border)
+- [x] Box shadow lebih soft: shadow alpha 0.15, black alpha 0.2
+- [x] Icon size 22px dengan scale animation (0.92→1.0)
+- [x] dart analyze clean - no issues
+
+## Current Status:
+
+- Navigation Shell fully refactored dengan premium frosted glass aesthetic
+- Blur effect: σ=30 (dari σ=20) untuk lebih premium look
+- Surface gradient: surfaceContainerHighest (0.65) → surfaceContainerHigh (0.55)
+- Gradient border: white alpha 0.2→0.15 dengan 1px margin
+- Height: 56px compact (dari 64px) - lebih streamlined
+- Navigation: icon-only tanpa labels, glow shadow pada active icon
+- Scale animation: 250ms easeOutBack dari 0.92→1.0
+
+## Files Modified:
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+## Design Specifications:
+
+- **Outer Container**: Border radius 28px, gradient border (white 0.2→0.15), shadow soft
+- **Inner Container**: 1px margin untuk reveal gradient border, border radius 27px
+- **Blur**: BackdropFilter σ=30 (dari σ=20)
+- **Surface**: LinearGradient surfaceContainerHighest (0.65) → surfaceContainerHigh (0.55)
+- **Height**: 56px compact
+- **Icons**: 22px, icon-only tanpa labels
+- **Active State**: Primary color + glow shadow (blur 8px, alpha 0.6)
+- **Animation**: Scale 0.92→1.0, 250ms easeOutBack
+
+## Acceptance Criteria:
+
+- [x] Stronger blur (σ=30)
+- [x] Darker frosted glass surface
+- [x] Gradient border effect
+- [x] Compact height 56 (dari 64)
+- [x] Icon-only nav items (no labels)
+- [x] Active icon dengan glow shadow
+- [x] dart analyze passes with no issues
+
+## Next Steps:
+
+- [ ] Test di device/emulator untuk verify visual quality
+- [ ] Check performance impact dari σ=30 blur di low-end devices
+- [ ] Gather user feedback tentang icon-only navigation (tanpa labels)
+
+---

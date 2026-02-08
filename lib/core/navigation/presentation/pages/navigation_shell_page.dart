@@ -157,60 +157,70 @@ class _GlassPillNavigation extends StatelessWidget {
       builder: (context, state) {
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
-          height: 64,
+          height: 56,
           width: pillWidth,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(28),
+            // Gradient border effect
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.2),
+                Colors.white.withValues(alpha: 0.15),
+              ],
+            ),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.primary.withValues(alpha: 0.15),
+                color: colorScheme.shadow.withValues(alpha: 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 30,
-                offset: const Offset(0, 15),
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      colorScheme.surface.withValues(alpha: 0.92),
-                      colorScheme.surface.withValues(alpha: 0.85),
-                    ],
+          child: Container(
+            margin: const EdgeInsets.all(1), // 1px gradient border
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(27),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.65),
+                        colorScheme.surfaceContainerHigh
+                            .withValues(alpha: 0.55),
+                      ],
+                    ),
                   ),
-                  border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.2),
-                    width: 1,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: navItems.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      return Expanded(
+                        child: _GlassNavItem(
+                          item: item,
+                          index: index,
+                          currentIndex: state.currentIndex,
+                          onTap: () {
+                            context.read<NavigationBloc>().add(
+                                  NavigationTabChanged(index),
+                                );
+                          },
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: navItems.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    return Expanded(
-                      child: _GlassNavItem(
-                        item: item,
-                        index: index,
-                        currentIndex: state.currentIndex,
-                        onTap: () {
-                          context.read<NavigationBloc>().add(
-                                NavigationTabChanged(index),
-                              );
-                        },
-                      ),
-                    );
-                  }).toList(),
                 ),
               ),
             ),
@@ -249,73 +259,37 @@ class _GlassNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = currentIndex == index;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        splashColor: colorScheme.primary.withValues(alpha: 0.15),
-        highlightColor: colorScheme.primary.withValues(alpha: 0.08),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: isActive
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary.withValues(alpha: 0.15),
-                      colorScheme.primary.withValues(alpha: 0.08),
-                    ],
-                  )
+        borderRadius: BorderRadius.circular(16),
+        splashColor: colorScheme.primary.withValues(alpha: 0.2),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            isActive ? item.activeIcon : item.icon,
+            color: isActive
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            size: 22,
+            shadows: isActive
+                ? [
+                    Shadow(
+                      color: colorScheme.primary.withValues(alpha: 0.6),
+                      blurRadius: 8,
+                    ),
+                  ]
                 : null,
-            border: isActive
-                ? Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.25),
-                    width: 1,
-                  )
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isActive ? item.activeIcon : item.icon,
-                color: isActive
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                size: 20,
-              ),
-              if (isActive) ...[
-                const SizedBox(height: 2),
-                Text(
-                  item.label,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.1,
-                    fontSize: 9,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ],
           ),
         ),
       ),
     ).animate(target: isActive ? 1 : 0).scale(
-          begin: const Offset(0.95, 0.95),
+          begin: const Offset(0.92, 0.92),
           end: const Offset(1.0, 1.0),
-          duration: const Duration(milliseconds: 300),
+          duration: 250.ms,
           curve: Curves.easeOutBack,
         );
   }

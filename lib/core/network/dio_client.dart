@@ -18,7 +18,8 @@ class DioClient {
   }
 
   BaseOptions get _baseOptions => BaseOptions(
-        baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000',
+        baseUrl: dotenv.env['API_BASE_URL'] ??
+            'https://liveit-api-dev-5jufu.ondigitalocean.app',
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),

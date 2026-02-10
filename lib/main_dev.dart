@@ -15,7 +15,7 @@ import 'package:liveit_new/features/profile/presentation/bloc/profile_event.dart
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env.dev'); // Load .env.dev file
+  await dotenv.load(fileName: 'assets/.env.dev'); // Load .env.dev file
   await initializeDateFormatting('id_ID', null); // Initialize Indonesian locale
 
   // Initialize Hive for local caching (Safe, Singleton-pattern)

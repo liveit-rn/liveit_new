@@ -13,7 +13,7 @@ import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_event.
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env.dev'); // Load .env.dev file
+  await dotenv.load(fileName: 'assets/.env'); // Load .env.dev file
   await initializeDateFormatting('id_ID', null); // Initialize Indonesian locale
 
   // Initialize Hive for local caching (Safe, Singleton-pattern)

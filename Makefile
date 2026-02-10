@@ -18,10 +18,10 @@ build-dev:
 	@echo "🛠️ Building Debug APK..."
 	fvm flutter build apk --debug
 
-# 🚀 Staging (Release APK)
+# 🚀 Staging (Release APK - for manual testing on device)
 build-stage:
-	@echo "🚀 Building Release APK..."
-	fvm flutter build apk --release
+	@echo "🚀 Building Release APK (Production config)..."
+	fvm flutter build apk --release -t lib/main_prod.dart
 
 # 📦 Production (Release Bundle/AAB)
 build-prod:

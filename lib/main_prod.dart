@@ -12,13 +12,25 @@ import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_bloc.d
 import 'package:liveit_new/features/habit_tracker/presentation/bloc/habit_event.dart';
 import 'package:liveit_new/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:liveit_new/features/profile/presentation/bloc/profile_event.dart';
+import 'package:logger/logger.dart';
+
+final Logger logger = Logger();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env.prod'); // Load .env.prod file
-  await initializeDateFormatting('id_ID', null); // Initialize Indonesian locale
 
-  // Initialize Hive for local caching (Safe, Singleton-pattern)
+  try {
+    await dotenv.load(fileName: 'assets/.env.prod');
+    logger.i('✅ .env.prod loaded successfully');
+    logger.i(
+      '🔗 API_BASE_URL: ${dotenv.env['API_BASE_URL'] ?? "https://liveit-api-dev-5jufu.ondigitalocean.app"}',
+    );
+  } catch (e) {
+    logger.e('❌ Failed to load .env.prod: $e');
+  }
+
+  await initializeDateFormatting('id_ID', null);
+
   await Hive.initFlutter();
 
   await configureDependencies();
@@ -28,7 +40,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Router aplikasi berbasis auto_route
   static final AppRouter _appRouter = AppRouter();
 
   @override
@@ -41,17 +52,23 @@ class MyApp extends StatelessWidget {
         BlocProvider<HabitBloc>(
           create: (context) => getIt<HabitBloc>()..add(HabitStarted()),
         ),
-        BlocProvider<ProfileBloc>(
-          create: (context) => getIt<ProfileBloc>(),
-        ),
+        BlocProvider<ProfileBloc>(create: (context) => getIt<ProfileBloc>()),
       ],
-      child: MaterialApp.router(
-        title: 'LIVEIT',
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: ThemeMode.system,
-        // Gunakan konfigurasi router dari auto_route.
-        routerConfig: _appRouter.config(),
+      child: Builder(
+        builder: (context) {
+          final apiUrl = dotenv.env['API_BASE_URL'] ?? 'https://liveit-api-dev-5jufu.ondigitalocean.app';
+
+          // Debug: Show API URL on first launch
+          logger.i('🔗 API_BASE_URL: $apiUrl');
+
+          return MaterialApp.router(
+            title: 'LIVEIT',
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: ThemeMode.system,
+            routerConfig: _appRouter.config(),
+          );
+        },
       ),
     );
   }

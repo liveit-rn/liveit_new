@@ -24,6 +24,32 @@ Next Steps:
 
 ---
 
+Update (2026-02-11):
+
+Initial Ask:
+
+- Analisa mendalam sistem “offline-first” (offline dulu baru update server) dan buat dokumentasinya.
+
+Initial Response:
+
+- Menelusuri implementasi Habit Tracker (Hive cache + repository + BLoC) dan menulis dokumen yang memetakan alur read/write serta keterbatasannya.
+
+Checklist:
+
+- [x] Audit data flow Habit Tracker: cache (Hive) + API (Dio) + repository + bloc
+- [x] Tegaskan behavior sebenarnya: cache-first untuk read, optimistic UI untuk write (tanpa write queue)
+- [x] Buat skill doc untuk dibaca tim
+
+Current Status:
+
+- Dokumen tersedia di `docs/skills/offline-first-data-flow.md`.
+
+Next Steps:
+
+- Jika target product benar-benar butuh “offline write then sync”, implement outbox minimal (mulai dari check-in) + trigger sync saat koneksi pulih.
+
+---
+
 Initial Ask (2025-10-13):
 
 - Implement homepage layout sesuai dokumen brand essence dan user story Epic Homepage Experience.

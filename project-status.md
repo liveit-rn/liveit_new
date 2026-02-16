@@ -331,6 +331,7 @@ Current Status:
 - Phase 5 Polish PROGRESSING (Celebrations, Offline Caching, and Restoration of missing files).
 
 **Phase 1 Completed Tasks:**
+
 - [x] Update HabitRemoteDataSource abstract class with Phase 2A methods
 - [x] Implement HabitRemoteDataSourceImpl with all methods
 - [x] Update HabitRepository interface with Phase 2A parameters
@@ -342,12 +343,14 @@ Current Status:
 - [x] Run dart format on all modified files
 
 **Phase 3 Completed Tasks:**
+
 - [x] Update HabitCard with Phase 2A fields (color, icon, repeatPeriod, frequency, streak badges)
 - [x] Update HabitCard with Edit and Archive action buttons
 - [x] Update HabitTrackerPage with options bottom sheet and archive confirmation
 - [x] Update AddHabitPage with Phase 2A form inputs
 
 **Phase 4 Completed Tasks:**
+
 - [x] Rebuild HabitTrackerPage with distinctive "Grounded Growth" design
 - [x] Create new HabitCard widget with animations and streak badges
 - [x] Create EditHabitPage for editing existing habits
@@ -357,6 +360,7 @@ Current Status:
 - [x] Update router with EditHabitRoute and HabitStatsRoute
 
 **Phase 5 Progress:**
+
 - [x] Integrate celebrations with check-in flow (Confetti, Points, Dialogs wired to Bloc)
 - [x] Add offline caching (Hive)
 - [x] Implement pull-to-refresh caching (via Hybrid Repository)
@@ -373,6 +377,7 @@ Next Steps:
 **Update 2026-01-24 - Phase 4 Completed & Celebrations Integrated**
 
 **Recent Accomplishments:**
+
 - ✅ Phase 4: Advanced Features fully implemented (Edit, Stats, Drag&Drop).
 - ✅ Phase 5: Celebrations integration completed.
   - Wired `HabitBloc` to detect streaks/all-done from check-in response.
@@ -386,6 +391,7 @@ Next Steps:
   - UI feels significantly faster; Check-in is instant.
 
 **Pending Actions:**
+
 - Fix `withOpacity` deprecation warnings (Flutter 3.27+).
 - Write unit/widget tests.
 
@@ -477,7 +483,7 @@ Next Steps:
 - [x] Create animated nav items dengan active/inactive states
 - [x] Add scale animation pada tab change (300ms easeOutBack)
 - [x] Implement entry animation (slide up + fade, 600ms)
-- [x] Convert _NavigationShellView ke StatefulWidget untuk AnimationController
+- [x] Convert \_NavigationShellView ke StatefulWidget untuk AnimationController
 - [x] Add flutter_animate package untuk scale effects
 - [x] Update decisions.md dengan detail perubahan
 
@@ -675,18 +681,18 @@ Next Steps:
 
 ## Initial Response:
 
-- Remove FAB dan _buildGlassFAB method, implement header button dengan glass styling dan inline add card di _buildHabitsList.
+- Remove FAB dan \_buildGlassFAB method, implement header button dengan glass styling dan inline add card di \_buildHabitsList.
 
 ## Checklist:
 
 - [x] Remove FAB dari Scaffold property
-- [x] Delete _buildGlassFAB() method seluruhnya
-- [x] Buat _navigateToAddHabit() helper method
-- [x] Buat _buildGlassIconButton() reusable widget
-- [x] Add header "+" button di _buildHeader() sebelah settings
+- [x] Delete \_buildGlassFAB() method seluruhnya
+- [x] Buat \_navigateToAddHabit() helper method
+- [x] Buat \_buildGlassIconButton() reusable widget
+- [x] Add header "+" button di \_buildHeader() sebelah settings
 - [x] Styling header button: primary gradient, shadow, 12px radius
-- [x] Buat _buildAddHabitCard() untuk inline card
-- [x] Modify _buildHabitsList(): itemCount +1, render add card di index terakhir
+- [x] Buat \_buildAddHabitCard() untuk inline card
+- [x] Modify \_buildHabitsList(): itemCount +1, render add card di index terakhir
 - [x] Inline card styling: glass effect, gradient border, "Tambah Kebiasaan Baru"
 - [x] Both buttons navigate ke AddHabitPage dengan haptic feedback
 - [x] dart analyze clean (no issues)
@@ -698,7 +704,7 @@ Next Steps:
 - FAB fully removed dan digantikan dengan dua entry points yang lebih UX-friendly
 - Header button: glass icon button dengan primary styling (gradient teal + shadow)
 - Inline card: glass card di akhir list dengan border dan label descriptive
-- Kedua navigasi menggunakan _navigateToAddHabit() helper untuk consistency
+- Kedua navigasi menggunakan \_navigateToAddHabit() helper untuk consistency
 - Glass-morphism design konsisten dengan ProfilePage dan HomePage
 
 ## Files Modified:
@@ -737,7 +743,7 @@ Next Steps:
 - [x] Darker frosted glass surface dengan surfaceContainerHigh/Highest
 - [x] Gradient border effect menggunakan double container pattern
 - [x] Compact height 56px (dari 64px)
-- [x] Refactor _GlassNavItem jadi icon-only (remove labels)
+- [x] Refactor \_GlassNavItem jadi icon-only (remove labels)
 - [x] Add glow shadow untuk active icon dengan primary color
 - [x] Update border radius: 28px outer, 27px inner (1px gradient border)
 - [x] Box shadow lebih soft: shadow alpha 0.15, black alpha 0.2

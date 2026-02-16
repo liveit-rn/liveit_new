@@ -10,6 +10,30 @@ This file is append-only. Each entry must include:
 
 ---
 
+## 2026-02-11 — Document current “offline-first” behavior (Habit Tracker)
+
+**Context:**
+
+- User requested deep analysis of “offline-first then update server” mechanism in the Flutter app.
+- Need a readable doc that matches actual implementation (no guesses).
+
+**Choice:**
+
+- Document the current implementation as **hybrid cache + optimistic UI**, specifically:
+  - Reads: cache-first + stale-while-revalidate with fallback to Hive cache.
+  - Writes: API-first with optimistic UI in BLoC and rollback on failure.
+- Explicitly call out that the repo **does not implement an offline write queue/outbox** yet.
+
+**Rationale:**
+
+- Keeps documentation honest and directly traceable to code paths in `HabitRepositoryImpl` + `HabitBloc`.
+- Avoids inventing “sync queue” behavior that could mislead future development.
+
+**Impact:**
+
+- Added doc: `docs/skills/offline-first-data-flow.md`
+- No runtime behavior changes.
+
 ## 2026-02-08 — Navigation Shell Premium Frosted Glass Refactor
 
 **Context:**

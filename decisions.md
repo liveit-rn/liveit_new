@@ -204,7 +204,7 @@ This file is append-only. Each entry must include:
 
 **Details:**
 
-**_ProfilePage Widget:**
+**\_ProfilePage Widget:**
 
 - Avatar radius: 56 → 48 (better proportion)
 - Display name: fontSize 22 → 20, fontWeight bold → w800, letterSpacing -0.2
@@ -212,21 +212,21 @@ This file is append-only. Each entry must include:
 - Bio: color onSurfaceVariant.withOpacity(0.8) → onSurface.withValues(alpha: 0.7), fontSize → 13
 - Spacing adjustments: height 8→6 after name, 12→10 after username
 
-**_StatsCard Widget:**
+**\_StatsCard Widget:**
 
 - Added elevation: 1 for subtle shadow
 - Added border: RoundedRectangleBorder with outline alpha 0.08
 - Padding: symmetric vertical 20, horizontal 12 (was all 20)
 - Border radius: 12px for modern look
 
-**_StatItem Widget:**
+**\_StatItem Widget:**
 
 - Icon size: 28 → 24 (consistency)
 - Value fontSize: default → 28, fontWeight bold → w800, letterSpacing -0.5
 - Label fontSize: default → 12, fontWeight → w500
 - Spacing: icon-to-value 8→10, value-to-label 4→6
 
-**_MenuSection Widget:**
+**\_MenuSection Widget:**
 
 - All icons: size 22, color onSurface (theme-based)
 - All titles: fontWeight w600 for prominence
@@ -391,8 +391,8 @@ This file is append-only. Each entry must include:
 
 1. Scaffold background changed to Color(0xFFF9F9F9) for cleaner look
 2. Bottom navigation bar now has red background with white icons/labels
-3. Email field removed from _ProfileHeader widget
-4. Added optional showTooltip parameter to _StatItem with help icon for Zoe Points
+3. Email field removed from \_ProfileHeader widget
+4. Added optional showTooltip parameter to \_StatItem with help icon for Zoe Points
 5. Logout icon and text explicitly use colorScheme.error to maintain red accent
 
 **Impact:**
@@ -1140,11 +1140,11 @@ This file is append-only. Each entry must include:
 
 - Adopted **Hive** (NoSQL, Pure Dart) for caching `UserHabit` data.
 - Implemented **Hybrid Repository Pattern**:
-    1.  `getCachedHabits()`: Direct Hive read (Instant).
-    2.  `getUserHabits()`: Network fetch + Write to Hive (Background update).
+  1.  `getCachedHabits()`: Direct Hive read (Instant).
+  2.  `getUserHabits()`: Network fetch + Write to Hive (Background update).
 - Implemented **Optimistic UI** in `HabitBloc`:
-    - Check-in/Undo events immediately update state (`emit`) before awaiting API.
-    - Rollback state if API fails.
+  - Check-in/Undo events immediately update state (`emit`) before awaiting API.
+  - Rollback state if API fails.
 
 **Rationale:**
 
@@ -1173,9 +1173,9 @@ This file is append-only. Each entry must include:
 
 - Recreated `HabitLocalDataSource` with Hive support, including the `openBox()` static method required by the injection container.
 - Recreated `EditHabitPage` with full Phase 2A support:
-    - Pre-filled form fields (Notes, Schedule, Personalization).
-    - Habit preview card for real-time feedback.
-    - Unsaved changes confirmation logic using `PopScope`.
+  - Pre-filled form fields (Notes, Schedule, Personalization).
+  - Habit preview card for real-time feedback.
+  - Unsaved changes confirmation logic using `PopScope`.
 - Ran `build_runner` to regenerate `app_router.gr.dart` and ensure route definitions match the restored page.
 - Cleaned up duplicate/unused imports in `injection_container.dart` and `add_habit_page.dart`.
 
@@ -1328,7 +1328,7 @@ This file is append-only. Each entry must include:
    - SizedBox transitions for label reveal
 
 5. **Technical Changes:**
-   - Converted _NavigationShellView from StatelessWidget to StatefulWidget
+   - Converted \_NavigationShellView from StatelessWidget to StatefulWidget
    - Added AnimationController for entry animation
    - Updated pillController lifecycle management
 
@@ -1475,7 +1475,6 @@ This file is append-only. Each entry must include:
 **Choice:**
 
 1. **DevotionPage Complete Rewrite:**
-
    - **Header Section**: Glass badge dengan tertiary gradient, bold title "Renungan" (36px w800), tagline subtitle
    - **Entry Animations**: Slide-up + fade (1000ms) untuk header dan content
    - **Loading State**: Centered glass card dengan progress indicator
@@ -1484,7 +1483,6 @@ This file is append-only. Each entry must include:
    - **Article Cards**: Glass cards (BackdropFilter blur 12), cover images, badges, dan read more CTA
 
 2. **ArticleDetailPage Complete Rewrite:**
-
    - **Glass AppBar**: Gradient surface dengan back button dan title truncation
    - **Cover Image**: Full-width dengan gradient overlay
    - **Typography**: Bold hierarchy - title 28px w800, meta info dengan colored chips

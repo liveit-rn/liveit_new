@@ -30,6 +30,8 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
   late Animation<double> _progressAnimation;
   bool _isReordering = false;
   bool _showConfetti = false;
+  int _lastPendingSyncCount = 0;
+  String? _lastSyncFeedbackMessage;
 
   /// Track if we're currently showing a celebration to prevent duplicates
   bool _isShowingCelebration = false;
@@ -187,8 +189,9 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                     colorScheme.surface.withValues(alpha: 0.98),
                   ],
                 ),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 border: Border.all(
                   color: colorScheme.outline.withValues(alpha: 0.12),
                 ),
@@ -225,16 +228,19 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                _parseColor(habit.color)
-                                    .withValues(alpha: 0.12),
-                                _parseColor(habit.color)
-                                    .withValues(alpha: 0.06),
+                                _parseColor(
+                                  habit.color,
+                                ).withValues(alpha: 0.12),
+                                _parseColor(
+                                  habit.color,
+                                ).withValues(alpha: 0.06),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: _parseColor(habit.color)
-                                  .withValues(alpha: 0.2),
+                              color: _parseColor(
+                                habit.color,
+                              ).withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
@@ -247,16 +253,19 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                     colors: [
-                                      _parseColor(habit.color)
-                                          .withValues(alpha: 0.25),
-                                      _parseColor(habit.color)
-                                          .withValues(alpha: 0.15),
+                                      _parseColor(
+                                        habit.color,
+                                      ).withValues(alpha: 0.25),
+                                      _parseColor(
+                                        habit.color,
+                                      ).withValues(alpha: 0.15),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: _parseColor(habit.color)
-                                        .withValues(alpha: 0.3),
+                                    color: _parseColor(
+                                      habit.color,
+                                    ).withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Center(
@@ -275,11 +284,11 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                       habit.title ??
                                           habit.habit?.name ??
                                           'Habit',
-                                      style:
-                                          theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -0.3,
-                                      ),
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: -0.3,
+                                          ),
                                     ),
                                     const SizedBox(height: 4),
                                     Row(
@@ -294,9 +303,10 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                                           '${habit.currentStreak} hari streak',
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -321,8 +331,9 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                         color: colorScheme.primary,
                         onTap: () {
                           context.router.maybePop();
-                          context.router
-                              .push(HabitStatsRoute(userHabit: habit));
+                          context.router.push(
+                            HabitStatsRoute(userHabit: habit),
+                          );
                         },
                       ),
                       _buildGlassOptionTile(
@@ -387,9 +398,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: color.withValues(alpha: 0.2),
-                  ),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
@@ -500,8 +509,10 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                       child: Text(
                         'Arsipkan',
                         style: TextStyle(
@@ -545,6 +556,25 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           child: BlocConsumer<HabitBloc, HabitState>(
             listener: (context, state) {
               if (state is HabitLoaded) {
+                if (_lastPendingSyncCount > 0 && state.pendingSyncCount == 0) {
+                  _showSyncSnackbar(
+                    message: 'Semua perubahan berhasil disinkronkan.',
+                    isError: false,
+                  );
+                }
+
+                final syncFeedbackMessage = state.syncFeedbackMessage;
+                if (syncFeedbackMessage != null &&
+                    syncFeedbackMessage != _lastSyncFeedbackMessage) {
+                  _showSyncSnackbar(
+                    message: syncFeedbackMessage,
+                    isError: true,
+                  );
+                }
+
+                _lastPendingSyncCount = state.pendingSyncCount;
+                _lastSyncFeedbackMessage = syncFeedbackMessage;
+
                 _progressController.forward(from: 0);
 
                 if (state.celebration != null &&
@@ -563,7 +593,12 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
               }
 
               if (state is HabitLoaded) {
-                return _buildLoadedState(theme, colorScheme, state.habits);
+                return _buildLoadedState(
+                  theme,
+                  colorScheme,
+                  state.habits,
+                  state.pendingSyncCount,
+                );
               }
 
               return const SizedBox.shrink();
@@ -572,6 +607,28 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         ),
       ),
     );
+  }
+
+  void _showSyncSnackbar({required String message, required bool isError}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final messenger = ScaffoldMessenger.of(context);
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: isError ? colorScheme.error : colorScheme.primary,
+          content: Text(
+            message,
+            style: TextStyle(
+              color: isError ? colorScheme.onError : colorScheme.onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          duration: Duration(milliseconds: isError ? 3200 : 2200),
+        ),
+      );
   }
 
   Future<void> _navigateToAddHabit() async {
@@ -594,11 +651,11 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           colors: isPrimary
               ? [
                   colorScheme.primary,
-                  colorScheme.primary.withValues(alpha: 0.85)
+                  colorScheme.primary.withValues(alpha: 0.85),
                 ]
               : [
                   colorScheme.surface.withValues(alpha: 0.7),
-                  colorScheme.surface.withValues(alpha: 0.5)
+                  colorScheme.surface.withValues(alpha: 0.5),
                 ],
         ),
         borderRadius: BorderRadius.circular(12),
@@ -641,55 +698,58 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
   Widget _buildAddHabitCard() {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.primary.withValues(alpha: 0.08),
-                  colorScheme.primary.withValues(alpha: 0.04),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.2),
-                width: 1.5,
-              ),
-            ),
-            child: InkWell(
-              onTap: _navigateToAddHabit,
-              borderRadius: BorderRadius.circular(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.add_rounded,
-                    color: colorScheme.primary,
-                    size: 22,
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.primary.withValues(alpha: 0.08),
+                      colorScheme.primary.withValues(alpha: 0.04),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Tambah Kebiasaan Baru',
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.2),
+                    width: 1.5,
                   ),
-                ],
+                ),
+                child: InkWell(
+                  onTap: _navigateToAddHabit,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_rounded,
+                        color: colorScheme.primary,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Tambah Kebiasaan Baru',
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    )
+        )
         .animate()
         .fadeIn(duration: 500.ms, delay: 200.ms)
         .slideY(begin: 0.08, end: 0);
@@ -837,8 +897,9 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    colorScheme.primary.withValues(alpha: 0.3),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -894,6 +955,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
     ThemeData theme,
     ColorScheme colorScheme,
     List<UserHabit> habits,
+    int pendingSyncCount,
   ) {
     final completed = habits.where((h) => h.checkedInToday).length;
     final total = habits.length;
@@ -921,121 +983,146 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           _buildHeader(theme, colorScheme, completed, total),
+          if (pendingSyncCount > 0)
+            SliverToBoxAdapter(
+              child: _buildPendingSyncBanner(
+                theme: theme,
+                colorScheme: colorScheme,
+                pendingSyncCount: pendingSyncCount,
+              ),
+            ),
 
           // Section header with glass styling
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.surface.withValues(alpha: 0.8),
-                          colorScheme.surface.withValues(alpha: 0.5),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _isReordering
-                              ? Icons.swap_vert_rounded
-                              : Icons.checklist_rounded,
-                          size: 16,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _isReordering
-                              ? 'Geser untuk atur urutan'
-                              : 'Habits Hari Ini',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: _isReordering
-                            ? [
-                                colorScheme.primary.withValues(alpha: 0.15),
-                                colorScheme.primary.withValues(alpha: 0.08),
-                              ]
-                            : [
-                                colorScheme.surface.withValues(alpha: 0.8),
-                                colorScheme.surface.withValues(alpha: 0.5),
-                              ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _isReordering
-                            ? colorScheme.primary.withValues(alpha: 0.3)
-                            : colorScheme.outline.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          setState(() {
-                            _isReordering = !_isReordering;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isReordering
-                                    ? Icons.check_rounded
-                                    : Icons.swap_vert_rounded,
-                                size: 16,
-                                color: _isReordering
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurfaceVariant,
+            child:
+                Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  colorScheme.surface.withValues(alpha: 0.8),
+                                  colorScheme.surface.withValues(alpha: 0.5),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _isReordering ? 'Selesai' : 'Urutkan',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: _isReordering
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w600,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: colorScheme.outline.withValues(
+                                  alpha: 0.12,
                                 ),
                               ),
-                            ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _isReordering
+                                      ? Icons.swap_vert_rounded
+                                      : Icons.checklist_rounded,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _isReordering
+                                      ? 'Geser untuk atur urutan'
+                                      : 'Habits Hari Ini',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _isReordering
+                                    ? [
+                                        colorScheme.primary.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        colorScheme.primary.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                      ]
+                                    : [
+                                        colorScheme.surface.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                        colorScheme.surface.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                      ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _isReordering
+                                    ? colorScheme.primary.withValues(alpha: 0.3)
+                                    : colorScheme.outline.withValues(
+                                        alpha: 0.12,
+                                      ),
+                              ),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  setState(() {
+                                    _isReordering = !_isReordering;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _isReordering
+                                            ? Icons.check_rounded
+                                            : Icons.swap_vert_rounded,
+                                        size: 16,
+                                        color: _isReordering
+                                            ? colorScheme.primary
+                                            : colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        _isReordering ? 'Selesai' : 'Urutkan',
+                                        style: theme.textTheme.labelMedium
+                                            ?.copyWith(
+                                              color: _isReordering
+                                                  ? colorScheme.primary
+                                                  : colorScheme
+                                                        .onSurfaceVariant,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 400.ms)
-                .slideX(begin: -0.05, end: 0, duration: 600.ms),
+                    )
+                    .animate()
+                    .fadeIn(duration: 600.ms, delay: 400.ms)
+                    .slideX(begin: -0.05, end: 0, duration: 600.ms),
           ),
 
           // Habits list
@@ -1046,6 +1133,73 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                 : _buildHabitsList(sortedHabits),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPendingSyncBanner({
+    required ThemeData theme,
+    required ColorScheme colorScheme,
+    required int pendingSyncCount,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.secondary.withValues(alpha: 0.14),
+                  colorScheme.surface.withValues(alpha: 0.85),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: colorScheme.secondary.withValues(alpha: 0.22),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.sync_rounded,
+                  size: 18,
+                  color: colorScheme.secondary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '$pendingSyncCount perubahan menunggu sinkronisasi',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    context.read<HabitBloc>().add(HabitSyncRequested());
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: const Text('Sync'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colorScheme.secondary,
+                    textStyle: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1062,10 +1216,7 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
 
         final updates = <Map<String, dynamic>>[];
         for (var i = 0; i < reordered.length; i++) {
-          updates.add({
-            'userHabitId': reordered[i].id,
-            'order': i,
-          });
+          updates.add({'userHabitId': reordered[i].id, 'order': i});
         }
 
         context.read<HabitBloc>().add(HabitReordered(updates: updates));
@@ -1095,11 +1246,11 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         }
         final habit = habits[index];
         return HabitCard(
-          key: ValueKey(habit.id),
-          userHabit: habit,
-          onToggle: () => _handleToggle(habit),
-          onEdit: () => _showHabitOptions(habit),
-        )
+              key: ValueKey(habit.id),
+              userHabit: habit,
+              onToggle: () => _handleToggle(habit),
+              onEdit: () => _showHabitOptions(habit),
+            )
             .animate()
             .fadeIn(
               duration: 500.ms,
@@ -1120,18 +1271,12 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
     HapticFeedback.lightImpact();
     if (habit.checkedInToday) {
       context.read<HabitBloc>().add(
-            HabitUndoCheckInRequested(
-              userHabitId: habit.id,
-              date: DateTime.now(),
-            ),
-          );
+        HabitUndoCheckInRequested(userHabitId: habit.id, date: DateTime.now()),
+      );
     } else {
       context.read<HabitBloc>().add(
-            HabitCheckInRequested(
-              userHabitId: habit.id,
-              date: DateTime.now(),
-            ),
-          );
+        HabitCheckInRequested(userHabitId: habit.id, date: DateTime.now()),
+      );
     }
   }
 
@@ -1143,150 +1288,167 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(40),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(36),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.surface.withValues(alpha: 0.85),
-                          colorScheme.surface.withValues(alpha: 0.7),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.15),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.primary.withValues(alpha: 0.08),
-                          blurRadius: 40,
-                          offset: const Offset(0, 20),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Illustrated empty state with glow
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              colors: [
-                                colorScheme.primary.withValues(alpha: 0.2),
-                                colorScheme.tertiary.withValues(alpha: 0.1),
-                                Colors.transparent,
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '🌱',
-                              style: TextStyle(
-                                fontSize: 56,
-                                shadows: [
-                                  Shadow(
-                                    color: colorScheme.shadow
-                                        .withValues(alpha: 0.2),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 10),
-                                  ),
+              child:
+                  ClipRRect(
+                        borderRadius: BorderRadius.circular(32),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                          child: Container(
+                            padding: const EdgeInsets.all(36),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  colorScheme.surface.withValues(alpha: 0.85),
+                                  colorScheme.surface.withValues(alpha: 0.7),
                                 ],
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                        Text(
-                          'Mulai Perjalananmu',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Setiap kebiasaan baik dimulai dari langkah pertama.\n'
-                          'Tambahkan habit untuk memulai.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                colorScheme.primary,
-                                colorScheme.primary.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(
+                                color: colorScheme.outline.withValues(
+                                  alpha: 0.15,
+                                ),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  blurRadius: 40,
+                                  offset: const Offset(0, 20),
+                                ),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    colorScheme.primary.withValues(alpha: 0.4),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                context.router.push(const AddHabitRoute());
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              splashColor: Colors.white.withValues(alpha: 0.2),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 16,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.add_rounded,
-                                      color: colorScheme.onPrimary,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Illustrated empty state with glow
+                                Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    gradient: RadialGradient(
+                                      colors: [
+                                        colorScheme.primary.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        colorScheme.tertiary.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        Colors.transparent,
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Tambah Habit Pertama',
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '🌱',
                                       style: TextStyle(
-                                        color: colorScheme.onPrimary,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
+                                        fontSize: 56,
+                                        shadows: [
+                                          Shadow(
+                                            color: colorScheme.shadow
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 24,
+                                            offset: const Offset(0, 10),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 28),
+                                Text(
+                                  'Mulai Perjalananmu',
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Setiap kebiasaan baik dimulai dari langkah pertama.\n'
+                                  'Tambahkan habit untuk memulai.',
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    height: 1.6,
+                                  ),
+                                ),
+                                const SizedBox(height: 28),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        colorScheme.primary,
+                                        colorScheme.primary.withValues(
+                                          alpha: 0.85,
+                                        ),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () {
+                                        HapticFeedback.lightImpact();
+                                        context.router.push(
+                                          const AddHabitRoute(),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(16),
+                                      splashColor: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 16,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.add_rounded,
+                                              color: colorScheme.onPrimary,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Tambah Habit Pertama',
+                                              style: TextStyle(
+                                                color: colorScheme.onPrimary,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 800.ms)
-                  .scale(begin: const Offset(0.9, 0.9), duration: 800.ms),
+                      )
+                      .animate()
+                      .fadeIn(duration: 800.ms)
+                      .scale(begin: const Offset(0.9, 0.9), duration: 800.ms),
             ),
           ),
         ),
@@ -1328,142 +1490,160 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
         '${dayNames[now.weekday % 7]}, ${now.day} ${monthNames[now.month - 1]}';
 
     return SliverToBoxAdapter(
-      child: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              MediaQuery.of(context).padding.top + 16,
-              20,
-              28,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.primary.withValues(alpha: 0.12),
-                  colorScheme.primaryContainer.withValues(alpha: 0.2),
-                  colorScheme.surface.withValues(alpha: 0.8),
-                ],
-              ),
-              border: Border(
-                bottom: BorderSide(
-                  color: colorScheme.outline.withValues(alpha: 0.1),
-                ),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: Date badge & Settings
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            colorScheme.surface.withValues(alpha: 0.85),
-                            colorScheme.surface.withValues(alpha: 0.6),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: colorScheme.outline.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.calendar_today_rounded,
-                            size: 14,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            dateString,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+      child:
+          ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      MediaQuery.of(context).padding.top + 16,
+                      20,
+                      28,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colorScheme.primary.withValues(alpha: 0.12),
+                          colorScheme.primaryContainer.withValues(alpha: 0.2),
+                          colorScheme.surface.withValues(alpha: 0.8),
                         ],
                       ),
-                    ),
-                    Row(
-                      children: [
-                        _buildGlassIconButton(
-                          icon: Icons.settings_outlined,
-                          onTap: () {
-                            // TODO: Settings or profile
-                          },
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colorScheme.outline.withValues(alpha: 0.1),
                         ),
-                        const SizedBox(width: 8),
-                        _buildGlassIconButton(
-                          icon: Icons.add_rounded,
-                          onTap: _navigateToAddHabit,
-                          isPrimary: true,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Top row: Date badge & Settings
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    colorScheme.surface.withValues(alpha: 0.85),
+                                    colorScheme.surface.withValues(alpha: 0.6),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: colorScheme.outline.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today_rounded,
+                                    size: 14,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    dateString,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                _buildGlassIconButton(
+                                  icon: Icons.settings_outlined,
+                                  onTap: () {
+                                    // TODO: Settings or profile
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                _buildGlassIconButton(
+                                  icon: Icons.add_rounded,
+                                  onTap: _navigateToAddHabit,
+                                  isPrimary: true,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Main content row
+                        Row(
+                          children: [
+                            // Greeting & Message
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getGreeting(),
+                                    style: theme.textTheme.headlineMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 28,
+                                          letterSpacing: -0.5,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _getMotivationalMessage(completed, total),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // Progress ring with glass effect
+                            if (total > 0)
+                              _buildGlassProgressRing(
+                                colorScheme,
+                                completed,
+                                total,
+                              ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-
-                // Main content row
-                Row(
-                  children: [
-                    // Greeting & Message
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getGreeting(),
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 28,
-                              letterSpacing: -0.5,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _getMotivationalMessage(completed, total),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Progress ring with glass effect
-                    if (total > 0)
-                      _buildGlassProgressRing(colorScheme, completed, total),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ).animate().fadeIn(duration: 800.ms).slideY(
-          begin: -0.05, end: 0, duration: 800.ms, curve: Curves.easeOut),
+              )
+              .animate()
+              .fadeIn(duration: 800.ms)
+              .slideY(
+                begin: -0.05,
+                end: 0,
+                duration: 800.ms,
+                curve: Curves.easeOut,
+              ),
     );
   }
 
   Widget _buildGlassProgressRing(
-      ColorScheme colorScheme, int completed, int total) {
+    ColorScheme colorScheme,
+    int completed,
+    int total,
+  ) {
     final progress = total > 0 ? completed / total : 0.0;
     final allDone = completed == total && total > 0;
 
@@ -1527,10 +1707,12 @@ class _HabitTrackerPageState extends State<HabitTrackerPage>
                 child: CustomPaint(
                   painter: _ProgressRingPainter(
                     progress: progress * _progressAnimation.value,
-                    backgroundColor:
-                        colorScheme.outline.withValues(alpha: 0.15),
-                    progressColor:
-                        allDone ? colorScheme.tertiary : colorScheme.primary,
+                    backgroundColor: colorScheme.outline.withValues(
+                      alpha: 0.15,
+                    ),
+                    progressColor: allDone
+                        ? colorScheme.tertiary
+                        : colorScheme.primary,
                     strokeWidth: 5,
                   ),
                   child: Center(

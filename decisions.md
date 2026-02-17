@@ -1538,3 +1538,102 @@ This file is append-only. Each entry must include:
 - Code is cleaner dengan inline widgets (no separate DevotionalCard needed)
 - Analyzer clean (no errors, no warnings)
 - Ready untuk further enhancement (share feature, bookmark, etc.)
+
+---
+
+## 2026-02-16 — Implement offline check-in outbox (server-wins)
+
+**Context:**
+
+- Repo sudah punya hybrid cache + optimistic UI, tetapi write saat offline masih rollback langsung.
+- User meminta implementasi berdasarkan `docs/skills/offline-first-data-flow.md` dan rencana di `docs/habit-tracker/implementation-offline-first-data-flow.md`.
+
+**Choice:**
+
+- Menambahkan arsitektur outbox minimal untuk mutation **check-in** dan **undo check-in** saja.
+- Menggunakan strategi konflik **server-wins** saat replay (4xx dibuang dari antrian).
+- Menambahkan service sinkronisasi berbasis konektivitas + trigger manual dari UI.
+
+**Rationale:**
+
+- Ini scope terkecil dengan dampak UX terbesar: aksi harian tetap terasa instan walau offline.
+- Tidak memperluas ke add/update/archive/reorder agar tetap YAGNI dan risiko perubahan terkendali.
+
+**Impact:**
+
+- File baru:
+  - `lib/core/connectivity/connectivity_service.dart`
+  - `lib/features/habit_tracker/data/models/pending_mutation.dart`
+  - `lib/features/habit_tracker/data/datasources/outbox_local_data_source.dart`
+  - `lib/features/habit_tracker/data/services/habit_sync_service.dart`
+  - `lib/features/habit_tracker/data/services/sync_status.dart`
+  - `test/features/habit_tracker/data/datasources/outbox_local_data_source_test.dart`
+  - `test/features/habit_tracker/data/services/habit_sync_service_test.dart`
+  - `test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart`
+- File diubah:
+  - `lib/core/injection/injection_container.dart`
+  - `lib/features/habit_tracker/domain/repositories/habit_repository.dart`
+  - `lib/features/habit_tracker/data/repositories/habit_repository_impl.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_event.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_state.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart`
+  - `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- Verifikasi:
+  - 3 test suite baru lulus (`outbox_local_data_source_test`, `habit_sync_service_test`, `habit_bloc_test`).
+  - `fvm flutter analyze` tetap menunjukkan warning/info lama lintas modul lain, tanpa error baru dari perubahan outbox.
+
+---
+
+## 2026-02-17 — Add SnackBar feedback for sync result
+
+**Context:**
+
+- Setelah outbox aktif, pengguna hanya melihat banner pending hilang saat sync berhasil, tanpa feedback eksplisit.
+- User meminta feedback visual via `BlocListener`, terutama saat transisi `pendingSyncCount > 0 -> 0`.
+
+**Choice:**
+
+- Menambahkan SnackBar sukses di `HabitTrackerPage` saat listener mendeteksi transisi pending `> 0` ke `0`.
+- Menambahkan feedback error sinkronisasi dari `HabitBloc` ke `HabitLoaded.syncFeedbackMessage`, lalu ditampilkan sebagai SnackBar error.
+
+**Rationale:**
+
+- Menjaga UX tetap sederhana: cukup satu sinyal sukses dan satu sinyal gagal tanpa menambah kompleksitas UI baru.
+
+**Impact:**
+
+- File diubah:
+  - `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_event.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_state.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart`
+- Verifikasi:
+  - `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart` lulus.
+  - `fvm flutter test test/features/habit_tracker/data/services/habit_sync_service_test.dart` lulus.
+
+---
+
+## 2026-02-17 — Replace outbox mutation ID with UUID
+
+**Context:**
+
+- ID mutation sebelumnya memakai `DateTime.now().microsecondsSinceEpoch` yang punya risiko collision kecil pada enqueue cepat.
+
+**Choice:**
+
+- Mengganti generator ID mutation menjadi UUID v4 (`Uuid().v4()`).
+- Menambahkan `uuid` sebagai dependency langsung di `pubspec.yaml`.
+
+**Rationale:**
+
+- UUID v4 jauh lebih aman terhadap collision dibanding timestamp saja, dengan perubahan kode minimal.
+
+**Impact:**
+
+- File diubah:
+  - `lib/features/habit_tracker/data/repositories/habit_repository_impl.dart`
+  - `pubspec.yaml`
+- Dependency sync:
+  - `fvm flutter pub get` berhasil (uuid berubah dari transitive ke direct dependency).
+- Verifikasi:
+  - `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart` lulus.

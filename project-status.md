@@ -24,6 +24,111 @@ Next Steps:
 
 ---
 
+## Update (2026-02-16):
+
+Initial Ask:
+
+- Implementasi offline-first write outbox sesuai `docs/skills/offline-first-data-flow.md` dan `docs/habit-tracker/implementation-offline-first-data-flow.md`.
+
+Initial Response:
+
+- Menambahkan outbox check-in/undo-check-in berbasis Hive, sync service berbasis konektivitas, integrasi BLoC/UI, serta test unit/bloc untuk flow utama.
+
+Checklist:
+
+- [x] Tambah `ConnectivityService` untuk status online/offline sebagai stream
+- [x] Tambah model immutable `PendingMutation` (`checkin`/`undo_checkin`)
+- [x] Tambah `OutboxLocalDataSource` (Hive box `habit_outbox`) dengan API queue FIFO
+- [x] Tambah `HabitSyncService` untuk drain queue saat online + manual sync
+- [x] Update `HabitRepository` & `HabitRepositoryImpl` untuk queue write dan pending counter
+- [x] Update `HabitBloc` untuk offline queue fallback (network error tetap optimistic, tidak rollback)
+- [x] Tambah event/state sinkronisasi (`HabitSyncRequested`, `HabitSyncCompleted`, `pendingSyncCount`)
+- [x] Tambah banner sinkronisasi di `HabitTrackerPage` + tombol Sync manual
+- [x] Update DI (`injection_container.dart`) untuk outbox/connectivity/sync service wiring
+- [x] Tambah test:
+  - [x] `test/features/habit_tracker/data/datasources/outbox_local_data_source_test.dart`
+  - [x] `test/features/habit_tracker/data/services/habit_sync_service_test.dart`
+  - [x] `test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart`
+
+Current Status:
+
+- Offline write outbox untuk check-in/undo-check-in sudah aktif end-to-end.
+- Saat offline: aksi check-in/undo tetap optimistic dan masuk antrian.
+- Saat online kembali: antrian disinkronkan otomatis; ada tombol sync manual di UI.
+- Strategi konflik yang dipakai: **server-wins** (4xx saat replay dibuang dari antrian).
+
+Verification:
+
+- ✅ `fvm flutter test test/features/habit_tracker/data/datasources/outbox_local_data_source_test.dart`
+- ✅ `fvm flutter test test/features/habit_tracker/data/services/habit_sync_service_test.dart`
+- ✅ `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart`
+- ℹ️ `fvm flutter analyze` masih memunculkan warning/info lama lintas modul lain (tidak terkait perubahan ini), tanpa error baru dari outbox.
+
+Next Steps:
+
+- [ ] Tambahkan indikator pending per habit (optional, saat ini baru banner global)
+- [ ] Evaluasi dedup/merge mutation berurutan untuk habit+date yang sama (opsional untuk optimasi queue)
+- [ ] Perluas outbox ke write operation lain jika sudah diprioritaskan produk (add/update/archive/reorder)
+
+---
+
+## Update (2026-02-17 - Sync Snackbar Feedback):
+
+Initial Ask:
+
+- Tambahkan SnackBar feedback saat sync selesai atau gagal, dengan deteksi transisi `pendingSyncCount > 0 -> 0` di `BlocListener`.
+
+Initial Response:
+
+- Menambahkan SnackBar sukses ketika pending sync habis, serta SnackBar error ketika pipeline sync mengembalikan `SyncError`.
+
+Checklist:
+
+- [x] Tambah deteksi transisi pending `>0 -> 0` di listener `HabitTrackerPage`
+- [x] Tampilkan SnackBar sukses saat sinkronisasi selesai
+- [x] Tampilkan SnackBar error saat sinkronisasi gagal
+- [x] Tambah field feedback sinkronisasi di state (`syncFeedbackMessage`)
+- [x] Wiring feedback message dari `HabitBloc` (berdasarkan `SyncStatus`)
+- [x] Jalankan ulang test terkait (`habit_bloc_test`, `habit_sync_service_test`)
+
+Current Status:
+
+- Sync flow sekarang punya feedback visual yang jelas:
+  - sukses: SnackBar saat pending queue habis,
+  - gagal: SnackBar merah dengan pesan error sinkronisasi.
+
+Next Steps:
+
+- [ ] Uji manual di device untuk memastikan timing SnackBar nyaman saat koneksi fluktuatif.
+
+---
+
+## Update (2026-02-17 - Mutation ID UUID):
+
+Initial Ask:
+
+- Ganti mutation ID outbox ke UUID.
+
+Initial Response:
+
+- Sudah diganti dari timestamp microseconds ke UUID v4 untuk menurunkan risiko collision key di outbox.
+
+Checklist:
+
+- [x] Replace ID generator pada `queueCheckIn` ke UUID v4
+- [x] Replace ID generator pada `queueUndoCheckIn` ke UUID v4
+- [x] Tambah `uuid` sebagai direct dependency di `pubspec.yaml`
+- [x] Jalankan `fvm flutter pub get`
+- [x] Jalankan verifikasi test (`habit_bloc_test`)
+
+Current Status:
+
+- Outbox mutation sekarang memakai UUID v4 sebagai key Hive, sehingga risiko overwrite karena ID sama menjadi sangat kecil.
+
+Next Steps:
+
+- [ ] (Opsional) tambahkan test eksplisit untuk format UUID pada mutation enqueue.
+
 Update (2026-02-11):
 
 Initial Ask:

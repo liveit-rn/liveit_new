@@ -8,6 +8,10 @@ abstract class HabitRepository {
   Future<List<Habit>> getHabitCatalog();
   Future<HabitCheckinResponseModel> checkIn(String userHabitId, String date);
   Future<void> undoCheckIn(String userHabitId, String date);
+  Future<void> queueCheckIn(String userHabitId, String date);
+  Future<void> queueUndoCheckIn(String userHabitId, String date);
+  Future<bool> hasPendingMutations();
+  Future<int> pendingMutationsCount();
   Future<UserHabit> addHabit({
     required String habitId,
     String? notes,

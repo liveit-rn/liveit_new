@@ -1,22 +1,31 @@
 import '../../domain/entities/habit.dart';
 import '../../domain/entities/user_habit.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../domain/repositories/habit_repository.dart';
 import '../datasources/habit_remote_data_source.dart';
 import '../datasources/habit_local_data_source.dart';
+import '../datasources/outbox_local_data_source.dart';
 import '../models/habit_checkin_response_model.dart';
+import '../models/pending_mutation.dart';
 
 /// Habit Repository with Hybrid Strategy (Offline-First like Me+).
 /// WHY: Provides instant data from cache, then refreshes from API in background.
 /// HOW: Cache-first for reads, API-first for writes with cache update.
 class HabitRepositoryImpl implements HabitRepository {
+  static const Uuid _uuid = Uuid();
+
   final HabitRemoteDataSource _remoteDataSource;
   final HabitLocalDataSource _localDataSource;
+  final OutboxLocalDataSource _outboxDataSource;
 
   HabitRepositoryImpl({
     required HabitRemoteDataSource remoteDataSource,
     required HabitLocalDataSource localDataSource,
-  })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource;
+    required OutboxLocalDataSource outboxDataSource,
+  }) : _remoteDataSource = remoteDataSource,
+       _localDataSource = localDataSource,
+       _outboxDataSource = outboxDataSource;
 
   @override
   Future<List<UserHabit>> getCachedHabits() async {
@@ -77,6 +86,40 @@ class HabitRepositoryImpl implements HabitRepository {
   @override
   Future<void> undoCheckIn(String userHabitId, String date) async {
     await _remoteDataSource.undoCheckIn(userHabitId, date);
+  }
+
+  @override
+  Future<void> queueCheckIn(String userHabitId, String date) async {
+    await _outboxDataSource.addMutation(
+      PendingMutation(
+        id: _uuid.v4(),
+        type: PendingMutationType.checkIn,
+        payload: {'userHabitId': userHabitId, 'date': date},
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  @override
+  Future<void> queueUndoCheckIn(String userHabitId, String date) async {
+    await _outboxDataSource.addMutation(
+      PendingMutation(
+        id: _uuid.v4(),
+        type: PendingMutationType.undoCheckIn,
+        payload: {'userHabitId': userHabitId, 'date': date},
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  @override
+  Future<bool> hasPendingMutations() async {
+    return _outboxDataSource.hasPending();
+  }
+
+  @override
+  Future<int> pendingMutationsCount() async {
+    return _outboxDataSource.getPendingCount();
   }
 
   @override

@@ -19,7 +19,9 @@ import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/habit_tracker/data/datasources/habit_remote_data_source.dart';
 import '../../features/habit_tracker/data/datasources/habit_local_data_source.dart';
+import '../../features/habit_tracker/data/datasources/outbox_local_data_source.dart';
 import '../../features/habit_tracker/data/repositories/habit_repository_impl.dart';
+import '../../features/habit_tracker/data/services/habit_sync_service.dart';
 import '../../features/habit_tracker/domain/repositories/habit_repository.dart';
 import '../../features/habit_tracker/presentation/bloc/habit_bloc.dart';
 import '../../features/profile/presentation/bloc/profile_bloc.dart';
@@ -93,12 +95,19 @@ Future<void> configureDependencies() async {
   // Habit Tracker Feature (with Offline Caching)
   // ============================================
 
+  getIt.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
+
   // Open Hive box for habit caching (Singleton - opened once, reused forever)
   final habitCacheBox = await HabitLocalDataSourceImpl.openBox();
+  final outboxBox = await OutboxLocalDataSourceImpl.openBox();
 
   // Local DataSource (Hive-based cache)
   getIt.registerLazySingleton<HabitLocalDataSource>(
     () => HabitLocalDataSourceImpl(habitCacheBox),
+  );
+
+  getIt.registerLazySingleton<OutboxLocalDataSource>(
+    () => OutboxLocalDataSourceImpl(outboxBox),
   );
 
   // Remote DataSource (API)
@@ -111,11 +120,23 @@ Future<void> configureDependencies() async {
     () => HabitRepositoryImpl(
       remoteDataSource: getIt<HabitRemoteDataSource>(),
       localDataSource: getIt<HabitLocalDataSource>(),
+      outboxDataSource: getIt<OutboxLocalDataSource>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<HabitSyncService>(
+    () => HabitSyncService(
+      outbox: getIt<OutboxLocalDataSource>(),
+      remoteDataSource: getIt<HabitRemoteDataSource>(),
+      connectivity: getIt<ConnectivityService>(),
     ),
   );
 
   getIt.registerFactory<HabitBloc>(
-    () => HabitBloc(repository: getIt<HabitRepository>()),
+    () => HabitBloc(
+      repository: getIt<HabitRepository>(),
+      syncService: getIt<HabitSyncService>(),
+    ),
   );
 
   // Inspire / Articles (public)

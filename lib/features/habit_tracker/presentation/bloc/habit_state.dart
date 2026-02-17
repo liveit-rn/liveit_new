@@ -46,12 +46,12 @@ class CelebrationData extends Equatable {
 
   @override
   List<Object?> get props => [
-        streakMilestone,
-        habitName,
-        allDone,
-        pointsEarned,
-        pointsReason,
-      ];
+    streakMilestone,
+    habitName,
+    allDone,
+    pointsEarned,
+    pointsReason,
+  ];
 }
 
 class HabitLoaded extends HabitState {
@@ -61,21 +61,57 @@ class HabitLoaded extends HabitState {
   /// Celebration data from recent check-in (null if just loading)
   final CelebrationData? celebration;
 
+  /// Number of queued writes waiting for sync.
+  final int pendingSyncCount;
+
+  /// Ephemeral feedback message from sync pipeline.
+  final String? syncFeedbackMessage;
+
   const HabitLoaded({
     required this.habits,
     required this.lastUpdated,
     this.celebration,
+    this.pendingSyncCount = 0,
+    this.syncFeedbackMessage,
   });
 
   @override
-  List<Object?> get props => [habits, lastUpdated, celebration];
+  List<Object?> get props => [
+    habits,
+    lastUpdated,
+    celebration,
+    pendingSyncCount,
+    syncFeedbackMessage,
+  ];
 
   /// Create a copy with cleared celebration (after it's shown)
   HabitLoaded clearCelebration() => HabitLoaded(
-        habits: habits,
-        lastUpdated: lastUpdated,
-        celebration: null,
-      );
+    habits: habits,
+    lastUpdated: lastUpdated,
+    celebration: null,
+    pendingSyncCount: pendingSyncCount,
+    syncFeedbackMessage: syncFeedbackMessage,
+  );
+
+  HabitLoaded copyWith({
+    List<UserHabit>? habits,
+    DateTime? lastUpdated,
+    CelebrationData? celebration,
+    bool clearCelebration = false,
+    int? pendingSyncCount,
+    String? syncFeedbackMessage,
+    bool clearSyncFeedbackMessage = false,
+  }) {
+    return HabitLoaded(
+      habits: habits ?? this.habits,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      celebration: clearCelebration ? null : celebration ?? this.celebration,
+      pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
+      syncFeedbackMessage: clearSyncFeedbackMessage
+          ? null
+          : syncFeedbackMessage ?? this.syncFeedbackMessage,
+    );
+  }
 
   // Helpers for stats
   int get completedToday => habits.where((h) => h.checkedInToday).length;

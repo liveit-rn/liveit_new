@@ -55,15 +55,15 @@ class HabitAdded extends HabitEvent {
 
   @override
   List<Object?> get props => [
-        habitId,
-        notes,
-        repeatPeriod,
-        frequency,
-        frequencyDays,
-        color,
-        icon,
-        order,
-      ];
+    habitId,
+    notes,
+    repeatPeriod,
+    frequency,
+    frequencyDays,
+    color,
+    icon,
+    order,
+  ];
 }
 
 class CustomHabitCreated extends HabitEvent {
@@ -91,16 +91,16 @@ class CustomHabitCreated extends HabitEvent {
 
   @override
   List<Object?> get props => [
-        title,
-        description,
-        notes,
-        repeatPeriod,
-        frequency,
-        frequencyDays,
-        color,
-        icon,
-        order,
-      ];
+    title,
+    description,
+    notes,
+    repeatPeriod,
+    frequency,
+    frequencyDays,
+    color,
+    icon,
+    order,
+  ];
 }
 
 class HabitUpdated extends HabitEvent {
@@ -126,15 +126,15 @@ class HabitUpdated extends HabitEvent {
 
   @override
   List<Object?> get props => [
-        userHabitId,
-        notes,
-        repeatPeriod,
-        frequency,
-        frequencyDays,
-        color,
-        icon,
-        order,
-      ];
+    userHabitId,
+    notes,
+    repeatPeriod,
+    frequency,
+    frequencyDays,
+    color,
+    icon,
+    order,
+  ];
 }
 
 class HabitArchived extends HabitEvent {
@@ -158,3 +158,26 @@ class HabitReordered extends HabitEvent {
 /// Event to clear celebration data after it's been shown.
 /// WHY: Prevents celebration from showing multiple times on state changes.
 class HabitCelebrationCleared extends HabitEvent {}
+
+class HabitSyncCompleted extends HabitEvent {}
+
+class HabitSyncRequested extends HabitEvent {}
+
+class HabitSyncStatusUpdated extends HabitEvent {
+  const HabitSyncStatusUpdated({
+    required this.pendingSyncCount,
+    required this.syncCompleted,
+    this.syncFeedbackMessage,
+  });
+
+  final int pendingSyncCount;
+  final bool syncCompleted;
+  final String? syncFeedbackMessage;
+
+  @override
+  List<Object?> get props => [
+    pendingSyncCount,
+    syncCompleted,
+    syncFeedbackMessage,
+  ];
+}

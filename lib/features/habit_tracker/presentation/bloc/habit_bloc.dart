@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/network/api_exception.dart';
+import '../../data/services/habit_sync_service.dart';
+import '../../data/services/sync_status.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../../data/models/habit_checkin_response_model.dart';
 import 'habit_event.dart';
@@ -17,13 +22,19 @@ const _pointsAllDone = 20;
 
 class HabitBloc extends Bloc<HabitEvent, HabitState> {
   final HabitRepository _repository;
+  final HabitSyncService _syncService;
 
   /// Pending celebration to show after next refresh
   CelebrationData? _pendingCelebration;
+  StreamSubscription<SyncStatus>? _syncSubscription;
+  int _latestPendingSyncCount = 0;
 
-  HabitBloc({required HabitRepository repository})
-      : _repository = repository,
-        super(HabitInitial()) {
+  HabitBloc({
+    required HabitRepository repository,
+    required HabitSyncService syncService,
+  }) : _repository = repository,
+       _syncService = syncService,
+       super(HabitInitial()) {
     on<HabitStarted>(_onHabitStarted);
     on<HabitCheckInRequested>(_onHabitCheckInRequested);
     on<HabitUndoCheckInRequested>(_onHabitUndoCheckInRequested);
@@ -33,6 +44,11 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     on<HabitArchived>(_onHabitArchived);
     on<HabitReordered>(_onHabitReordered);
     on<HabitCelebrationCleared>(_onCelebrationCleared);
+    on<HabitSyncRequested>(_onHabitSyncRequested);
+    on<HabitSyncCompleted>(_onHabitSyncCompleted);
+    on<HabitSyncStatusUpdated>(_onHabitSyncStatusUpdated);
+
+    _syncSubscription = _syncService.status$.listen(_onSyncStatusChanged);
   }
 
   Future<void> _onHabitStarted(
@@ -42,13 +58,25 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     emit(HabitLoading());
 
     // 1. Try to load from cache first (Instant UI)
+    int pendingSyncCount = 0;
+    try {
+      pendingSyncCount = await _repository.pendingMutationsCount();
+    } catch (_) {
+      pendingSyncCount = 0;
+    }
+    _latestPendingSyncCount = pendingSyncCount;
+
     try {
       final cachedHabits = await _repository.getCachedHabits();
       if (cachedHabits.isNotEmpty) {
-        emit(HabitLoaded(
-          habits: cachedHabits,
-          lastUpdated: DateTime.now(),
-        ));
+        emit(
+          HabitLoaded(
+            habits: cachedHabits,
+            lastUpdated: DateTime.now(),
+            pendingSyncCount: pendingSyncCount,
+            syncFeedbackMessage: null,
+          ),
+        );
       }
     } catch (_) {
       // Ignore cache errors
@@ -62,11 +90,15 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
       final celebration = _pendingCelebration;
       _pendingCelebration = null;
 
-      emit(HabitLoaded(
-        habits: habits,
-        lastUpdated: DateTime.now(),
-        celebration: celebration,
-      ));
+      emit(
+        HabitLoaded(
+          habits: habits,
+          lastUpdated: DateTime.now(),
+          celebration: celebration,
+          pendingSyncCount: pendingSyncCount,
+          syncFeedbackMessage: null,
+        ),
+      );
     } catch (e) {
       // If we already emitted cached data, don't show error screen,
       // just stay on cached data (maybe show snackbar later)
@@ -123,10 +155,14 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     final optimisticHabits = List<UserHabit>.from(originalHabits);
     optimisticHabits[index] = optimisticHabit;
 
-    emit(HabitLoaded(
-      habits: optimisticHabits,
-      lastUpdated: DateTime.now(),
-    ));
+    emit(
+      HabitLoaded(
+        habits: optimisticHabits,
+        lastUpdated: DateTime.now(),
+        pendingSyncCount: currentState.pendingSyncCount,
+        syncFeedbackMessage: null,
+      ),
+    );
 
     // ============================================
     // BACKGROUND: Send to server
@@ -146,13 +182,36 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
       // Refresh to get accurate state from server + show celebration
       add(HabitStarted());
     } catch (e) {
+      final dateStr = DateFormat('yyyy-MM-dd').format(event.date);
+      if (_isNetworkError(e)) {
+        await _repository.queueCheckIn(event.userHabitId, dateStr);
+        final pendingCount = await _repository.pendingMutationsCount();
+        _latestPendingSyncCount = pendingCount;
+
+        emit(
+          HabitLoaded(
+            habits: optimisticHabits,
+            lastUpdated: DateTime.now(),
+            pendingSyncCount: pendingCount,
+            syncFeedbackMessage: null,
+          ),
+        );
+
+        add(HabitSyncRequested());
+        return;
+      }
+
       // ============================================
       // ROLLBACK: Revert if server failed
       // ============================================
-      emit(HabitLoaded(
-        habits: originalHabits,
-        lastUpdated: DateTime.now(),
-      ));
+      emit(
+        HabitLoaded(
+          habits: originalHabits,
+          lastUpdated: DateTime.now(),
+          pendingSyncCount: currentState.pendingSyncCount,
+          syncFeedbackMessage: null,
+        ),
+      );
       emit(HabitError('Gagal menyimpan check-in: ${e.toString()}'));
     }
   }
@@ -245,8 +304,9 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
       frequencyDays: habit.frequencyDays,
       currentStreak: habit.currentStreak > 0 ? habit.currentStreak - 1 : 0,
       longestStreak: habit.longestStreak,
-      totalCompletions:
-          habit.totalCompletions > 0 ? habit.totalCompletions - 1 : 0,
+      totalCompletions: habit.totalCompletions > 0
+          ? habit.totalCompletions - 1
+          : 0,
       color: habit.color,
       icon: habit.icon,
       order: habit.order,
@@ -258,10 +318,14 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     final optimisticHabits = List<UserHabit>.from(originalHabits);
     optimisticHabits[index] = optimisticHabit;
 
-    emit(HabitLoaded(
-      habits: optimisticHabits,
-      lastUpdated: DateTime.now(),
-    ));
+    emit(
+      HabitLoaded(
+        habits: optimisticHabits,
+        lastUpdated: DateTime.now(),
+        pendingSyncCount: currentState.pendingSyncCount,
+        syncFeedbackMessage: null,
+      ),
+    );
 
     // ============================================
     // BACKGROUND: Send to server
@@ -272,11 +336,34 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
       // Refresh to get accurate state
       add(HabitStarted());
     } catch (e) {
+      final dateStr = DateFormat('yyyy-MM-dd').format(event.date);
+      if (_isNetworkError(e)) {
+        await _repository.queueUndoCheckIn(event.userHabitId, dateStr);
+        final pendingCount = await _repository.pendingMutationsCount();
+        _latestPendingSyncCount = pendingCount;
+
+        emit(
+          HabitLoaded(
+            habits: optimisticHabits,
+            lastUpdated: DateTime.now(),
+            pendingSyncCount: pendingCount,
+            syncFeedbackMessage: null,
+          ),
+        );
+
+        add(HabitSyncRequested());
+        return;
+      }
+
       // Rollback
-      emit(HabitLoaded(
-        habits: originalHabits,
-        lastUpdated: DateTime.now(),
-      ));
+      emit(
+        HabitLoaded(
+          habits: originalHabits,
+          lastUpdated: DateTime.now(),
+          pendingSyncCount: currentState.pendingSyncCount,
+          syncFeedbackMessage: null,
+        ),
+      );
       emit(HabitError('Gagal membatalkan check-in: ${e.toString()}'));
     }
   }
@@ -364,5 +451,81 @@ class HabitBloc extends Bloc<HabitEvent, HabitState> {
     } catch (e) {
       emit(HabitError(e.toString()));
     }
+  }
+
+  Future<void> _onHabitSyncRequested(
+    HabitSyncRequested event,
+    Emitter<HabitState> emit,
+  ) async {
+    await _syncService.sync();
+  }
+
+  void _onHabitSyncCompleted(
+    HabitSyncCompleted event,
+    Emitter<HabitState> emit,
+  ) {
+    add(HabitStarted());
+  }
+
+  void _onSyncStatusChanged(SyncStatus status) {
+    if (isClosed) {
+      return;
+    }
+
+    final previousPending = _latestPendingSyncCount;
+    _latestPendingSyncCount = status.pendingCount;
+    final syncCompleted =
+        previousPending > 0 && status.pendingCount == 0 && status is SyncIdle;
+    final syncFeedbackMessage = status is SyncError
+        ? 'Sinkronisasi gagal: ${status.message}'
+        : null;
+
+    add(
+      HabitSyncStatusUpdated(
+        pendingSyncCount: status.pendingCount,
+        syncCompleted: syncCompleted,
+        syncFeedbackMessage: syncFeedbackMessage,
+      ),
+    );
+  }
+
+  void _onHabitSyncStatusUpdated(
+    HabitSyncStatusUpdated event,
+    Emitter<HabitState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is HabitLoaded &&
+        (currentState.pendingSyncCount != event.pendingSyncCount ||
+            event.syncFeedbackMessage != null)) {
+      emit(
+        currentState.copyWith(
+          pendingSyncCount: event.pendingSyncCount,
+          lastUpdated: DateTime.now(),
+          syncFeedbackMessage: event.syncFeedbackMessage,
+          clearSyncFeedbackMessage: event.syncFeedbackMessage == null,
+        ),
+      );
+    }
+
+    if (event.syncCompleted) {
+      if (!isClosed) {
+        add(HabitSyncCompleted());
+      }
+    }
+  }
+
+  bool _isNetworkError(Object error) {
+    if (error is! ApiException) {
+      return false;
+    }
+
+    return error.type == ApiExceptionType.noInternet ||
+        error.type == ApiExceptionType.timeout;
+  }
+
+  @override
+  Future<void> close() async {
+    await _syncSubscription?.cancel();
+    return super.close();
   }
 }

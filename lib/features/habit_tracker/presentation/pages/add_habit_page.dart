@@ -1,11 +1,10 @@
+import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/injection/injection_container.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../../domain/entities/habit.dart';
-import '../../domain/repositories/habit_repository.dart';
 
 @RoutePage()
 class AddHabitPage extends StatefulWidget {
@@ -16,7 +15,7 @@ class AddHabitPage extends StatefulWidget {
 }
 
 class _AddHabitPageState extends State<AddHabitPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final HabitRepository _repository = getIt<HabitRepository>();
   final _formKey = GlobalKey<FormState>();

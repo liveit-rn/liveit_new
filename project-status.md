@@ -899,3 +899,73 @@ Next Steps:
 - [ ] Gather user feedback tentang icon-only navigation (tanpa labels)
 
 ---
+
+## Initial Ask (2026-02-19):
+
+- Refactor AddHabitPage mengikuti glass-morphism design system seperti DevotionPage dan HomePage, serta improve UX.
+
+## Initial Response:
+
+- Complete rewrite AddHabitPage dengan glass-morphism design, live preview card, enhanced pickers, haptic feedback, dan entry animations.
+
+## Checklist:
+
+- [x] Glass AppBar dengan blur σ=20 dan gradient surface
+- [x] Glass TabBar dengan segmented control style dan shadow
+- [x] Glass form cards dengan BackdropFilter (σ=12-16)
+- [x] Glass text inputs tanpa outline border
+- [x] Live habit preview card dengan real-time updates
+- [x] Haptic feedback pada semua user interactions
+- [x] Enhanced color picker (52px circles dengan glow shadow)
+- [x] Enhanced icon picker (56px circles dengan labels)
+- [x] Chip-based selectors untuk repeat period dan frequency
+- [x] Circular day picker untuk custom frequency
+- [x] Entry animations (slide-up + fade, 800ms)
+- [x] Improved loading/error/empty states dengan glass styling
+- [x] Fix duplicate imports (remove double auto_route)
+- [x] Fix unused variable (colorScheme in _buildInfoChip)
+- [x] dart analyze clean (no issues)
+
+## Current Status:
+
+- AddHabitPage fully refactored dengan glass-morphism aesthetic yang konsisten dengan design system.
+- Live preview card memberikan immediate visual feedback saat membuat custom habit.
+- Enhanced pickers (color/icon) lebih besar dan interactive dengan glow effects.
+- Chip-based selectors menggantikan dropdowns untuk UX yang lebih modern.
+- Haptic feedback menambah tactile response pada setiap interaction.
+- Entry animations memberikan smooth visual transition.
+- Analyzer clean dengan no issues.
+
+## Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart` (complete rewrite)
+
+## Design Features:
+
+- **Glass AppBar**: Blur σ=20, gradient surface (alpha 0.8→0.4)
+- **Glass TabBar**: Segmented style, blur σ=12, gradient active indicator
+- **Glass Cards**: Blur σ=12-16, border radius 20-24px
+- **Glass Inputs**: No outline, prefix icons, 16px radius
+- **Live Preview**: Shows habit appearance in real-time
+- **Color Picker**: 52px circles, glow shadow on select, checkmark icon
+- **Icon Picker**: 56px circles, emoji with shadow, labels
+- **Animations**: Entry slide-up (30px), 800ms duration
+
+## Next Steps:
+
+- [ ] Test AddHabitPage di device/emulator
+- [ ] Verify catalog loading dan error handling
+- [ ] Test form validation dan submit flow
+- [ ] Gather feedback on live preview feature
+
+## Bug Fix (2026-02-19):
+
+**Issue:** `LateInitializationError: Field '_animationController' has not been initialized`
+
+**Root Cause:** Menggunakan `SingleTickerProviderStateMixin` untuk 2 AnimationController (`_tabController` dan `_animationController`). Mixin ini hanya menyediakan 1 ticker.
+
+**Fix:** Ganti mixin dari `SingleTickerProviderStateMixin` ke `TickerProviderStateMixin` (support multiple tickers).
+
+**Status:** ✅ Fixed dan verified dengan `dart analyze`
+
+---

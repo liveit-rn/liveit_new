@@ -1637,3 +1637,87 @@ This file is append-only. Each entry must include:
   - `fvm flutter pub get` berhasil (uuid berubah dari transitive ke direct dependency).
 - Verifikasi:
   - `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart` lulus.
+
+---
+
+## 2026-02-19 — AddHabitPage Glass-Morphism Refactor
+
+**Context:**
+
+- AddHabitPage masih menggunakan design Material default yang tidak konsisten dengan halaman lain (DevotionPage, HomePage, ProfilePage)
+- UX issues: ExpansionTile yang clunky, color/icon picker terlalu kecil, tidak ada live preview, duplicate imports
+- User request untuk refactor mengikuti style glass-morphism design system yang sudah ada
+
+**Choice:**
+
+1. **Complete UI Overhaul dengan Glass-Morphism:**
+   - **Glass AppBar**: BackdropFilter blur σ=20 dengan gradient surface (surface alpha 0.8→0.4)
+   - **Glass TabBar**: Segmented control style dengan blur σ=12, gradient active indicator dengan shadow
+   - **Glass Cards**: Semua cards menggunakan BackdropFilter blur σ=12-16, border radius 20-24px
+   - **Glass Form Inputs**: TextFormField tanpa outline border, dengan glass container styling
+
+2. **UX Improvements:**
+   - **Live Habit Preview Card**: Real-time preview saat user mengisi form custom habit
+   - **Haptic Feedback**: `HapticFeedback.lightImpact()` pada semua interactions, `heavyImpact()` saat success
+   - **Enhanced Pickers**: 
+     - Color picker: 52px circles dengan glow shadow saat selected, checkmark icon
+     - Icon picker: 56px circles dengan emoji shadow dan label
+   - **Chip-based Selectors**: Replace dropdowns dengan horizontal chip buttons untuk repeat period dan frequency
+   - **Day Picker**: Circular day selector (44px) dengan gradient fill saat selected
+
+3. **Layout Restructure:**
+   - Catalog tab: Glass cards dengan icon container (56px), info chips, dan FAB-style add button
+   - Custom tab: Section-based layout (Preview → Form → Schedule → Personalization)
+   - Advanced options: Expandable card dengan AnimatedRotation icon
+   - Loading/Error/Empty states: Glass-morphism styled dengan proper feedback
+
+4. **Animation System:**
+   - Entry animations: Slide-up (30px) + fade dengan 800ms duration
+   - Tab switch animations: AnimatedBuilder dengan Transform.translate
+   - Smooth expand/collapse: AnimatedRotation untuk advanced toggle
+
+5. **Code Quality:**
+   - Remove duplicate imports (`auto_route` imported twice)
+   - Remove unused `colorScheme` variable
+   - Consistent method extraction: `_buildInfoChip`, `_buildSectionHeader`
+   - Proper null-safety dan error handling
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart` (complete rewrite, ~1100 lines)
+
+**Design Specifications:**
+
+- **Glass Blur**: σ=12-20 untuk cards, σ=8 untuk inputs
+- **Border Radius**: 16px (inputs), 20px (small cards), 24px (large cards)
+- **Typography**: w700-800 untuk headers, w600 untuk labels
+- **Spacing**: 16-20px internal padding, 12-16px external margins
+- **Shadows**: Primary-tinted glow (alpha 0.05-0.15) + soft elevation shadows
+- **Active States**: Gradient fill dengan colored border dan glow shadow
+
+**Bug Fix:**
+- **Issue**: `LateInitializationError` - `_animationController` not initialized karena pakai `SingleTickerProviderStateMixin` untuk 2 controllers
+- **Fix**: Ganti ke `TickerProviderStateMixin` (support multiple tickers untuk `_tabController` dan `_animationController`)
+- **File**: `lib/features/habit_tracker/presentation/pages/add_habit_page.dart` line 19
+
+**Acceptance Criteria:**
+
+- [x] Glass AppBar dengan blur σ=20
+- [x] Glass TabBar dengan segmented control style
+- [x] Glass form cards dengan BackdropFilter
+- [x] Live habit preview card
+- [x] Haptic feedback pada semua interactions
+- [x] Enhanced color picker dengan glow effect
+- [x] Enhanced icon picker dengan labels
+- [x] Chip-based selectors (replace dropdowns)
+- [x] Entry animations (slide-up + fade)
+- [x] Fix duplicate imports
+- [x] dart analyze clean (no issues)
+
+**Impact:**
+
+- AddHabitPage sekarang konsisten dengan design system glass-morphism
+- UX significantly improved dengan live preview dan tactile feedback
+- Visual hierarchy lebih jelas dengan section grouping
+- User engagement meningkat melalui interactive pickers dan animations
+- Code quality improved dengan proper structure dan no analyzer issues

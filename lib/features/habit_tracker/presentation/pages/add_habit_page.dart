@@ -24,13 +24,20 @@ class _AddHabitPageState extends State<AddHabitPage>
   final _descriptionController = TextEditingController();
   final _notesController = TextEditingController();
   bool _isSubmitting = false;
+  bool _isLoadingCatalog = true;
+  List<Habit> _catalogHabits = [];
+  Object? _catalogError;
 
+  // Form state
   String _repeatPeriod = 'forever';
   String _frequency = 'daily';
   List<int> _frequencyDays = [];
   String _color = '#6366F1';
   String _icon = '⭐';
   bool _showAdvanced = false;
+
+  // Animation
+  late final AnimationController _animationController;
 
   static const List<String> _repeatPeriodOptions = [
     'forever',
@@ -84,19 +91,59 @@ class _AddHabitPageState extends State<AddHabitPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _loadCatalog();
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) _animationController.forward();
+    });
+
+    // Update preview when form changes
+    _titleController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _animationController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
+  Future<void> _loadCatalog() async {
+    setState(() {
+      _isLoadingCatalog = true;
+      _catalogError = null;
+    });
+
+    try {
+      final habits = await _repository.getHabitCatalog();
+      if (mounted) {
+        setState(() {
+          _catalogHabits = habits;
+          _isLoadingCatalog = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _catalogError = e;
+          _isLoadingCatalog = false;
+        });
+      }
+    }
+  }
+
   Future<void> _addCatalogHabit(Habit habit) async {
+    HapticFeedback.mediumImpact();
     setState(() => _isSubmitting = true);
+
     try {
       await _repository.addHabit(
         habitId: habit.id,

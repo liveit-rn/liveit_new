@@ -93,8 +93,7 @@ class GamificationHighlightCard extends StatelessWidget {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color:
-                      semantic?.info.withOpacity(0.2) ??
+                  color: semantic?.info.withOpacity(0.2) ??
                       scheme.secondaryContainer.withOpacity(0.25),
                   borderRadius: BorderRadius.circular(16),
                 ),

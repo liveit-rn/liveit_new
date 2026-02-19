@@ -30,8 +30,7 @@ class HomeStatusBanners extends StatelessWidget {
           title: 'Sedang offline',
           message:
               'Kami akan menyinkronkan ulang begitu kamu kembali terhubung.',
-          color:
-              semanticColors?.warning ??
+          color: semanticColors?.warning ??
               Theme.of(context).colorScheme.secondary,
           onRetry: onRetry,
           retryLabel: 'Coba Sinkron',

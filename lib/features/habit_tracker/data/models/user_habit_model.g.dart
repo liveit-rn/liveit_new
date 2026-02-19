@@ -10,7 +10,7 @@ UserHabitModel _$UserHabitModelFromJson(Map<String, dynamic> json) =>
     UserHabitModel(
       id: json['id'] as String,
       userId: json['userId'] as String?,
-      habitId: json['habitId'] as String,
+      habitId: json['habitId'] as String?,
       notes: json['notes'] as String?,
       isCustom: json['isCustom'] as bool? ?? false,
       title: json['title'] as String?,

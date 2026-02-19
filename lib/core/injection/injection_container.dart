@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
+import '../connectivity/connectivity_service.dart';
 import '../network/dio_client.dart';
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -17,13 +18,20 @@ import '../../features/profile/data/datasources/profile_remote_datasource.dart';
 import '../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
 import '../../features/habit_tracker/data/datasources/habit_remote_data_source.dart';
+import '../../features/habit_tracker/data/datasources/habit_local_data_source.dart';
+import '../../features/habit_tracker/data/datasources/outbox_local_data_source.dart';
 import '../../features/habit_tracker/data/repositories/habit_repository_impl.dart';
+import '../../features/habit_tracker/data/services/habit_sync_service.dart';
 import '../../features/habit_tracker/domain/repositories/habit_repository.dart';
 import '../../features/habit_tracker/presentation/bloc/habit_bloc.dart';
+import '../../features/profile/presentation/bloc/profile_bloc.dart';
+import '../../features/inspire/data/datasources/articles_public_remote_datasource.dart';
 
 final getIt = GetIt.instance;
 
-void configureDependencies() {
+/// Configure all dependencies.
+/// WHY: Changed to async Future to support Hive box opening (offline cache).
+Future<void> configureDependencies() async {
   // Core
   getIt.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
@@ -58,19 +66,7 @@ void configureDependencies() {
   getIt.registerLazySingleton(() => CheckUsernameAvailabilityUseCase(getIt()));
   getIt.registerLazySingleton(() => ClaimUsernameUseCase(getIt()));
 
-  // Auth BLoC
-  getIt.registerFactory(
-    () => AuthBloc(
-      registerUseCase: getIt(),
-      loginUseCase: getIt(),
-      logoutUseCase: getIt(),
-      checkUsernameAvailabilityUseCase: getIt(),
-      claimUsernameUseCase: getIt(),
-      authRepository: getIt(),
-    ),
-  );
-
-  // Profile DataSources
+  // Profile DataSources (needed by AuthBloc for timezone sync)
   getIt.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSource(dioClient: getIt<DioClient>()),
   );
@@ -82,19 +78,74 @@ void configureDependencies() {
     ),
   );
 
-  // Habit Tracker Feature
+  // Auth BLoC
+  getIt.registerFactory(
+    () => AuthBloc(
+      registerUseCase: getIt(),
+      loginUseCase: getIt(),
+      logoutUseCase: getIt(),
+      checkUsernameAvailabilityUseCase: getIt(),
+      claimUsernameUseCase: getIt(),
+      authRepository: getIt(),
+      profileRepository: getIt<ProfileRepository>(),
+    ),
+  );
+
+  // ============================================
+  // Habit Tracker Feature (with Offline Caching)
+  // ============================================
+
+  getIt.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
+
+  // Open Hive box for habit caching (Singleton - opened once, reused forever)
+  final habitCacheBox = await HabitLocalDataSourceImpl.openBox();
+  final outboxBox = await OutboxLocalDataSourceImpl.openBox();
+
+  // Local DataSource (Hive-based cache)
+  getIt.registerLazySingleton<HabitLocalDataSource>(
+    () => HabitLocalDataSourceImpl(habitCacheBox),
+  );
+
+  getIt.registerLazySingleton<OutboxLocalDataSource>(
+    () => OutboxLocalDataSourceImpl(outboxBox),
+  );
+
+  // Remote DataSource (API)
   getIt.registerLazySingleton<HabitRemoteDataSource>(
     () => HabitRemoteDataSourceImpl(getIt<DioClient>()),
   );
 
+  // Repository (Hybrid: Cache + API)
   getIt.registerLazySingleton<HabitRepository>(
     () => HabitRepositoryImpl(
       remoteDataSource: getIt<HabitRemoteDataSource>(),
+      localDataSource: getIt<HabitLocalDataSource>(),
+      outboxDataSource: getIt<OutboxLocalDataSource>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<HabitSyncService>(
+    () => HabitSyncService(
+      outbox: getIt<OutboxLocalDataSource>(),
+      remoteDataSource: getIt<HabitRemoteDataSource>(),
+      connectivity: getIt<ConnectivityService>(),
     ),
   );
 
   getIt.registerFactory<HabitBloc>(
-    () => HabitBloc(repository: getIt<HabitRepository>()),
+    () => HabitBloc(
+      repository: getIt<HabitRepository>(),
+      syncService: getIt<HabitSyncService>(),
+    ),
+  );
+
+  // Inspire / Articles (public)
+  getIt.registerLazySingleton<ArticlesPublicRemoteDataSource>(
+    () => ArticlesPublicRemoteDataSource(dioClient: getIt<DioClient>()),
+  );
+
+  // Profile BLoC (for profile page data including gamification stats)
+  getIt.registerFactory<ProfileBloc>(
+    () => ProfileBloc(repository: getIt<ProfileRepository>()),
   );
 }
-

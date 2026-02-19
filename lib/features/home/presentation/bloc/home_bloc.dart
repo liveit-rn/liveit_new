@@ -27,7 +27,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     await _fetchAndEmit(emit, () => _repository.fetchHome());
   }
 
-  Future<void> _onRefreshed(HomeRefreshed event, Emitter<HomeState> emit) async {
+  Future<void> _onRefreshed(
+      HomeRefreshed event, Emitter<HomeState> emit) async {
     emit(state.copyWith(status: HomeStatus.loading, errorMessage: null));
     await _fetchAndEmit(emit, () => _repository.refresh());
   }

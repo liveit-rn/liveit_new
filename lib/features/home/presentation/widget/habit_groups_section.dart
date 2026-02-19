@@ -172,7 +172,10 @@ class _EmptyGroup extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.2),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(

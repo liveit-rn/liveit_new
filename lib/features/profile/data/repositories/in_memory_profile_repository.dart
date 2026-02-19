@@ -33,6 +33,12 @@ class InMemoryProfileRepository implements ProfileRepository {
   }
 
   @override
+  Future<void> updateTimezone(String timezone) async {
+    await Future.delayed(const Duration(milliseconds: 220));
+    _profile = _profile.copyWith(timezone: timezone);
+  }
+
+  @override
   Future<void> deleteAccount() async {
     await Future.delayed(const Duration(milliseconds: 220));
     // Simulasi hapus akun

@@ -7,13 +7,13 @@ import 'package:liveit_new/features/home/presentation/models/home_ui_state.dart'
 /// to real services. Provides optimistic updates with short artificial delay.
 class InMemoryHomeRepository implements HomeRepository {
   InMemoryHomeRepository({HomeUiState? seed})
-    : _state = seed ?? HomeUiState.sample();
+      : _state = seed ?? HomeUiState.sample();
 
   HomeUiState _state;
 
   Future<void> _simulateLatency() => Future<void>.delayed(
-    const Duration(milliseconds: 220),
-  );
+        const Duration(milliseconds: 220),
+      );
 
   @override
   Future<HomeUiState> fetchHome() async {
@@ -33,16 +33,19 @@ class InMemoryHomeRepository implements HomeRepository {
     await _simulateLatency();
 
     final List<HabitItem> pending = List<HabitItem>.from(_state.pendingHabits);
-    final int index = pending.indexWhere((HabitItem item) => item.id == habitId);
+    final int index =
+        pending.indexWhere((HabitItem item) => item.id == habitId);
     if (index == -1) {
       return _state;
     }
 
-    final HabitItem completedHabit = pending
-        .removeAt(index)
-        .copyWith(checkedInToday: true);
+    final HabitItem completedHabit =
+        pending.removeAt(index).copyWith(checkedInToday: true);
 
-    final List<HabitItem> completed = <HabitItem>[completedHabit, ..._state.completedHabits];
+    final List<HabitItem> completed = <HabitItem>[
+      completedHabit,
+      ..._state.completedHabits
+    ];
 
     _state = _state.copyWith(
       pendingHabits: pending,
@@ -59,16 +62,19 @@ class InMemoryHomeRepository implements HomeRepository {
     final List<HabitItem> completed = List<HabitItem>.from(
       _state.completedHabits,
     );
-    final int index = completed.indexWhere((HabitItem item) => item.id == habitId);
+    final int index =
+        completed.indexWhere((HabitItem item) => item.id == habitId);
     if (index == -1) {
       return _state;
     }
 
-    final HabitItem revertedHabit = completed
-        .removeAt(index)
-        .copyWith(checkedInToday: false);
+    final HabitItem revertedHabit =
+        completed.removeAt(index).copyWith(checkedInToday: false);
 
-    final List<HabitItem> pending = <HabitItem>[revertedHabit, ..._state.pendingHabits];
+    final List<HabitItem> pending = <HabitItem>[
+      revertedHabit,
+      ..._state.pendingHabits
+    ];
 
     _state = _state.copyWith(
       pendingHabits: pending,

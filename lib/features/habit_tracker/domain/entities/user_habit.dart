@@ -3,8 +3,9 @@ import 'habit.dart';
 
 class UserHabit extends Equatable {
   final String id;
-  final String? userId; // Optional as sometimes we might just have the id or it's implied
-  final String habitId;
+  final String?
+      userId; // Optional as sometimes we might just have the id or it's implied
+  final String? habitId; // Nullable for custom habits (no catalog reference)
   final String? notes;
   final bool isCustom;
   final String? title;
@@ -21,7 +22,7 @@ class UserHabit extends Equatable {
   final String color;
   final String icon;
   final int order;
-  
+
   // Computed/Additional fields from API response
   final bool checkedInToday;
   final DateTime? lastCheckinAt;
@@ -30,7 +31,7 @@ class UserHabit extends Equatable {
   const UserHabit({
     required this.id,
     this.userId,
-    required this.habitId,
+    this.habitId, // Now optional for custom habits
     this.notes,
     this.isCustom = false,
     this.title,
@@ -51,6 +52,56 @@ class UserHabit extends Equatable {
     this.lastCheckinAt,
     this.habit,
   });
+
+  UserHabit copyWith({
+    String? id,
+    String? userId,
+    String? habitId,
+    String? notes,
+    bool? isCustom,
+    String? title,
+    String? visibility,
+    String? reach,
+    String? repeatPeriod,
+    DateTime? repeatStartDate,
+    DateTime? repeatEndDate,
+    String? frequency,
+    List<int>? frequencyDays,
+    int? currentStreak,
+    int? longestStreak,
+    int? totalCompletions,
+    String? color,
+    String? icon,
+    int? order,
+    bool? checkedInToday,
+    DateTime? lastCheckinAt,
+    Habit? habit,
+  }) {
+    return UserHabit(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      habitId: habitId ?? this.habitId,
+      notes: notes ?? this.notes,
+      isCustom: isCustom ?? this.isCustom,
+      title: title ?? this.title,
+      visibility: visibility ?? this.visibility,
+      reach: reach ?? this.reach,
+      repeatPeriod: repeatPeriod ?? this.repeatPeriod,
+      repeatStartDate: repeatStartDate ?? this.repeatStartDate,
+      repeatEndDate: repeatEndDate ?? this.repeatEndDate,
+      frequency: frequency ?? this.frequency,
+      frequencyDays: frequencyDays ?? this.frequencyDays,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
+      totalCompletions: totalCompletions ?? this.totalCompletions,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      order: order ?? this.order,
+      checkedInToday: checkedInToday ?? this.checkedInToday,
+      lastCheckinAt: lastCheckinAt ?? this.lastCheckinAt,
+      habit: habit ?? this.habit,
+    );
+  }
 
   @override
   List<Object?> get props => [

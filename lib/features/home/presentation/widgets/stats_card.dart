@@ -88,9 +88,8 @@ class StatsCard extends StatelessWidget {
             value,
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: variant == 'default'
-                  ? colorScheme.onSurface
-                  : textOnBgColor,
+              color:
+                  variant == 'default' ? colorScheme.onSurface : textOnBgColor,
             ),
           ),
           const SizedBox(height: 2),

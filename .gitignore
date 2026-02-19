@@ -51,3 +51,6 @@ app.*.map.json
 
 /.roo/
 .github/
+/.opencode/
+nul
+.env

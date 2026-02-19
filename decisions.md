@@ -10,6 +10,125 @@ This file is append-only. Each entry must include:
 
 ---
 
+## 2026-02-11 — Document current “offline-first” behavior (Habit Tracker)
+
+**Context:**
+
+- User requested deep analysis of “offline-first then update server” mechanism in the Flutter app.
+- Need a readable doc that matches actual implementation (no guesses).
+
+**Choice:**
+
+- Document the current implementation as **hybrid cache + optimistic UI**, specifically:
+  - Reads: cache-first + stale-while-revalidate with fallback to Hive cache.
+  - Writes: API-first with optimistic UI in BLoC and rollback on failure.
+- Explicitly call out that the repo **does not implement an offline write queue/outbox** yet.
+
+**Rationale:**
+
+- Keeps documentation honest and directly traceable to code paths in `HabitRepositoryImpl` + `HabitBloc`.
+- Avoids inventing “sync queue” behavior that could mislead future development.
+
+**Impact:**
+
+- Added doc: `docs/skills/offline-first-data-flow.md`
+- No runtime behavior changes.
+
+## 2026-02-08 — Navigation Shell Premium Frosted Glass Refactor
+
+**Context:**
+
+- Navigation shell perlu premium look dengan frosted glass effect yang lebih sophisticated
+- Current design: blur σ=20, height 64px, dengan labels yang clutter UI
+- Target: iOS 2026 aesthetic seperti di app-app premium (Instagram, Threads)
+
+**Choice:**
+
+1. **Enhanced blur**: Naik dari σ=20 ke σ=30 untuk lebih premium frosted look
+2. **Darker surface**: Ganti gradient dari `surface` ke `surfaceContainerHighest/High` dengan alpha lebih rendah (0.65/0.55)
+3. **Gradient border effect**: Double container pattern - outer container dengan gradient border (white alpha 0.2→0.15), inner container dengan 1px margin
+4. **Compact height**: Dari 64px turun ke 56px untuk lebih streamlined
+5. **Icon-only navigation**: Remove semua labels, icon-only dengan glow shadow untuk active state
+6. **Active icon glow**: Tambah `Shadow` dengan blur 8px dan primary color untuk active icon
+
+**Rationale:**
+
+- **Premium feel**: σ=30 blur memberikan depth yang lebih baik, mirip native iOS apps
+- **Minimalist**: Icon-only navigation mengurangi visual clutter, fokus pada content
+- **Modern aesthetic**: Gradient border + darker surface = contemporary glass-morphism
+- **YAGNI**: Height 56px cukup untuk touch target (minimum 44px), tidak perlu 64px
+- **Accessibility**: Glow shadow pada active icon memberikan visual feedback yang jelas tanpa label
+
+**Impact:**
+
+- File modified: `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+- Breaking change: Navigation jadi icon-only, users perlu adaptasi (tapi icons self-explanatory)
+- Design system consistency: Glass effect sekarang se-level dengan ProfilePage dan HomePage
+- Performance: σ=30 blur lebih heavy tapi modern devices handle dengan baik
+- `dart analyze` clean - no issues
+
+---
+
+## 2026-02-07 — Refactor FAB 'Tambah' to Header Button + Inline Card
+
+**Context:**
+
+- Design requirement: FAB 'Tambah' di HabitTrackerPage perlu di-refactor dari floating button menjadi dua entry points yang lebih integrated
+- Header butuh quick access button untuk power users
+- Inline card di akhir list memberikan discovery yang lebih natural untuk new users
+
+**Choice:**
+
+1. **Remove FAB completely**: Hapus `floatingActionButton` property dan `_buildGlassFAB()` method
+2. **Header '+' button**: Tambah glass icon button di `_buildHeader()` sebelah settings button dengan styling primary (gradient teal)
+3. **Inline Add Card**: Tambah card "Tambah Kebiasaan Baru" di akhir habits list dengan glass-morphism styling
+4. **Reusable helper**: Buat `_buildGlassIconButton()` dan `_navigateToAddHabit()` untuk consistency
+
+**Rationale:**
+
+- **UX Pattern**: FAB sering ter-hidden di mobile, dua entry points memberikan better discoverability
+- **Visual Hierarchy**: Header button untuk quick add, inline card untuk contextual discovery
+- **Consistency**: Glass-morphism styling sama dengan design system (ProfilePage, HomePage)
+- **YAGNI**: Tidak perlu FAB floating yang kompleks, inline approach lebih predictable
+
+**Impact:**
+
+- File modified: `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- FAB fully removed - no floating element anymore
+- Both buttons navigate ke `AddHabitRoute` dengan haptic feedback
+- Glass styling konsisten: BackdropFilter blur, gradient surfaces, border radius 12-20px
+- `dart analyze` clean - no issues
+
+---
+
+## 2026-02-07 — FAB Hidden Behind Bottom Navigation Fix
+
+**Context:**
+
+- Floating Action Button "Tambah" di HabitTrackerPage tertutup oleh floating pill navigation bar
+- Root cause: Parent Scaffold di NavigationShellPage memakai `extendBody: true` sehingga body meluas ke belakang bottom nav
+- FAB child Scaffold diposisikan di default 16px dari bottom edge layar, tepat di belakang nav bar
+
+**Choice:**
+
+- Wrap return value `_buildGlassFAB()` dengan `Padding` widget: `EdgeInsets.only(bottom: 80)`
+- Padding 80px mencakup: tinggi nav bar (64px) + padding (8px) + margin safety (8px)
+- Tidak mengubah parent Scaffold atau floatingActionButtonLocation untuk minimal change
+
+**Rationale:**
+
+- YAGNI: Solusi terkecil yang solve masalah, tidak perlu refactor struktur Scaffold
+- Maintainable: Isolasi fix di satu method, mudah diadjust jika design nav bar berubah
+- No breaking change: Tidak mempengaruhi behavior FAB lain atau layout page lain
+
+**Impact:**
+
+- File modified: `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart` (lines 572-637)
+- FAB sekarang visible dan tappable dengan clearance yang proper dari nav bar
+- Tidak ada perubahan behavior atau API lain
+
+---
+
 ## 2025-12-27 — Articles (Flutter) devotional feed contract
 
 **Context:**
@@ -85,7 +204,7 @@ This file is append-only. Each entry must include:
 
 **Details:**
 
-**\_ProfileHeader Widget:**
+**\_ProfilePage Widget:**
 
 - Avatar radius: 56 → 48 (better proportion)
 - Display name: fontSize 22 → 20, fontWeight bold → w800, letterSpacing -0.2
@@ -700,3 +819,821 @@ This file is append-only. Each entry must include:
 **Impact:**
 
 - No functional changes; file added
+
+---
+
+## 2026-01-15 — DevotionPage fetches Articles public feed
+
+**Context:**
+
+- User requested Devotion page to fetch devotional articles from `GET /articles/public`
+- API returns cursor-paginated list with fields like `title`, `slug`, `snippet`, `coverUrl`, `publishedAt`
+
+**Choice:**
+
+- Implement lightweight DTOs for public feed response and items
+- Use existing `DioClient` + interceptors via `GetIt` for network calls
+- Map `subtitle` → "verse" line in UI, fallback to `authorDisplayName`, and show `snippet` fallback when null
+- Keep likes UI as `0` because public feed does not expose like/clap totals
+
+**Rationale:**
+
+- Keeps implementation consistent with existing networking layer (timeouts/errors/auth)
+- Avoids adding state management or pagination UX not requested (YAGNI)
+
+**Impact:**
+
+- DevotionPage now renders real data from backend in place of hardcoded cards
+- Article detail navigation remains TODO (needs route/page for `/articles/public/{slug}`)
+
+---
+
+## 2026-01-21 — Habit Tracker Phase 2A Implementation Planning
+
+**Context:**
+
+- User requested full Habit Tracker implementation aligned with backend specification
+- Backend at `C:\Users\Kevin\liveit-server` has complete Phase 2A features (repeat periods, frequency control, streak tracking, visual customization, custom ordering)
+- Flutter currently implements only basic MVP (~30% coverage) with basic CRUD operations
+
+**Choice:**
+
+- Create comprehensive implementation plan with 101 tasks across 6 phases
+- Use backend documentation at `C:\Users\Kevin\liveit-server\docs\liveit-habitTracker-feature.md` as source of truth
+- Plan sequential implementation: Data Layer → State Management → Basic UI → Advanced UI → Polish → Testing
+
+**Rationale:**
+
+- Backend Phase 2A is production-ready and complete
+- Flutter needs systematic upgrade to match backend capabilities
+- Layer-by-layer approach minimizes confusion and ensures proper data flow
+- Comprehensive checklist enables tracking progress and identifying remaining work
+
+**Impact:**
+
+- Implementation plan created at `docs/habit-tracker-implementation-plan.md`
+- 101 tasks identified across 6 phases:
+  - Phase 1: Data Layer Phase 2A Support (20 tasks)
+  - Phase 2: State Management Phase 2A Support (12 tasks)
+  - Phase 3: UI Layer - Basic Phase 2A (12 tasks)
+  - Phase 4: UI Layer - Advanced Features (23 tasks)
+  - Phase 5: Polish & Optimization (19 tasks)
+  - Phase 6: Testing (15 tasks)
+- Ready to begin Phase 1: Data Layer updates to support all Phase 2A fields
+- Backend at `C:\Users\Kevin\liveit-server\docs\` is the definitive source of truth for all API contracts
+
+---
+
+## 2026-01-21 — Habit Tracker Phase 2A Data Layer Implementation
+
+**Context:**
+
+- Completed Phase 1 Data Layer updates for Habit Tracker Phase 2A
+- Updated all layers to support backend Phase 2A specification
+
+**Choice:**
+
+- Updated `HabitRemoteDataSource` with all Phase 2A fields and new methods:
+  - `addHabit()` with repeatPeriod, frequency, frequencyDays, color, icon, order
+  - `createCustomHabit()` with same Phase 2A fields
+  - `updateHabit()` PATCH endpoint for editing habits
+  - `archiveHabit()` DELETE endpoint (soft delete via archivedAt)
+  - `reorderHabits()` PATCH endpoint with updates array
+- Updated `HabitRepository` interface with all methods and Phase 2A parameters
+- Updated `HabitRepositoryImpl` with full implementation
+- Updated `HabitEvent` with Phase 2A fields for add/create and new events:
+  - `HabitAdded` with all Phase 2A fields
+  - `CustomHabitCreated` with all Phase 2A fields
+  - `HabitUpdated` for editing existing habits
+  - `HabitArchived` for soft delete
+  - `HabitReordered` for drag & drop reordering
+- Updated `HabitBloc` with handlers for all new events
+- Updated `AddHabitPage` to use new repository method signatures with named parameters
+- Ran `dart run build_runner build` to regenerate .g.dart files
+- Ran `dart format` to format all modified files
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/data/datasources/habit_remote_data_source.dart`
+- `lib/features/habit_tracker/domain/repositories/habit_repository.dart`
+- `lib/features/habit_tracker/data/repositories/habit_repository_impl.dart`
+- `lib/features/habit_tracker/presentation/bloc/habit_event.dart`
+- `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart`
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart`
+
+**Rationale:**
+
+- Complete Data Layer implementation to support all Phase 2A fields
+- Follows backend API contract exactly as specified in `C:\Users\Kevin\liveit-server\docs\liveit-habitTracker-feature.md`
+- Named parameters for clarity and type safety
+- Clean separation of concerns across data/domain/presentation layers
+
+**Impact:**
+
+- Phase 1 Data Layer complete (~20 tasks)
+- Ready to proceed to Phase 2: State Management updates (already integrated in Phase 1)
+- Ready to proceed to Phase 3: UI Layer updates (AddHabitPage form fields for Phase 2A)
+- All code passes `flutter analyze` and `build_runner`
+- Next: Update UI components to display Phase 2A fields and add form inputs
+
+---
+
+## 2026-01-21 — Habit Tracker Phase 2A UI Layer Implementation
+
+**Context:**
+
+- Completed Phase 3 UI Layer updates for Habit Tracker Phase 2A
+- Updated HabitCard, HabitTrackerPage, and AddHabitPage with all Phase 2A features
+
+**Choice:**
+
+- Updated `HabitCard` with complete Phase 2A UI:
+  - Color indicator (colored container with hex color parsing)
+  - Icon display (emoji from `icon` field)
+  - Repeat period badge (1 Hari/Minggu/Bulan/Tahun/Selamanya)
+  - Frequency badge (Harian/Mingguan/Custom days)
+  - Streak badges (current streak 🔥, longest streak 🏆, total completions ✓)
+  - Edit and Archive action buttons with bottom sheet menu
+  - Color-coded borders and backgrounds based on habit color
+- Updated `HabitTrackerPage`:
+  - Uses new `HabitCard` with `UserHabit` object
+  - Shows habit options bottom sheet with Edit and Archive actions
+  - Archive confirmation dialog before soft delete
+  - Passes `onEdit` and `onArchive` callbacks to HabitCard
+- Updated `AddHabitPage` with Phase 2A form inputs:
+  - Catalog tab: ExpansionTile for each habit with advanced options
+  - Custom tab: Inline advanced options toggle
+  - Repeat Period dropdown (Selamanya, 1 Hari, 1 Minggu, 1 Bulan, 1 Tahun)
+  - Frequency dropdown (Harian, Mingguan, Custom)
+  - Custom Days picker with FilterChips for Sun-Sat selection
+  - Color picker with 10 preset colors in circular swatches
+  - Icon picker with 12 preset emojis in colored circles
+  - Auto-incremented order (default behavior)
+
+**Files Modified:**
+
+- `lib/features/home/presentation/widgets/habit_card.dart`
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart`
+
+**Rationale:**
+
+- Complete UI Layer implementation matching backend Phase 2A specification
+- User-friendly form inputs with clear labels and Indonesian translations
+- Visual feedback through color coding and icons
+- Consistent UX across catalog and custom habit creation
+- Smooth integration with updated BLoC events and handlers
+
+**Impact:**
+
+- Phase 3 UI Layer Basic complete (~12 tasks)
+- HabitCard now displays color, icon, repeat period, frequency, and streak stats
+- AddHabitPage supports all Phase 2A configuration options
+- HabitTrackerPage has archive functionality with confirmation
+- Ready to proceed to Phase 4: Advanced Features (EditHabitPage, drag & drop, gamification)
+- All code passes `flutter analyze` with only deprecation info messages
+
+---
+
+## 2026-01-24 — Habit Tracker Phase 4 Advanced Features Implementation
+
+**Context:**
+
+- Completed Phase 4 UI Layer Advanced Features for Habit Tracker
+- Implemented EditHabitPage, HabitStatsPage, drag & drop reordering, gamification visual feedback
+
+**Choice:**
+
+- Rebuilt `HabitTrackerPage` with distinctive "Grounded Growth" design:
+  - Custom header with greeting, date, motivational message, and progress ring
+  - SliverReorderableList for drag & drop habit reordering
+  - Pending habits sorted first, completed habits moved to bottom
+  - Integration with new HabitCard widget
+
+- Created new `HabitCard` widget (`lib/features/habit_tracker/presentation/widgets/habit_card.dart`):
+  - Gradient backgrounds based on completion state
+  - Animated check button with haptic feedback (280ms easeOutBack)
+  - Streak badges with milestone indicators (⚡ 7 days, 🔥 30 days, 👑 100 days)
+  - Drag handle support for reordering mode
+  - Long-press to open options menu
+
+- Created `EditHabitPage` for editing existing habits:
+  - Pre-filled form with current habit data
+  - Habit preview card at top
+  - Notes, schedule (repeat period, frequency, custom days), personalization (color, icon)
+  - Unsaved changes confirmation dialog
+  - Bottom save button
+
+- Created `HabitStatsPage` with detailed statistics:
+  - Habit header with icon, name, frequency
+  - Stats cards (current streak, longest streak, total completions)
+  - Calendar heatmap with month navigation
+  - Streak timeline with milestone markers (7, 30, 100, 365 days)
+  - Next milestone progress card
+
+- Created `celebrations.dart` with gamification visual feedback:
+  - `ConfettiOverlay` - Custom confetti animation with brand colors
+  - `StreakCelebration` - Modal dialog for streak milestones
+  - `AllDoneCelebration` - Modal dialog when all habits completed
+  - `ZoePointsPopup` - Animated popup for Zoe Points earned
+
+- Updated router with new routes:
+  - `/edit-habit` - EditHabitRoute with UserHabit parameter
+  - `/habit-stats` - HabitStatsRoute with UserHabit parameter
+
+**Files Created:**
+
+- `lib/features/habit_tracker/presentation/widgets/habit_card.dart`
+- `lib/features/habit_tracker/presentation/pages/edit_habit_page.dart`
+- `lib/features/habit_tracker/presentation/pages/habit_stats_page.dart`
+- `lib/features/habit_tracker/presentation/widgets/celebrations.dart`
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart` (full rebuild)
+- `lib/core/router/app_router.dart` (added EditHabit and HabitStats routes)
+
+**Rationale:**
+
+- Distinctive design following "Grounded Growth" brand palette (Deep Teal, Warm Sand, Coral)
+- Organic UI language with rounded corners, gradients, and subtle shadows
+- Meaningful animations that reinforce positive behavior (check-in celebration)
+- Gamification elements (streak badges, milestones) encourage consistency
+- Calendar heatmap provides visual progress tracking
+- Reorder functionality via SliverReorderableList for better habit prioritization
+
+**Impact:**
+
+- Phase 4 Advanced Features COMPLETED
+- HabitTrackerPage now has professional, distinctive UI
+- EditHabitPage allows full habit customization
+- HabitStatsPage provides detailed progress visualization
+- Gamification widgets ready for integration
+- All code passes `flutter analyze` with only deprecation warnings (withOpacity → withValues)
+- Router regenerated with build_runner
+
+**Design Specifications:**
+
+- Progress Ring: 72px diameter, 6px stroke, animated 1200ms easeOutCubic
+- HabitCard: 20px border radius, gradient backgrounds, 12px bottom margin
+- Streak Badges: 12px border radius, gradient fills, shadow glow
+- Check Button: 44px diameter, 2px border, elasticOut animation
+- Calendar: 6px cell spacing, 8px border radius, completion fill with habit color
+- Milestone Markers: 40px diameter circles, 18px emoji icons
+
+**Animation Specifications:**
+
+- Progress ring: 1200ms, Curves.easeOutCubic
+- Check button scale: 300ms, Curves.easeOutBack
+- Card tap feedback: 300ms scale to 0.95
+- Confetti: 3000ms duration, 50 particles
+- Zoe Points popup: 2000ms with slide + scale + fade
+
+---
+
+## 2026-01-24 — Habit Tracker Gamification Integration
+
+**Context:**
+
+- Need to wire up celebration widgets (Confetti, Dialogs) with actual check-in events
+- Visual feedback is crucial for habit reinforcement (Atomic Habits principle: Make it Satisfying)
+
+**Choice:**
+
+- Integrated `ConfettiOverlay` and celebration dialogs directly into `HabitTrackerPage` via BlocListener
+- Implemented `CelebrationData` in `HabitState` to hold transient celebration events
+- Added logic in `HabitBloc` to calculate points and detect milestones from check-in response
+
+**Files Modified:**
+
+- `lib/features/habit_tracker/presentation/bloc/habit_state.dart` (added CelebrationData)
+- `lib/features/habit_tracker/presentation/bloc/habit_event.dart` (added HabitCelebrationCleared)
+- `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart` (added calculation logic)
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart` (added listener and UI overlay)
+
+**Rationale:**
+
+- Keeps UI logic (showing dialogs) separated from business logic (calculating milestones)
+- Using a transient state (`CelebrationData`) ensures celebrations survive screen rotation but can be cleared
+- `ConfettiOverlay` wrapper provides a non-intrusive way to show global effects
+
+**Impact:**
+
+- Users now see:
+  - Confetti rain on every check-in
+  - "Zoe Points +10" popup on check-in
+  - Streak Celebration dialogs on days 7, 30, 100
+  - "All Done" celebration when finishing last habit
+- Enhances user engagement and satisfaction
+
+---
+
+## 2026-01-24 — Offline Caching Strategy (Me+ Benchmark)
+
+**Context:**
+
+- User requested "Me+ like experience" (Instant load, Optimistic UI).
+- Current implementation was "Online-First" (Loading spinners, wait for server).
+- Risk of ANR/Lag if using heavy database solutions on main thread.
+
+**Choice:**
+
+- Adopted **Hive** (NoSQL, Pure Dart) for caching `UserHabit` data.
+- Implemented **Hybrid Repository Pattern**:
+  1.  `getCachedHabits()`: Direct Hive read (Instant).
+  2.  `getUserHabits()`: Network fetch + Write to Hive (Background update).
+- Implemented **Optimistic UI** in `HabitBloc`:
+  - Check-in/Undo events immediately update state (`emit`) before awaiting API.
+  - Rollback state if API fails.
+
+**Rationale:**
+
+- **UX:** Matches "Me+" standard where data is always available and interaction is instant.
+- **Performance:** Hive is significantly faster than SQLite/Drift for simple JSON lists and doesn't block UI thread (Anti-ANR).
+- **Reliability:** App works in "Airplane Mode" using last known data.
+
+**Impact:**
+
+- Added `hive` and `hive_flutter` dependencies.
+- Created `HabitLocalDataSource` and registered in DI.
+- `HabitBloc` now emits state twice on load: Cache (Instant) -> API (Fresh).
+- UI feels significantly faster; Check-in is instant.
+
+---
+
+## 2026-01-25 — Restoration of Missing Habit Tracker Files
+
+**Context:**
+
+- User encountered compilation errors `Target kernel_snapshot_program failed` because several files were missing from the project directory.
+- Missing files: `lib/features/habit_tracker/presentation/pages/edit_habit_page.dart` and `lib/features/habit_tracker/data/datasources/habit_local_data_source.dart`.
+- These files were referenced in `AppRouter` and `injection_container.dart` but were not present on disk.
+
+**Choice:**
+
+- Recreated `HabitLocalDataSource` with Hive support, including the `openBox()` static method required by the injection container.
+- Recreated `EditHabitPage` with full Phase 2A support:
+  - Pre-filled form fields (Notes, Schedule, Personalization).
+  - Habit preview card for real-time feedback.
+  - Unsaved changes confirmation logic using `PopScope`.
+- Ran `build_runner` to regenerate `app_router.gr.dart` and ensure route definitions match the restored page.
+- Cleaned up duplicate/unused imports in `injection_container.dart` and `add_habit_page.dart`.
+
+**Rationale:**
+
+- **Stability:** Restores the project to a buildable state after local file loss.
+- **Consistency:** Re-implements features (Hive caching, Edit page) exactly as described in previous technical blueprints and decision logs.
+
+**Impact:**
+
+- Build error "The system cannot find the file specified" is resolved.
+- Habit Tracker editing and offline caching functionality is fully restored.
+- Project now passes static analysis (with only deprecation warnings from Flutter 3.27).
+
+---
+
+## 2026-02-01 — Profile Page Modern Glass-Morphism Refactor
+
+**Context:**
+
+- User requested complete refactor of ProfilePage with modern iOS 2026 glass-morphism aesthetic
+- Must follow LIVEIT "Grounded Growth" brand colors (Deep Teal, Warm Sand, Coral)
+- Must maintain all existing functionality while improving UX
+- ProfileBloc was not integrated - ProfilePage only used AuthBloc with hardcoded stats
+
+**Choice:**
+
+1. **Registered ProfileBloc in DI and Global Providers:**
+   - Added `ProfileBloc` registration in `injection_container.dart`
+   - Added `ProfileBloc` provider to `MultiBlocProvider` in `main_dev.dart` and `main_prod.dart`
+   - ProfilePage now uses both `AuthBloc` (auth state) and `ProfileBloc` (gamification data)
+
+2. **Implemented iOS 2026 Glass-Morphism Design:**
+   - **Glass Header**: Gradient background with `BackdropFilter` blur (sigmaX/Y: 20), frosted glass ring around avatar
+   - **Gradient Overlay**: Multi-color gradient using brand palette (Primary 15%, Secondary 10%, Tertiary 5%)
+   - **Frosted Cards**: Stats cards with glass-morphism effect, colored borders, and soft shadows
+   - **Glass Menu**: BackdropFilter blur (sigmaX/Y: 10) with transparent surface and subtle borders
+   - **Member Since Badge**: Glass container showing membership duration calculation
+
+3. **Enhanced Visual Hierarchy:**
+   - Centered vertical layout (avatar top, name/username/email stacked)
+   - Display name in uppercase with w800 weight and -0.3 letter-spacing
+   - Username in gradient container with primary color
+   - Stat cards use brand colors: Tertiary (Coral) for Zoe Points, Primary (Deep Teal) for Level
+   - Level names mapped (1: "Langkah Pertama", 2: "Membangun Irama", etc.)
+
+4. **Improved Functionality:**
+   - Profile data fetched from `/profiles/me` endpoint on page load
+   - Real Zoe Points and Level displayed from `ProfileModel`
+   - Smart member duration calculation (days/months/years)
+   - Loading states with shimmer-like placeholders
+   - Unauthenticated view with glass-morphism card
+
+5. **UX Enhancements:**
+   - Subtle shadows with color-tinted glow (elevation + blur)
+   - Consistent 20-24px border radius throughout
+   - Haptic-ready InkWell with themed splash colors
+   - Coming soon snackbars for menu items (Edit Profil, Badge, etc.)
+   - Glass-morphism logout dialog with brand-styled buttons
+
+6. **Added flutter_animate package:**
+   - Added `flutter_animate: ^4.2.0` for smooth entry animations
+   - Staggered reveal animations for header, stats, and menu sections
+
+7. **Extended ProfileModel:**
+   - Added `currentStreak` field to support streak display
+   - Updated `copyWith`, `fromJson`, and `toJson` methods
+
+**Files Modified:**
+
+- `lib/core/injection/injection_container.dart` (added ProfileBloc registration)
+- `lib/main_dev.dart` (added ProfileBloc provider)
+- `lib/main_prod.dart` (added ProfileBloc provider)
+- `lib/features/profile/presentation/pages/profile_page.dart` (complete rewrite)
+- `lib/features/profile/domain/models/profile_model.dart` (added currentStreak)
+- `pubspec.yaml` (added flutter_animate)
+
+**Rationale:**
+
+- **Glass-Morphism**: iOS 2026 design trend - frosted glass, layered depth, subtle transparency
+- **Brand Alignment**: Uses LIVEIT "Grounded Growth" palette throughout (Deep Teal primary, Coral tertiary)
+- **Real Data**: Integrates ProfileBloc to display actual Zoe Points and Level from backend
+- **Progressive Disclosure**: Clean, minimal UI that reveals more on interaction
+- **Accessibility**: Maintains WCAG contrast ratios while using glass effects
+
+**Impact:**
+
+- ProfilePage now has distinctive, modern iOS glass-morphism aesthetic
+- Real gamification data (Zoe Points, Level, Streak) fetched from `/profiles/me` endpoint
+- Consistent with HabitTrackerPage "Grounded Growth" design language
+- All menu items show "Coming Soon" feedback instead of TODO comments
+- Member duration shows human-readable format ("3 bulan")
+- Avatar supports network images from `avatarUrl` when available
+- Logout flow maintains same functionality with improved glass-morphism dialog
+- Entry animations provide smooth, polished user experience
+- Ready for future features: Edit Profile, Badges, Activity History, Settings
+
+**Design Specifications:**
+
+- **Glass Blur**: Header sigma 20, Menu sigma 10
+- **Border Radius**: 20-24px for cards, 12px for containers, 56px for avatar
+- **Gradient**: 3-color brand palette overlay (alpha 5-15%)
+- **Shadows**: Color-tinted with 20px blur and 8px vertical offset
+- **Avatar Ring**: 4px gradient border (Primary → Secondary → Tertiary)
+- **Stat Cards**: Glass surface with colored borders matching stat type
+- **Menu Items**: Icon containers with primaryContainer alpha 30%
+- **Animations**: 1200ms header, 800ms stats, staggered reveals
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Level stats, headers, menu icons
+- Tertiary (Coral #FF7B54): Zoe Points stats, accents, streak badges
+- Secondary (Warm Sand #C3B49A): Subtle backgrounds
+- Surface alpha 60-80%: Glass card backgrounds
+- Outline alpha 10-20%: Subtle borders and dividers
+
+---
+
+## 2026-02-01 — Navigation Shell Glass-Morphism Pill Design
+
+**Context:**
+
+- User requested refactor of NavigationShellPage with modern iOS 2026 glass-morphism aesthetic
+- Requested floating pill style navigation bar matching ProfilePage design language
+- Consistent with "Grounded Growth" brand (Deep Teal, Coral, Warm Sand)
+
+**Choice:**
+
+1. **Floating Pill Design:**
+   - Converted bottom navigation to floating pill container
+   - 32px border radius for pill shape
+   - Positioned with margin (16px horizontal) for floating effect
+   - Extended body behind nav (`extendBody: true`)
+
+2. **Glass-Morphism Implementation:**
+   - `BackdropFilter` blur sigma 20 for frosted glass effect
+   - Gradient surface (surface alpha 85-92%)
+   - Subtle border (outline alpha 20%)
+   - Dual shadow layer: primary-tinted (blur 20) + black (blur 30)
+
+3. **Navigation Items:**
+   - 4 items: Home, Devotion, Habits, Profile
+   - Active state: Gradient background (primary alpha 15%), border (primary alpha 25%)
+   - Inactive state: Transparent with muted icons
+   - Animated scale effect on state change (300ms easeOutBack)
+
+4. **Animations:**
+   - Entry animation: Slide up + fade in (600ms)
+   - Scale animation on tab change (300ms easeOutBack)
+   - SizedBox transitions for label reveal
+
+5. **Technical Changes:**
+   - Converted \_NavigationShellView from StatelessWidget to StatefulWidget
+   - Added AnimationController for entry animation
+   - Updated pillController lifecycle management
+
+**Files Modified:**
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart` (complete redesign)
+
+**Rationale:**
+
+- **Floating Pill**: iOS 2026 trend - detached, floating navigation instead of docked bar
+- **Glass Effect**: Matches ProfilePage glass-morphism language
+- **Brand Consistency**: Uses same primary/tertiary colors, blur amounts, shadow patterns
+- **Animation**: flutter_animate scale effects provide tactile feedback on tab selection
+
+**Design Specifications:**
+
+- **Pill Shape**: 32px border radius, 16px horizontal margin
+- **Glass Blur**: sigmaX/Y = 20
+- **Shadows**: Primary alpha 15% (blur 20, offset 0,8) + Black alpha 10% (blur 30, offset 0,15)
+- **Active Item**: 16h/10v padding, gradient fill, 1px border, scale to 1.0
+- **Inactive Item**: 16h/10v padding, transparent, scale to 1.0
+- **Animation**: 300ms easeOutBack scale, 600ms slide-up entry
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Active icons, text, gradient fill, borders
+- Surface alpha 85-92%: Glass background
+- Outline alpha 20%: Subtle border
+- Inactive: onSurfaceVariant alpha 60%
+
+**Impact:**
+
+- Navigation bar now matches ProfilePage iOS 2026 glass-morphism aesthetic
+- Floating pill design creates modern, elevated navigation experience
+- Consistent animations and visual language across app
+- Better visual separation from content (extendBody: true)
+- Improved tactile feedback with scale animations
+- Ready for future enhancements (badges, notifications on nav items)
+
+---
+
+## 2026-02-01 — Homepage Refactor with Glass-Morphism Design
+
+**Context:**
+
+- User requested complete refactor of HomePage to serve as main landing page for LiveIt app
+- Must display key features prominently: Habit Tracker (primary), Zoe Points, Community, Profile
+- Must follow modern iOS 2026 glass-morphism aesthetic like ProfilePage
+- Must replace RoutineRoute as first tab in NavigationShellPage
+
+**Choice:**
+
+1. **Complete HomePage Rewrite:**
+   - Complete rewrite of `home_page.dart` dengan glass-morphism design system
+   - 5 main sections: Hero Section, Progress Overview, Main Features Grid, Quick Stats, Community Preview
+   - Consistent dengan ProfilePage glass-morphism aesthetic
+
+2. **Hero Section:**
+   - Date badge dengan glass container dan primary gradient
+   - Personalized greeting dengan dynamic time-based greeting (Pagi/Siang/Sore/Malam)
+   - Tagline app: "Bangun kebiasaan rohani, hidupi iman setiap hari"
+   - Entry animation: Slide up + fade (Transform translate 30px)
+
+3. **Progress Overview Card:**
+   - Gradient primary card dengan progress bar dan ring indicator
+   - Shows completed/total habits dengan percentage
+   - CTA untuk navigate ke HabitTrackerPage
+   - Real-time progress dari HabitBloc
+
+4. **Main Features Grid:**
+   - 2x2 grid dengan glass cards (BackdropFilter blur 12)
+   - Features: Habit Tracker, Zoe Points, Community, Profile
+   - Each card has icon container dengan brand color
+   - Navigation ke respective routes (or coming soon snackbar)
+
+5. **Quick Stats Grid:**
+   - 2x2 grid dengan glass stat cards
+   - Zoe Points, Streak, Level, Badge
+   - Colored borders matching stat type (Tertiary coral, Primary teal, etc.)
+   - Large typography (28px w800) untuk values
+
+6. **Community Preview:**
+   - Avatar stack showing 1.2k+ active users
+   - Glass card dengan BackdropFilter blur 16
+   - Description dan CTA button
+   - Coming soon feedback
+
+7. **Glass-Morphism Effects:**
+   - `BackdropFilter` blur sigma 12-16 untuk cards
+   - Gradient backgrounds dengan brand colors (Primary 6%, Tertiary 4%)
+   - Border dengan outline alpha 12-20%
+   - Soft shadows dengan color-tinted glow
+
+8. **Navigation Update:**
+   - Changed NavigationShellPage first tab dari RoutineRoute ke HomeRoute
+   - Updated nav items label "Home" menjadi "Beranda"
+   - Updated app_router.dart routing configuration
+   - Regenerated auto_route files
+
+**Files Modified:**
+
+- `lib/features/home/presentation/pages/home_page.dart` (complete rewrite, ~600 lines)
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart` (updated routes)
+- `lib/core/router/app_router.dart` (updated nested routes)
+- `lib/core/router/app_router.gr.dart` (auto-generated)
+
+**Design Specifications:**
+
+- **Glass Blur**: Cards sigma 12-16, Header subtle gradient
+- **Border Radius**: 24-28px untuk cards, 20px untuk badges
+- **Gradient**: Primary 6% + Surface + Tertiary 4% untuk background
+- **Typography**: Display 36px w800, Title 22px w700, Body 15px
+- **Animations**: Entry slide-up (30-70px translate), 1000ms duration
+- **Spacing**: 20-24px horizontal padding, 16-32px vertical gaps
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Progress card, headers
+- Tertiary (Coral #FF7B54): Zoe Points stats, accents
+- Surface alpha 45-85%: Glass card backgrounds
+- Outline alpha 12-20%: Subtle borders
+
+**Impact:**
+
+- HomePage sekarang adalah true landing page yang showcase fitur utama LiveIt
+- Design konsisten dengan ProfilePage glass-morphism aesthetic
+- Real-time habit progress integration dengan HabitBloc
+- Navigation flow lebih intuitive: Home → Feature Details
+- Glass-morphism cards create modern iOS 2026 look
+- Semua feature cards memberikan feedback "Coming Soon" jika belum implement
+- Floating Action Button untuk quick add habit (later replaced with inline button)
+- Analyzer clean (no errors, deprecated warnings only)
+
+---
+
+## 2026-02-01 — Devotion & Article Detail Pages Glass-Morphism Refactor
+
+**Context:**
+
+- User requested refactor of DevotionPage and ArticleDetailPage to follow same glass-morphism style as HomePage
+- Must maintain all existing functionality while improving UX with iOS 2026 aesthetic
+- Consistent design language across all pages
+
+**Choice:**
+
+1. **DevotionPage Complete Rewrite:**
+   - **Header Section**: Glass badge dengan tertiary gradient, bold title "Renungan" (36px w800), tagline subtitle
+   - **Entry Animations**: Slide-up + fade (1000ms) untuk header dan content
+   - **Loading State**: Centered glass card dengan progress indicator
+   - **Error State**: Glass card dengan error icon, message, dan retry button
+   - **Empty State**: Centered glass card dengan placeholder icon dan message
+   - **Article Cards**: Glass cards (BackdropFilter blur 12), cover images, badges, dan read more CTA
+
+2. **ArticleDetailPage Complete Rewrite:**
+   - **Glass AppBar**: Gradient surface dengan back button dan title truncation
+   - **Cover Image**: Full-width dengan gradient overlay
+   - **Typography**: Bold hierarchy - title 28px w800, meta info dengan colored chips
+   - **Quote Block**: Styled container untuk subtitle dengan italic text
+   - **Meta Chips**: Date, reading time, author dengan brand colors
+   - **Footer**: Glass container dengan branding dan publication info
+   - **Loading/Error/NotFound States**: Glass cards dengan consistent styling
+
+3. **Glass-Morphism Effects:**
+   - `BackdropFilter` blur sigma 12-16 untuk cards dan overlays
+   - Gradient surfaces dengan brand colors (primary 5-10%, tertiary 5-15%)
+   - Subtle borders (outline alpha 10-20%)
+   - Soft shadows dengan color-tinted glow
+
+4. **Design Specifications:**
+   - **Border Radius**: 24-28px untuk cards, 20px untuk badges
+   - **Animations**: Entry slide-up (30-40px translate), 800-1000ms duration
+   - **Typography**: Display 36px, Title 28px, Body 15px, Labels 12-14px
+   - **Spacing**: 20-24px horizontal padding, 16-24px vertical gaps
+
+5. **Removed:**
+   - FloatingActionButton dari HomePage (diganti dengan inline button)
+   - Old DevotionalCard widget import (not needed anymore)
+   - Hardcoded Scaffold backgrounds (replaced with gradient containers)
+
+**Files Modified:**
+
+- `lib/features/inspire/presentation/pages/devotion_page.dart` (complete rewrite, ~550 lines)
+- `lib/features/inspire/presentation/pages/article_detail_page.dart` (complete rewrite, ~500 lines)
+
+**Design Features:**
+
+- **Glass Cards**: BackdropFilter blur 12-16, gradient surfaces, subtle borders
+- **Meta Chips**: Date (primary), Reading Time (tertiary), Author (secondary)
+- **Quote Block**: Styled container untuk verse/subtitle
+- **Animations**: Entry slide-up + fade, consistent across pages
+- **AppBar**: Glass surface dengan gradient, consistent dengan page design
+
+**Color Usage:**
+
+- Primary (Deep Teal #2F5D62): Date badges, primary UI elements
+- Tertiary (Coral #FF7B54): Reading time, quote blocks, accents
+- Secondary (Warm Sand #C3B49A): Author chips
+- Surface alpha 45-90%: Glass card backgrounds
+- Outline alpha 10-20%: Subtle borders
+
+**Impact:**
+
+- DevotionPage now has consistent glass-morphism design dengan HomePage
+- ArticleDetailPage provides premium reading experience dengan glass effects
+- All loading/error/empty states use glass card styling
+- Entry animations provide smooth user experience
+- Code is cleaner dengan inline widgets (no separate DevotionalCard needed)
+- Analyzer clean (no errors, no warnings)
+- Ready untuk further enhancement (share feature, bookmark, etc.)
+
+---
+
+## 2026-02-16 — Implement offline check-in outbox (server-wins)
+
+**Context:**
+
+- Repo sudah punya hybrid cache + optimistic UI, tetapi write saat offline masih rollback langsung.
+- User meminta implementasi berdasarkan `docs/skills/offline-first-data-flow.md` dan rencana di `docs/habit-tracker/implementation-offline-first-data-flow.md`.
+
+**Choice:**
+
+- Menambahkan arsitektur outbox minimal untuk mutation **check-in** dan **undo check-in** saja.
+- Menggunakan strategi konflik **server-wins** saat replay (4xx dibuang dari antrian).
+- Menambahkan service sinkronisasi berbasis konektivitas + trigger manual dari UI.
+
+**Rationale:**
+
+- Ini scope terkecil dengan dampak UX terbesar: aksi harian tetap terasa instan walau offline.
+- Tidak memperluas ke add/update/archive/reorder agar tetap YAGNI dan risiko perubahan terkendali.
+
+**Impact:**
+
+- File baru:
+  - `lib/core/connectivity/connectivity_service.dart`
+  - `lib/features/habit_tracker/data/models/pending_mutation.dart`
+  - `lib/features/habit_tracker/data/datasources/outbox_local_data_source.dart`
+  - `lib/features/habit_tracker/data/services/habit_sync_service.dart`
+  - `lib/features/habit_tracker/data/services/sync_status.dart`
+  - `test/features/habit_tracker/data/datasources/outbox_local_data_source_test.dart`
+  - `test/features/habit_tracker/data/services/habit_sync_service_test.dart`
+  - `test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart`
+- File diubah:
+  - `lib/core/injection/injection_container.dart`
+  - `lib/features/habit_tracker/domain/repositories/habit_repository.dart`
+  - `lib/features/habit_tracker/data/repositories/habit_repository_impl.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_event.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_state.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart`
+  - `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- Verifikasi:
+  - 3 test suite baru lulus (`outbox_local_data_source_test`, `habit_sync_service_test`, `habit_bloc_test`).
+  - `fvm flutter analyze` tetap menunjukkan warning/info lama lintas modul lain, tanpa error baru dari perubahan outbox.
+
+---
+
+## 2026-02-17 — Add SnackBar feedback for sync result
+
+**Context:**
+
+- Setelah outbox aktif, pengguna hanya melihat banner pending hilang saat sync berhasil, tanpa feedback eksplisit.
+- User meminta feedback visual via `BlocListener`, terutama saat transisi `pendingSyncCount > 0 -> 0`.
+
+**Choice:**
+
+- Menambahkan SnackBar sukses di `HabitTrackerPage` saat listener mendeteksi transisi pending `> 0` ke `0`.
+- Menambahkan feedback error sinkronisasi dari `HabitBloc` ke `HabitLoaded.syncFeedbackMessage`, lalu ditampilkan sebagai SnackBar error.
+
+**Rationale:**
+
+- Menjaga UX tetap sederhana: cukup satu sinyal sukses dan satu sinyal gagal tanpa menambah kompleksitas UI baru.
+
+**Impact:**
+
+- File diubah:
+  - `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_event.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_state.dart`
+  - `lib/features/habit_tracker/presentation/bloc/habit_bloc.dart`
+- Verifikasi:
+  - `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart` lulus.
+  - `fvm flutter test test/features/habit_tracker/data/services/habit_sync_service_test.dart` lulus.
+
+---
+
+## 2026-02-17 — Replace outbox mutation ID with UUID
+
+**Context:**
+
+- ID mutation sebelumnya memakai `DateTime.now().microsecondsSinceEpoch` yang punya risiko collision kecil pada enqueue cepat.
+
+**Choice:**
+
+- Mengganti generator ID mutation menjadi UUID v4 (`Uuid().v4()`).
+- Menambahkan `uuid` sebagai dependency langsung di `pubspec.yaml`.
+
+**Rationale:**
+
+- UUID v4 jauh lebih aman terhadap collision dibanding timestamp saja, dengan perubahan kode minimal.
+
+**Impact:**
+
+- File diubah:
+  - `lib/features/habit_tracker/data/repositories/habit_repository_impl.dart`
+  - `pubspec.yaml`
+- Dependency sync:
+  - `fvm flutter pub get` berhasil (uuid berubah dari transitive ke direct dependency).
+- Verifikasi:
+  - `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart` lulus.

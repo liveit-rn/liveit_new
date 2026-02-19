@@ -47,8 +47,8 @@ class _RegisterPageState extends State<RegisterPage> {
       logger.d('📋 UI: Email: $email, Has name: ${name != null}');
 
       context.read<AuthBloc>().add(
-        AuthRegisterRequested(email: email, password: password, name: name),
-      );
+            AuthRegisterRequested(email: email, password: password, name: name),
+          );
     } else {
       logger.w('⚠️ UI: Form validation failed');
     }

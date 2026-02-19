@@ -25,7 +25,7 @@ class UserHabitModel extends UserHabit {
   const UserHabitModel({
     required super.id,
     super.userId,
-    required super.habitId,
+    super.habitId, // Now optional for custom habits
     super.notes,
     super.isCustom = false,
     super.title,
@@ -45,10 +45,7 @@ class UserHabitModel extends UserHabit {
     super.checkedInToday = false,
     super.lastCheckinAt,
     this.habit,
-  }) : super(
-          frequencyDays: frequencyDays,
-          habit: habit,
-        );
+  }) : super(frequencyDays: frequencyDays, habit: habit);
 
   factory UserHabitModel.fromJson(Map<String, dynamic> json) =>
       _$UserHabitModelFromJson(json);

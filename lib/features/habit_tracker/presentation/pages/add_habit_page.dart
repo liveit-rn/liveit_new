@@ -154,13 +154,13 @@ class _AddHabitPageState extends State<AddHabitPage>
         icon: _icon,
       );
       if (mounted) {
+        HapticFeedback.heavyImpact();
         context.router.pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        HapticFeedback.vibrate();
+        _showErrorSnackBar('Gagal menambah habit: $e');
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -168,6 +168,7 @@ class _AddHabitPageState extends State<AddHabitPage>
   }
 
   Future<void> _createCustomHabit() async {
+    HapticFeedback.mediumImpact();
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
@@ -185,17 +186,36 @@ class _AddHabitPageState extends State<AddHabitPage>
         icon: _icon,
       );
       if (mounted) {
+        HapticFeedback.heavyImpact();
         context.router.pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        HapticFeedback.vibrate();
+        _showErrorSnackBar('Gagal membuat habit: $e');
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline_rounded, color: colorScheme.error),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: colorScheme.errorContainer.withValues(alpha: 0.95),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   String _formatRepeatPeriod(String value) {

@@ -51,7 +51,7 @@ class _AddHabitPageState extends State<AddHabitPage>
 
   static const List<String> _frequencyOptions = ['daily', 'weekly', 'custom'];
 
-  static const List<Map<String, dynamic>> _colorOptions = [
+  static const List<Map<String, String>> _colorOptions = [
     {'hex': '#6366F1', 'name': 'Indigo'},
     {'hex': '#8B5CF6', 'name': 'Violet'},
     {'hex': '#EC4899', 'name': 'Pink'},
@@ -64,7 +64,7 @@ class _AddHabitPageState extends State<AddHabitPage>
     {'hex': '#3B82F6', 'name': 'Blue'},
   ];
 
-  static const List<Map<String, dynamic>> _iconOptions = [
+  static const List<Map<String, String>> _iconOptions = [
     {'emoji': '⭐', 'name': 'Star'},
     {'emoji': '🔥', 'name': 'Fire'},
     {'emoji': '💪', 'name': 'Strong'},
@@ -160,17 +160,18 @@ class _AddHabitPageState extends State<AddHabitPage>
         color: _color,
         icon: _icon,
       );
-      if (mounted) {
-        HapticFeedback.heavyImpact();
-        context.router.pop(true);
-      }
-    } catch (e) {
-      if (mounted) {
-        HapticFeedback.vibrate();
-        _showErrorSnackBar('Gagal menambah habit: $e');
-      }
+
+      if (!mounted) return;
+      HapticFeedback.heavyImpact();
+      context.router.pop(true);
+    } catch (error) {
+      if (!mounted) return;
+      HapticFeedback.vibrate();
+      _showErrorSnackBar('Gagal menambah habit: $error');
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -179,47 +180,50 @@ class _AddHabitPageState extends State<AddHabitPage>
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
+
     try {
       await _repository.createCustomHabit(
-        title: _titleController.text,
-        description: _descriptionController.text.isEmpty
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim().isEmpty
             ? null
-            : _descriptionController.text,
-        notes: _notesController.text.isEmpty ? null : _notesController.text,
+            : _descriptionController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
         repeatPeriod: _repeatPeriod == 'forever' ? null : _repeatPeriod,
         frequency: _frequency,
         frequencyDays: _frequency == 'custom' ? _frequencyDays.join(',') : null,
         color: _color,
         icon: _icon,
       );
-      if (mounted) {
-        HapticFeedback.heavyImpact();
-        context.router.pop(true);
-      }
-    } catch (e) {
-      if (mounted) {
-        HapticFeedback.vibrate();
-        _showErrorSnackBar('Gagal membuat habit: $e');
-      }
+
+      if (!mounted) return;
+      HapticFeedback.heavyImpact();
+      context.router.pop(true);
+    } catch (error) {
+      if (!mounted) return;
+      HapticFeedback.vibrate();
+      _showErrorSnackBar('Gagal membuat habit: $error');
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
   void _showErrorSnackBar(String message) {
     final colorScheme = Theme.of(context).colorScheme;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             Icon(Icons.error_outline_rounded, color: colorScheme.error),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: colorScheme.errorContainer.withValues(alpha: 0.95),
         behavior: SnackBarBehavior.floating,
+        backgroundColor: colorScheme.errorContainer.withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -245,7 +249,7 @@ class _AddHabitPageState extends State<AddHabitPage>
       case 'daily':
         return 'Setiap Hari';
       case 'weekly':
-        return 'Seminggu Sekali';
+        return 'Mingguan';
       case 'custom':
         return 'Pilih Hari';
       default:
@@ -255,6 +259,22 @@ class _AddHabitPageState extends State<AddHabitPage>
 
   Color _parseColor(String hex) {
     return Color(int.parse(hex.replaceFirst('#', '0xFF')));
+  }
+
+  String _currentColorName() {
+    return _colorOptions.firstWhere(
+          (option) => option['hex'] == _color,
+          orElse: () => {'name': 'Custom'},
+        )['name'] ??
+        'Custom';
+  }
+
+  String _currentIconName() {
+    return _iconOptions.firstWhere(
+          (option) => option['emoji'] == _icon,
+          orElse: () => {'name': 'Icon'},
+        )['name'] ??
+        'Icon';
   }
 
   @override

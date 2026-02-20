@@ -289,31 +289,24 @@ class _AddHabitPageState extends State<AddHabitPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colorScheme.primary.withValues(alpha: 0.04),
+              colorScheme.primary.withValues(alpha: 0.03),
               colorScheme.surface,
-              colorScheme.tertiary.withValues(alpha: 0.02),
+              colorScheme.tertiary.withValues(alpha: 0.015),
             ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Glass AppBar
-              _buildGlassAppBar(),
-
-              // Glass TabBar
-              _buildGlassTabBar(),
-
-              // Content
+              _buildTopBar(),
+              _buildModeTabs(),
+              const SizedBox(height: 8),
               Expanded(
                 child: _isSubmitting
-                    ? _buildLoadingState()
+                    ? _buildSubmittingState()
                     : TabBarView(
                         controller: _tabController,
-                        children: [
-                          _buildCatalogTab(),
-                          _buildCustomTab(),
-                        ],
+                        children: [_buildCatalogTab(), _buildCustomTab()],
                       ),
               ),
             ],
@@ -323,164 +316,99 @@ class _AddHabitPageState extends State<AddHabitPage>
     );
   }
 
-  Widget _buildGlassAppBar() {
+  Widget _buildTopBar() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.surface.withValues(alpha: 0.8),
-                colorScheme.surface.withValues(alpha: 0.4),
-              ],
-            ),
-            border: Border(
-              bottom: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.1),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Row(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.router.pop();
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.6,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                size: 20,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
-          child: Row(
-            children: [
-              // Back button
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  context.router.pop();
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.8),
-                        colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.4),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_rounded,
-                    color: colorScheme.onSurface,
-                    size: 20,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tambah Habit',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
+                Text(
+                  'Bangun kebiasaan baik',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              // Title
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Tambah Habit',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: colorScheme.onSurface,
-                        fontSize: 24,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Bangun kebiasaan baik',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildModeTabs() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: _contentPadding,
+      child: _buildGlassCard(
+        padding: const EdgeInsets.all(4),
+        radius: 16,
+        child: TabBar(
+          controller: _tabController,
+          indicatorSize: TabBarIndicatorSize.tab,
+          dividerColor: Colors.transparent,
+          indicator: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
+          labelColor: colorScheme.onPrimary,
+          unselectedLabelColor: colorScheme.onSurfaceVariant,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          tabs: const [
+            Tab(text: 'Katalog'),
+            Tab(text: 'Custom'),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildGlassTabBar() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.surface.withValues(alpha: 0.7),
-                  colorScheme.surface.withValues(alpha: 0.4),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.12),
-              ),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.primary.withValues(alpha: 0.9),
-                    colorScheme.primary.withValues(alpha: 0.7),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              labelColor: colorScheme.onPrimary,
-              unselectedLabelColor: colorScheme.onSurfaceVariant,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-              tabs: const [
-                Tab(text: 'Katalog'),
-                Tab(text: 'Custom'),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
+  Widget _buildSubmittingState() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -489,14 +417,14 @@ class _AddHabitPageState extends State<AddHabitPage>
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 48,
-            height: 48,
+            width: 46,
+            height: 46,
             child: CircularProgressIndicator(
               strokeWidth: 3,
               color: colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
             'Menyimpan habit...',
             style: theme.textTheme.bodyMedium?.copyWith(

@@ -107,6 +107,7 @@ class _DevotionPageState extends State<DevotionPage>
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(
               decelerationRate: ScrollDecelerationRate.fast,
@@ -138,7 +139,7 @@ class _DevotionPageState extends State<DevotionPage>
                   getSnippet: _snippetForCard,
                   controller: _animationController,
                 ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SliverToBoxAdapter(child: SizedBox(height: 124)),
             ],
           ),
         ),

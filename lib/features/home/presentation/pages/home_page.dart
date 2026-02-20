@@ -146,6 +146,7 @@ class _HomePageContent extends StatelessWidget {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(
               decelerationRate: ScrollDecelerationRate.fast,
@@ -179,7 +180,7 @@ class _HomePageContent extends StatelessWidget {
 
               // Bottom spacing
               const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
+                child: SizedBox(height: 124),
               ),
             ],
           ),

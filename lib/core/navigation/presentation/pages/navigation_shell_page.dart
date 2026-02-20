@@ -97,11 +97,13 @@ class _FloatingGlassNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return SafeArea(
       top: false,
-      bottom: true,
-      child: Container(
-        padding: const EdgeInsets.only(bottom: 8),
+      bottom: false,
+      child: Padding(
+        padding: EdgeInsets.only(top: 6, bottom: bottomInset + 10),
         child: AnimatedBuilder(
           animation: controller,
           builder: (context, child) {

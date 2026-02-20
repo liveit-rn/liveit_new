@@ -436,19 +436,31 @@ class _AddHabitPageState extends State<AddHabitPage>
     );
   }
 
-  // ==================== CATALOG TAB ====================
-
   Widget _buildCatalogTab() {
     if (_isLoadingCatalog) {
-      return _buildCatalogLoadingState();
+      return _buildCenteredMessage(
+        icon: Icons.sync_rounded,
+        message: 'Memuat katalog...',
+        loading: true,
+      );
     }
 
     if (_catalogError != null) {
-      return _buildCatalogErrorState();
+      return _buildCenteredMessage(
+        icon: Icons.error_outline_rounded,
+        message: 'Gagal memuat katalog',
+        subtitle: _catalogError.toString(),
+        actionLabel: 'Coba Lagi',
+        onAction: _loadCatalog,
+      );
     }
 
     if (_catalogHabits.isEmpty) {
-      return _buildCatalogEmptyState();
+      return _buildCenteredMessage(
+        icon: Icons.folder_open_outlined,
+        message: 'Katalog kosong',
+        subtitle: 'Belum ada habit di katalog.',
+      );
     }
 
     return AnimatedBuilder(
@@ -465,260 +477,122 @@ class _AddHabitPageState extends State<AddHabitPage>
           decelerationRate: ScrollDecelerationRate.fast,
         ),
         slivers: [
-          // Advanced Options Card
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: _buildAdvancedOptionsCard(),
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+              child: _buildCatalogSettingsCard(),
             ),
           ),
-
-          // Habits List
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
+              child: Text(
+                'Pilih habit dari katalog',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final habit = _catalogHabits[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildCatalogHabitCard(habit),
-                  );
-                },
-                childCount: _catalogHabits.length,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList.builder(
+              itemCount: _catalogHabits.length,
+              itemBuilder: (context, index) {
+                final habit = _catalogHabits[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _buildCatalogHabitCard(habit),
+                );
+              },
             ),
           ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          const SliverToBoxAdapter(child: SizedBox(height: 92)),
         ],
       ),
     );
   }
 
-  Widget _buildCatalogLoadingState() {
+  Widget _buildCatalogSettingsCard() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Center(
+    return _buildGlassCard(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Memuat katalog...',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCatalogErrorState() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.surface.withValues(alpha: 0.9),
-                    colorScheme.surface.withValues(alpha: 0.6),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: colorScheme.error.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() => _showCatalogSettings = !_showCatalogSettings);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: colorScheme.errorContainer.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
+                  Icon(
+                    Icons.tune_rounded,
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Pengaturan default',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
+                  ),
+                  AnimatedRotation(
+                    duration: const Duration(milliseconds: 240),
+                    turns: _showCatalogSettings ? 0.5 : 0,
                     child: Icon(
-                      Icons.error_outline_rounded,
-                      size: 32,
-                      color: colorScheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Gagal memuat katalog',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _catalogError.toString(),
-                    style: theme.textTheme.bodySmall?.copyWith(
+                      Icons.keyboard_arrow_down_rounded,
                       color: colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  GestureDetector(
-                    onTap: _loadCatalog,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colorScheme.primary,
-                            colorScheme.primary.withValues(alpha: 0.85),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.refresh_rounded,
-                            size: 18,
-                            color: colorScheme.onPrimary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Coba Lagi',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCatalogEmptyState() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    colorScheme.primary.withValues(alpha: 0.2),
-                    colorScheme.primary.withValues(alpha: 0.05),
-                  ],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.folder_open_outlined,
-                  size: 48,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Katalog Kosong',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Belum ada habit di katalog.\nCoba buat habit custom!',
-              style: theme.textTheme.bodyMedium?.copyWith(
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${_formatRepeatPeriod(_repeatPeriod)} • ${_formatFrequency(_frequency)} • ${_currentColorName()} • $_icon',
+              style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                height: 1.5,
+                fontWeight: FontWeight.w500,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: () => _tabController.animateTo(1),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.primary.withValues(alpha: 0.85),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add_rounded,
-                      size: 18,
-                      color: colorScheme.onPrimary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Buat Custom',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Column(
+                children: [
+                  _buildRepeatPeriodSelector(),
+                  const SizedBox(height: 14),
+                  _buildFrequencySelector(),
+                  if (_frequency == 'custom') ...[
+                    const SizedBox(height: 14),
+                    _buildCustomDaysPicker(),
                   ],
-                ),
+                  const SizedBox(height: 14),
+                  _buildColorPicker(),
+                  const SizedBox(height: 14),
+                  _buildIconPicker(),
+                ],
               ),
             ),
-          ],
-        ),
+            crossFadeState: _showCatalogSettings
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 260),
+          ),
+        ],
       ),
     );
   }
@@ -726,309 +600,103 @@ class _AddHabitPageState extends State<AddHabitPage>
   Widget _buildCatalogHabitCard(Habit habit) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final habitColor = _parseColor(_color);
+    final accent = _parseColor(_color);
 
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
       onTap: () => _addCatalogHabit(habit),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.surface.withValues(alpha: 0.85),
-                  colorScheme.surface.withValues(alpha: 0.45),
+      child: _buildGlassCard(
+        radius: 16,
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: accent.withValues(alpha: 0.35)),
+              ),
+              child: Center(
+                child: Text(_icon, style: const TextStyle(fontSize: 24)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    habit.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if ((habit.description ?? '').trim().isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      habit.description!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 7),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _buildInfoChip(_formatRepeatPeriod(_repeatPeriod)),
+                      _buildInfoChip(_formatFrequency(_frequency)),
+                    ],
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.12),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                borderRadius: BorderRadius.circular(11),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              child: Icon(
+                Icons.add_rounded,
+                size: 20,
+                color: colorScheme.onPrimary,
+              ),
             ),
-            child: Row(
-              children: [
-                // Icon
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        habitColor.withValues(alpha: 0.2),
-                        habitColor.withValues(alpha: 0.08),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: habitColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      _icon,
-                      style: const TextStyle(fontSize: 28),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        habit.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: colorScheme.onSurface,
-                          fontSize: 17,
-                        ),
-                      ),
-                      if (habit.description != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          habit.description!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontSize: 13,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _buildInfoChip(
-                            _formatRepeatPeriod(_repeatPeriod),
-                            Icons.timer_outlined,
-                            habitColor,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildInfoChip(
-                            _formatFrequency(_frequency),
-                            Icons.repeat_rounded,
-                            colorScheme.tertiary,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Add button
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.primary.withValues(alpha: 0.85),
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    color: colorScheme.onPrimary,
-                    size: 24,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(String label, IconData icon, Color color) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildAdvancedOptionsCard() {
+  Widget _buildInfoChip(String label) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.surface.withValues(alpha: 0.8),
-                colorScheme.surface.withValues(alpha: 0.4),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.12),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.tertiary.withValues(alpha: 0.2),
-                          colorScheme.tertiary.withValues(alpha: 0.08),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.tune_rounded,
-                      color: colorScheme.tertiary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Pengaturan Lanjutan',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Sesuaikan habit yang akan ditambah',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      setState(() => _showAdvanced = !_showAdvanced);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.6),
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.3),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: AnimatedRotation(
-                        turns: _showAdvanced ? 0.5 : 0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Icon(
-                          Icons.expand_more_rounded,
-                          color: colorScheme.onSurface,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (_showAdvanced) ...[
-                const SizedBox(height: 20),
-                _buildRepeatPeriodSelector(),
-                const SizedBox(height: 16),
-                _buildFrequencySelector(),
-                if (_frequency == 'custom') ...[
-                  const SizedBox(height: 16),
-                  _buildCustomDaysPicker(),
-                ],
-                const SizedBox(height: 20),
-                _buildColorPicker(),
-                const SizedBox(height: 16),
-                _buildIconPicker(),
-              ],
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
-
-  // ==================== CUSTOM TAB ====================
 
   Widget _buildCustomTab() {
     return AnimatedBuilder(
@@ -1884,6 +1552,97 @@ class _AddHabitPageState extends State<AddHabitPage>
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildCenteredMessage({
+    required IconData icon,
+    required String message,
+    String? subtitle,
+    bool loading = false,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: _buildGlassCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (loading)
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: colorScheme.primary,
+                  ),
+                )
+              else
+                Icon(icon, size: 34, color: colorScheme.primary),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: 14),
+                FilledButton(onPressed: onAction, child: Text(actionLabel)),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassCard({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(14),
+    double radius = 18,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.surface.withValues(alpha: 0.92),
+                colorScheme.surface.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.1),
+            ),
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }

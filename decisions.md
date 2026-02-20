@@ -1721,3 +1721,49 @@ This file is append-only. Each entry must include:
 - Visual hierarchy lebih jelas dengan section grouping
 - User engagement meningkat melalui interactive pickers dan animations
 - Code quality improved dengan proper structure dan no analyzer issues
+
+---
+
+## 2026-02-20 — AddHabitPage Layout Cleanup & Modernization Pass 2
+
+**Context:**
+
+- User feedback dari visual QA: UI AddHabitPage masih terasa berantakan (spacing, ukuran komponen, hirarki visual belum rapih).
+- Perlu refinement kedua tanpa menambah fitur baru, fokus pada layout quality dan readability.
+
+**Choice:**
+
+1. **Visual simplification (reduce noise):**
+   - Menurunkan intensitas gradient/background tint agar halaman lebih calm dan tidak "ramai".
+   - Menstandarkan glass card style ke satu helper (`_buildGlassCard`) untuk konsistensi radius, border, dan alpha.
+
+2. **Layout & spacing normalization:**
+   - Menyeragamkan horizontal padding jadi 16px di seluruh section.
+   - Menurunkan vertical spacing yang terlalu longgar agar flow form lebih rapih.
+   - Menata ulang Custom tab menjadi urutan jelas: Preview → Informasi Habit → Jadwal → Personalisasi → Submit.
+
+3. **Input ergonomics improvement:**
+   - Field forms dipindah ke satu card grup agar visual hierarchy jelas.
+   - Input tinggi dan padding diperkecil (lebih proporsional di layar mobile kecil).
+   - Border/fill dibuat lebih subtle agar fokus tetap ke isi form.
+
+4. **Selector cleanup:**
+   - Repeat/Frequency diganti ke style ChoiceChip yang konsisten dan compact.
+   - Day picker gunakan FilterChip compact untuk konsistensi interaksi.
+   - Color/Icon picker dipadatkan (tanpa label per item) + selected state yang jelas.
+
+5. **Catalog tab readability:**
+   - Card habit katalog dibuat lebih compact (icon/button lebih kecil, text density lebih rapi).
+   - Pengaturan default diringkas dengan summary line + expandable advanced settings.
+
+**Rationale:**
+
+- Prinsip YAGNI: tidak menambah feature baru, hanya polishing layout/UX yang memang dipakai sekarang.
+- Mengurangi cognitive load dengan struktur visual yang predictable.
+- Menjaga konsistensi dengan halaman lain sambil meningkatkan kejelasan di screen mobile yang sempit.
+
+**Impact:**
+
+- File modified: `lib/features/habit_tracker/presentation/pages/add_habit_page.dart` (rewritten for cleaner structure).
+- AddHabitPage sekarang lebih rapih, modern, dan mudah discan secara visual.
+- Analyzer clean: `fvm flutter analyze lib/features/habit_tracker/presentation/pages/add_habit_page.dart` → no issues.

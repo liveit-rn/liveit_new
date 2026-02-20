@@ -969,3 +969,48 @@ Next Steps:
 **Status:** ✅ Fixed dan verified dengan `dart analyze`
 
 ---
+
+## Update (2026-02-20 - AddHabitPage UI Cleanup Pass 2):
+
+Initial Ask:
+
+- Rapihin lagi tampilan AddHabitPage karena masih terlihat berantakan; improve tata letak, ukuran komponen, dan overall modern feel.
+
+Initial Response:
+
+- Rework ulang layout AddHabitPage dengan fokus visual hierarchy, spacing consistency, dan simplifikasi komponen agar lebih clean di mobile.
+
+Checklist:
+
+- [x] Simplify visual style agar tidak terlalu ramai (gradient/tint dikurangi)
+- [x] Standarisasi card style dengan helper glass card tunggal
+- [x] Normalisasi spacing global (horizontal 16px, section spacing konsisten)
+- [x] Rapikan struktur Custom tab: Preview → Form → Jadwal → Personalisasi → Submit
+- [x] Group text input dalam satu form card yang lebih compact
+- [x] Refine Repeat/Frequency selector ke ChoiceChip compact
+- [x] Refine custom day selector ke FilterChip compact
+- [x] Rapikan color/icon picker (lebih padat, selected state jelas)
+- [x] Rapikan habit card katalog (density lebih baik, CTA lebih jelas)
+- [x] Tambahkan summary line pada catalog default settings
+- [x] Verifikasi analyzer clean untuk file AddHabitPage
+
+Current Status:
+
+- AddHabitPage sekarang jauh lebih rapih dan modern secara keseluruhan.
+- Komponen tidak lagi terasa saling "bertabrakan"; hierarchy lebih jelas dan mudah discan.
+- Mobile density lebih proporsional (input, chips, card, spacing).
+- Analyzer clean: no issues on `add_habit_page.dart`.
+
+Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Next Steps:
+
+- [ ] Hot restart di device (bukan hot reload) untuk memastikan state lama tidak mengganggu tampilan baru
+- [ ] Uji quick usability: tambah 1 habit dari katalog + 1 habit custom
+- [ ] Jika perlu, lanjut final polish kecil (typography scale & chip spacing berdasarkan feedback visual terbaru)
+
+---

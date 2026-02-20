@@ -713,259 +713,205 @@ class _AddHabitPageState extends State<AddHabitPage>
           decelerationRate: ScrollDecelerationRate.fast,
         ),
         slivers: [
-          // Preview Card
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: _buildHabitPreviewCard(),
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+              child: _buildPreviewCard(),
             ),
           ),
-
-          // Form Fields
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    _buildGlassTextField(
-                      controller: _titleController,
-                      label: 'Nama Habit',
-                      hint: 'Contoh: Baca Alkitab 15 menit',
-                      icon: Icons.edit_rounded,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama habit wajib diisi';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildGlassTextField(
-                      controller: _descriptionController,
-                      label: 'Deskripsi (Opsional)',
-                      hint: 'Ceritakan tentang habit ini...',
-                      icon: Icons.description_outlined,
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildGlassTextField(
-                      controller: _notesController,
-                      label: 'Catatan Pribadi (Opsional)',
-                      hint: 'Catatan untuk diri sendiri...',
-                      icon: Icons.note_outlined,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Schedule Section
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-              child: _buildSectionHeader(
-                'Jadwal',
-                Icons.schedule_rounded,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Form(key: _formKey, child: _buildFormCard()),
             ),
           ),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: _buildScheduleCard(),
             ),
           ),
-
-          // Personalization Section
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-              child: _buildSectionHeader(
-                'Personalisasi',
-                Icons.palette_outlined,
-                color: _parseColor(_color),
-              ),
-            ),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: _buildPersonalizationCard(),
             ),
           ),
-
-          // Submit Button
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
               child: _buildSubmitButton(),
             ),
           ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          const SliverToBoxAdapter(child: SizedBox(height: 86)),
         ],
       ),
     );
   }
 
-  Widget _buildHabitPreviewCard() {
+  Widget _buildPreviewCard() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final habitColor = _parseColor(_color);
-    final title =
-        _titleController.text.isEmpty ? 'Nama Habit' : _titleController.text;
+    final accent = _parseColor(_color);
+    final title = _titleController.text.trim().isEmpty
+        ? 'Nama habit kamu'
+        : _titleController.text.trim();
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                habitColor.withValues(alpha: 0.2),
-                habitColor.withValues(alpha: 0.08),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withValues(alpha: 0.12),
+            accent.withValues(alpha: 0.04),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withValues(alpha: 0.26)),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: accent.withValues(alpha: 0.35)),
+            ),
+            child: Center(
+              child: Text(_icon, style: const TextStyle(fontSize: 26)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${_formatRepeatPeriod(_repeatPeriod)} • ${_formatFrequency(_frequency)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: habitColor.withValues(alpha: 0.3),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: habitColor.withValues(alpha: 0.15),
-                blurRadius: 30,
-                offset: const Offset(0, 12),
-              ),
-            ],
           ),
-          child: Column(
-            children: [
-              Text(
-                'Pratinjau Habit',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: habitColor,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  // Icon
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          habitColor.withValues(alpha: 0.25),
-                          habitColor.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: habitColor.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _icon,
-                        style: const TextStyle(fontSize: 32),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
+        ],
+      ),
+    );
+  }
 
-                  // Content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: colorScheme.onSurface,
-                            fontSize: 18,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _buildInfoChip(
-                              _formatRepeatPeriod(_repeatPeriod),
-                              Icons.timer_outlined,
-                              habitColor,
-                            ),
-                            const SizedBox(width: 8),
-                            _buildInfoChip(
-                              _formatFrequency(_frequency),
-                              Icons.repeat_rounded,
-                              colorScheme.tertiary,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+  Widget _buildFormCard() {
+    return _buildGlassCard(
+      child: Column(
+        children: [
+          _buildSectionLabel('Informasi Habit', Icons.edit_note_rounded),
+          const SizedBox(height: 12),
+          _buildInputField(
+            controller: _titleController,
+            label: 'Nama Habit',
+            hint: 'Contoh: Baca Alkitab 15 menit',
+            icon: Icons.edit_rounded,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Nama habit wajib diisi';
+              }
+              return null;
+            },
           ),
+          const SizedBox(height: 10),
+          _buildInputField(
+            controller: _descriptionController,
+            label: 'Deskripsi (Opsional)',
+            hint: 'Penjelasan singkat habit',
+            icon: Icons.description_outlined,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 10),
+          _buildInputField(
+            controller: _notesController,
+            label: 'Catatan Pribadi (Opsional)',
+            hint: 'Catatan tambahan untuk diri sendiri',
+            icon: Icons.note_outlined,
+            maxLines: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleCard() {
+    return _buildGlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionLabel('Jadwal', Icons.schedule_rounded),
+          const SizedBox(height: 12),
+          _buildRepeatPeriodSelector(),
+          const SizedBox(height: 14),
+          _buildFrequencySelector(),
+          if (_frequency == 'custom') ...[
+            const SizedBox(height: 14),
+            _buildCustomDaysPicker(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalizationCard() {
+    return _buildGlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionLabel('Personalisasi', Icons.palette_outlined),
+          const SizedBox(height: 12),
+          _buildColorPicker(),
+          const SizedBox(height: 14),
+          _buildIconPicker(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: _createCustomHabit,
+        icon: const Icon(Icons.add_circle_outline_rounded),
+        label: const Text('Buat Habit Baru'),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(52),
+          textStyle: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon,
-      {required Color color}) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withValues(alpha: 0.2),
-                color.withValues(alpha: 0.08),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: colorScheme.onSurface,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGlassTextField({
+  Widget _buildInputField({
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -976,251 +922,97 @@ class _AddHabitPageState extends State<AddHabitPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.surface.withValues(alpha: 0.6),
-                colorScheme.surface.withValues(alpha: 0.3),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.15),
-            ),
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      maxLines: maxLines,
+      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon, size: 18, color: colorScheme.primary),
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.16),
           ),
-          child: TextFormField(
-            controller: controller,
-            validator: validator,
-            maxLines: maxLines,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w500,
-            ),
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: hint,
-              prefixIcon: Icon(icon, color: colorScheme.primary, size: 20),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.all(20),
-              labelStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-              ),
-            ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.16),
           ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.2),
         ),
       ),
     );
   }
 
-  Widget _buildScheduleCard() {
+  Widget _buildSectionLabel(String title, IconData icon) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.surface.withValues(alpha: 0.8),
-                colorScheme.surface.withValues(alpha: 0.4),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.12),
-            ),
-          ),
-          child: Column(
-            children: [
-              _buildRepeatPeriodSelector(),
-              const SizedBox(height: 16),
-              _buildFrequencySelector(),
-              if (_frequency == 'custom') ...[
-                const SizedBox(height: 16),
-                _buildCustomDaysPicker(),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPersonalizationCard() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.surface.withValues(alpha: 0.8),
-                colorScheme.surface.withValues(alpha: 0.4),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.12),
-            ),
-          ),
-          child: Column(
-            children: [
-              _buildColorPicker(),
-              const SizedBox(height: 20),
-              _buildIconPicker(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return GestureDetector(
-      onTap: _createCustomHabit,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primary,
-              colorScheme.primary.withValues(alpha: 0.85),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.35),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.add_circle_outline_rounded,
-              color: colorScheme.onPrimary,
-              size: 24,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Buat Habit Baru',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ==================== FORM CONTROLS ====================
-
-  Widget _buildRepeatPeriodSelector() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
+        Icon(icon, size: 18, color: colorScheme.primary),
+        const SizedBox(width: 8),
         Text(
-          'Durasi Commit',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
+          title,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
           ),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _repeatPeriodOptions.map((option) {
-            final isSelected = _repeatPeriod == option;
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                setState(() => _repeatPeriod = option);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isSelected
-                        ? [
-                            colorScheme.primary.withValues(alpha: 0.9),
-                            colorScheme.primary.withValues(alpha: 0.7),
-                          ]
-                        : [
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.6),
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.3),
-                          ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Text(
-                  _formatRepeatPeriod(option),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: isSelected
-                        ? colorScheme.onPrimary
-                        : colorScheme.onSurface,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
         ),
       ],
     );
   }
 
+  Widget _buildRepeatPeriodSelector() {
+    return _buildSelectableGroup(
+      title: 'Durasi Commit',
+      selectedValue: _repeatPeriod,
+      options: _repeatPeriodOptions,
+      formatter: _formatRepeatPeriod,
+      onChanged: (value) {
+        HapticFeedback.lightImpact();
+        setState(() => _repeatPeriod = value);
+      },
+    );
+  }
+
   Widget _buildFrequencySelector() {
+    return _buildSelectableGroup(
+      title: 'Frekuensi',
+      selectedValue: _frequency,
+      options: _frequencyOptions,
+      formatter: _formatFrequency,
+      onChanged: (value) {
+        HapticFeedback.lightImpact();
+        setState(() {
+          _frequency = value;
+          if (value != 'custom') {
+            _frequencyDays = [];
+          }
+        });
+      },
+    );
+  }
+
+  Widget _buildSelectableGroup({
+    required String title,
+    required String selectedValue,
+    required List<String> options,
+    required String Function(String value) formatter,
+    required ValueChanged<String> onChanged,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -1228,63 +1020,39 @@ class _AddHabitPageState extends State<AddHabitPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Frekuensi',
+          title,
           style: theme.textTheme.labelMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: _frequencyOptions.map((option) {
-            final isSelected = _frequency == option;
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                setState(() {
-                  _frequency = option;
-                  if (option != 'custom') _frequencyDays = [];
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isSelected
-                        ? [
-                            colorScheme.tertiary.withValues(alpha: 0.9),
-                            colorScheme.tertiary.withValues(alpha: 0.7),
-                          ]
-                        : [
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.6),
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.3),
-                          ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? colorScheme.tertiary
-                        : colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Text(
-                  _formatFrequency(option),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: isSelected
-                        ? colorScheme.onPrimary
-                        : colorScheme.onSurface,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
+          children: options.map((option) {
+            final isSelected = selectedValue == option;
+
+            return ChoiceChip(
+              label: Text(formatter(option)),
+              selected: isSelected,
+              onSelected: (_) => onChanged(option),
+              visualDensity: VisualDensity.compact,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              side: BorderSide(
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.16),
+              ),
+              selectedColor: colorScheme.primary.withValues(alpha: 0.14),
+              backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.35,
+              ),
+              labelStyle: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
               ),
             );
           }).toList(),
@@ -1307,62 +1075,43 @@ class _AddHabitPageState extends State<AddHabitPage>
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: List.generate(7, (index) {
             final isSelected = _frequencyDays.contains(index);
-            return GestureDetector(
-              onTap: () {
+
+            return FilterChip(
+              label: Text(_dayNames[index]),
+              selected: isSelected,
+              onSelected: (selected) {
                 HapticFeedback.lightImpact();
                 setState(() {
-                  if (isSelected) {
-                    _frequencyDays.remove(index);
-                  } else {
+                  if (selected) {
                     _frequencyDays.add(index);
                     _frequencyDays.sort();
+                  } else {
+                    _frequencyDays.remove(index);
                   }
                 });
               },
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isSelected
-                        ? [
-                            colorScheme.primary.withValues(alpha: 0.9),
-                            colorScheme.primary.withValues(alpha: 0.7),
-                          ]
-                        : [
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.5),
-                            colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.2),
-                          ],
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    _dayNames[index],
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: isSelected
-                          ? colorScheme.onPrimary
-                          : colorScheme.onSurface,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                ),
+              visualDensity: VisualDensity.compact,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              side: BorderSide(
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.16),
+              ),
+              selectedColor: colorScheme.primary.withValues(alpha: 0.14),
+              backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.35,
+              ),
+              labelStyle: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
               ),
             );
           }),
@@ -1378,79 +1127,66 @@ class _AddHabitPageState extends State<AddHabitPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Warna',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Text(
+              'Warna',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              _currentColorName(),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: _colorOptions.map((colorData) {
-            final hex = colorData['hex'] as String;
-            final name = colorData['name'] as String;
+          spacing: 10,
+          runSpacing: 10,
+          children: _colorOptions.map((option) {
+            final hex = option['hex']!;
             final color = _parseColor(hex);
             final isSelected = _color == hex;
 
-            return GestureDetector(
+            return InkWell(
+              borderRadius: BorderRadius.circular(99),
               onTap: () {
                 HapticFeedback.lightImpact();
                 setState(() => _color = hex);
               },
-              child: Column(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected
-                            ? colorScheme.onSurface
-                            : Colors.transparent,
-                        width: 3,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: color.withValues(alpha: 0.5),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : [
-                              BoxShadow(
-                                color: color.withValues(alpha: 0.2),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                    ),
-                    child: isSelected
-                        ? Icon(
-                            Icons.check_rounded,
-                            color: Colors.white,
-                            size: 24,
-                          )
-                        : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? colorScheme.onSurface
+                        : Colors.transparent,
+                    width: 2,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    name,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: isSelected
-                          ? colorScheme.onSurface
-                          : colorScheme.onSurfaceVariant,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: isSelected
+                    ? const Icon(Icons.check, size: 16, color: Colors.white)
+                    : null,
               ),
             );
           }).toList(),
@@ -1462,91 +1198,64 @@ class _AddHabitPageState extends State<AddHabitPage>
   Widget _buildIconPicker() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final selectedColor = _parseColor(_color);
+    final accent = _parseColor(_color);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Ikon',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Text(
+              'Ikon',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              _currentIconName(),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: _iconOptions.map((iconData) {
-            final emoji = iconData['emoji'] as String;
-            final name = iconData['name'] as String;
+          spacing: 8,
+          runSpacing: 8,
+          children: _iconOptions.map((option) {
+            final emoji = option['emoji']!;
             final isSelected = _icon == emoji;
 
-            return GestureDetector(
+            return InkWell(
+              borderRadius: BorderRadius.circular(12),
               onTap: () {
                 HapticFeedback.lightImpact();
                 setState(() => _icon = emoji);
               },
-              child: Column(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isSelected
-                            ? [
-                                selectedColor.withValues(alpha: 0.25),
-                                selectedColor.withValues(alpha: 0.1),
-                              ]
-                            : [
-                                colorScheme.surfaceContainerHighest
-                                    .withValues(alpha: 0.6),
-                                colorScheme.surfaceContainerHighest
-                                    .withValues(alpha: 0.3),
-                              ],
-                      ),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected
-                            ? selectedColor
-                            : colorScheme.outline.withValues(alpha: 0.15),
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        emoji,
-                        style: TextStyle(
-                          fontSize: 28,
-                          shadows: isSelected
-                              ? [
-                                  Shadow(
-                                    color: selectedColor.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                  ),
-                                ]
-                              : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? accent.withValues(alpha: 0.2)
+                      : colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.35,
                         ),
-                      ),
-                    ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? accent
+                        : colorScheme.outline.withValues(alpha: 0.16),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    name,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: isSelected
-                          ? selectedColor
-                          : colorScheme.onSurfaceVariant,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                      fontSize: 10,
-                    ),
-                  ),
-                ],
+                ),
+                child: Center(
+                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                ),
               ),
             );
           }).toList(),

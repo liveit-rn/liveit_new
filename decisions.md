@@ -1767,3 +1767,37 @@ This file is append-only. Each entry must include:
 - File modified: `lib/features/habit_tracker/presentation/pages/add_habit_page.dart` (rewritten for cleaner structure).
 - AddHabitPage sekarang lebih rapih, modern, dan mudah discan secara visual.
 - Analyzer clean: `fvm flutter analyze lib/features/habit_tracker/presentation/pages/add_habit_page.dart` → no issues.
+
+---
+
+## 2026-02-20 — Floating Navigation Consistency (Home/Devotion vs Profile)
+
+**Context:**
+
+- User melaporkan bottom navigation pill terlihat kurang "hovering" pada HomePage dan DevotionPage dibanding ProfilePage.
+- Goal: samakan feel floating navigation antar tab tanpa ubah arsitektur route.
+
+**Choice:**
+
+1. **Lift nav bar position globally:**
+   - Update `_FloatingGlassNavBar` agar offset vertikal lebih floating: tambah top padding ringan dan bottom padding dinamis berbasis `MediaQuery.padding.bottom + 10`.
+   - `SafeArea(bottom: false)` dipakai agar padding bawah dikontrol eksplisit oleh shell.
+
+2. **Align page safe-area behavior with Profile:**
+   - HomePage & DevotionPage diubah ke `SafeArea(bottom: false)` supaya konten/background extend ke area belakang nav.
+   - Extra bottom spacer pada scroll ditambah dari `100` ke `124` agar konten tetap aman dari overlap nav.
+
+**Rationale:**
+
+- Floating effect bergantung pada visual separation + content continuity di belakang nav.
+- Menyamakan treatment bottom area dengan ProfilePage membuat nav terasa detached/hovering secara konsisten.
+- Perubahan minimal, tidak menyentuh logic navigasi atau state management.
+
+**Impact:**
+
+- Files modified:
+  - `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+  - `lib/features/home/presentation/pages/home_page.dart`
+  - `lib/features/inspire/presentation/pages/devotion_page.dart`
+- Nav pill sekarang punya hover feel yang lebih konsisten di Home, Devotion, dan Profile.
+- Analyzer clean: `fvm flutter analyze` pada 3 file terkait → no issues.

@@ -1014,3 +1014,48 @@ Next Steps:
 - [ ] Jika perlu, lanjut final polish kecil (typography scale & chip spacing berdasarkan feedback visual terbaru)
 
 ---
+
+## Update (2026-02-20 - Floating Nav Consistency):
+
+Initial Ask:
+
+- Buat navigation shell di HomePage dan DevotionPage terasa melayang/hovering seperti di ProfilePage.
+
+Initial Response:
+
+- Menyesuaikan positioning nav bar di shell + menyamakan perilaku bottom area Home/Devotion agar efek floating lebih konsisten.
+
+Checklist:
+
+- [x] Adjust `_FloatingGlassNavBar` vertical offset agar lebih detached
+- [x] Gunakan padding bawah dinamis berdasarkan `MediaQuery.padding.bottom`
+- [x] Ubah HomePage ke `SafeArea(bottom: false)`
+- [x] Ubah DevotionPage ke `SafeArea(bottom: false)`
+- [x] Tambah bottom spacer HomePage `100 -> 124`
+- [x] Tambah bottom spacer DevotionPage `100 -> 124`
+- [x] Verifikasi analyzer untuk 3 file terkait
+
+Current Status:
+
+- Floating pill navigation sekarang tampil lebih hovering dan konsisten pada Home, Devotion, dan Profile.
+- Konten Home/Devotion tetap aman dari overlap berkat spacer bawah yang diperbesar.
+- Tidak ada perubahan pada logic tab navigation/bloc.
+
+Files Modified:
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+- `lib/features/home/presentation/pages/home_page.dart`
+- `lib/features/inspire/presentation/pages/devotion_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/core/navigation/presentation/pages/navigation_shell_page.dart lib/features/home/presentation/pages/home_page.dart lib/features/inspire/presentation/pages/devotion_page.dart`
+
+Next Steps:
+
+- [ ] Hot restart app untuk memverifikasi feel floating terbaru di device
+- [ ] Cek visual di device kecil & besar untuk validasi jarak bawah nav
+
+---

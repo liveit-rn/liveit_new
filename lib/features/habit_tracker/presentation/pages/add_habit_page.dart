@@ -1,10 +1,12 @@
 import 'dart:ui';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../../../core/injection/injection_container.dart';
-import '../../domain/repositories/habit_repository.dart';
 import '../../domain/entities/habit.dart';
+import '../../domain/repositories/habit_repository.dart';
 
 @RoutePage()
 class AddHabitPage extends StatefulWidget {
@@ -16,28 +18,28 @@ class AddHabitPage extends StatefulWidget {
 
 class _AddHabitPageState extends State<AddHabitPage>
     with TickerProviderStateMixin {
-  late TabController _tabController;
+  static const _contentPadding = EdgeInsets.symmetric(horizontal: 16);
+
   final HabitRepository _repository = getIt<HabitRepository>();
   final _formKey = GlobalKey<FormState>();
-
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _notesController = TextEditingController();
+
+  late final TabController _tabController;
+  late final AnimationController _animationController;
+
   bool _isSubmitting = false;
   bool _isLoadingCatalog = true;
-  List<Habit> _catalogHabits = [];
   Object? _catalogError;
+  List<Habit> _catalogHabits = const [];
 
-  // Form state
   String _repeatPeriod = 'forever';
   String _frequency = 'daily';
   List<int> _frequencyDays = [];
   String _color = '#6366F1';
   String _icon = '⭐';
-  bool _showAdvanced = false;
-
-  // Animation
-  late final AnimationController _animationController;
+  bool _showCatalogSettings = false;
 
   static const List<String> _repeatPeriodOptions = [
     'forever',
@@ -93,27 +95,34 @@ class _AddHabitPageState extends State<AddHabitPage>
     _tabController = TabController(length: 2, vsync: this);
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 700),
     );
 
+    _titleController.addListener(_refreshPreview);
     _loadCatalog();
 
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) _animationController.forward();
+    Future.delayed(const Duration(milliseconds: 80), () {
+      if (mounted) {
+        _animationController.forward();
+      }
     });
-
-    // Update preview when form changes
-    _titleController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_refreshPreview);
     _tabController.dispose();
     _animationController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  void _refreshPreview() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadCatalog() async {
@@ -124,19 +133,17 @@ class _AddHabitPageState extends State<AddHabitPage>
 
     try {
       final habits = await _repository.getHabitCatalog();
-      if (mounted) {
-        setState(() {
-          _catalogHabits = habits;
-          _isLoadingCatalog = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _catalogError = e;
-          _isLoadingCatalog = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _catalogHabits = habits;
+        _isLoadingCatalog = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _catalogError = error;
+        _isLoadingCatalog = false;
+      });
     }
   }
 
@@ -501,11 +508,8 @@ class _AddHabitPageState extends State<AddHabitPage>
       builder: (context, child) {
         final value = _animationController.value;
         return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
         );
       },
       child: CustomScrollView(
@@ -1084,11 +1088,8 @@ class _AddHabitPageState extends State<AddHabitPage>
       builder: (context, child) {
         final value = _animationController.value;
         return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
+          offset: Offset(0, 20 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
         );
       },
       child: CustomScrollView(

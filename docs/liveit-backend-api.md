@@ -80,10 +80,13 @@ The API uses **Bearer JWT**.
     ```json
     {
       "fileId": "6744a...",
-      "viewUrl": "https://cloud.appwrite.io/v1/storage/buckets/..."
+      "avatarUrl": "/profiles/assets/avatar/6744a..."
     }
     ```
   * Then set the avatar on profile via `PUT /profiles/me` using `profileImageId: <fileId>`.
+
+* `GET /profiles/assets/avatar/:fileId`
+  * Backend proxy endpoint for avatar image bytes (client does not call Appwrite directly).
 
 ### Email claim (for OAuth placeholder email)
 

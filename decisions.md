@@ -1801,3 +1801,306 @@ This file is append-only. Each entry must include:
   - `lib/features/inspire/presentation/pages/devotion_page.dart`
 - Nav pill sekarang punya hover feel yang lebih konsisten di Home, Devotion, dan Profile.
 - Analyzer clean: `fvm flutter analyze` pada 3 file terkait → no issues.
+
+---
+
+## 2026-02-20 — Profile Backend vs Flutter gap analysis documentation
+
+**Context:**
+
+- User meminta analisis menyeluruh fitur Profile: status backend, status client Flutter, endpoint coverage, data yang ditampilkan UI, dan data yang dapat disuplai backend.
+- Scope diminta dokumentasi saja, tanpa implementasi kode.
+
+**Choice:**
+
+- Menulis dokumen analisis tunggal di `docs/profile-backend-client-gap-analysis.md` yang merangkum:
+  - endpoint backend Profiles yang tersedia,
+  - endpoint yang dipakai Flutter saat ini,
+  - matrix data UI Profile vs kemampuan backend,
+  - gap kontrak request/response dan gap fitur,
+  - rekomendasi teknis non-implementasi.
+
+**Rationale:**
+
+- Menjadikan hasil investigasi lintas repo terdokumentasi dan bisa jadi referensi tim mobile/backend tanpa perlu mengulang analisis di chat.
+- Mempercepat alignment sebelum coding supaya perubahan berikutnya fokus ke gap paling kritis (contract mismatch), bukan asumsi.
+
+**Impact:**
+
+- Added: `docs/profile-backend-client-gap-analysis.md`
+- Tidak ada perubahan runtime behavior pada aplikasi Flutter.
+
+---
+
+## 2026-02-20 — Profile avatar contract alignment with backend proxy
+
+**Context:**
+
+- User meminta implementasi langsung untuk gap avatar: client harus hanya berkomunikasi dengan backend (tanpa direct Appwrite URL).
+- Backend sudah diubah untuk expose `avatarUrl` proxy backend, sehingga contract Flutter perlu diselaraskan.
+
+**Choice:**
+
+- Menyelaraskan layer profile Flutter agar kompatibel dengan kontrak backend terbaru:
+  - parsing payload profile mendukung response object langsung maupun nested `data`,
+  - mapping update nama menggunakan field `name`,
+  - mapping update avatar menggunakan field `profileImageId`,
+  - normalisasi `avatarUrl` relatif (`/profiles/assets/...`) menjadi URL absolut berbasis `baseUrl` API.
+- Menyesuaikan repository contract agar method update profile mengembalikan `ProfileModel` terbaru dari backend.
+- Memperbarui dokumen analisis profile agar mencatat gap avatar yang sudah terselesaikan.
+
+**Rationale:**
+
+- Menjaga boundary arsitektur tetap bersih: Flutter hanya konsumsi backend.
+- Menghilangkan mismatch kontrak yang sebelumnya menyebabkan sinkronisasi data profile rapuh.
+- Memastikan UI avatar `Image.network` dapat merender URL backend dengan benar.
+
+**Impact:**
+
+- Updated files:
+  - `lib/features/profile/data/datasources/profile_remote_datasource.dart`
+  - `lib/features/profile/domain/models/profile_model.dart`
+  - `lib/features/profile/domain/repositories/profile_repository.dart`
+  - `lib/features/profile/data/repositories/profile_repository_impl.dart`
+  - `lib/features/profile/data/repositories/in_memory_profile_repository.dart`
+  - `lib/features/profile/presentation/bloc/profile_bloc.dart`
+  - `lib/features/profile/presentation/bloc/profile_event.dart`
+  - `docs/profile-backend-client-gap-analysis.md`
+  - `docs/liveit-backend-api.md`
+- Verification:
+  - `fvm flutter analyze` untuk file profile yang diubah: pass (hanya info deprecation existing di `profile_page.dart`).
+
+---
+
+## 2026-02-20 — Implement avatar upload/change on Profile page
+
+**Context:**
+
+- User meminta implementasi langsung fitur upload dan ubah foto profile di halaman Profile Flutter.
+- Backend contract avatar sudah siap dengan flow proxy: `POST /profiles/upload/avatar` lalu `PUT /profiles/me { profileImageId }`.
+
+**Choice:**
+
+- Menambahkan flow lengkap di client:
+  - pilih foto dari galeri via `image_picker`,
+  - upload ke backend endpoint avatar,
+  - persist `profileImageId` ke profile,
+  - refresh state profile dari response backend.
+- Menambahkan event BLoC baru `ProfileAvatarUploadRequested` untuk menjaga alur tetap dalam arsitektur feature profile.
+- Menambahkan normalisasi URL avatar relatif dari backend menjadi absolut agar `Image.network` dapat langsung render.
+
+**Rationale:**
+
+- Menjaga boundary `Flutter <-> Backend` tanpa direct Appwrite access.
+- Menjaga implementasi tetap boring dan predictable lewat satu alur API yang eksplisit.
+
+**Impact:**
+
+- Updated dependencies:
+  - `pubspec.yaml` (add `image_picker`)
+- Updated files:
+  - `lib/features/profile/presentation/pages/profile_page.dart`
+  - `lib/features/profile/presentation/bloc/profile_event.dart`
+  - `lib/features/profile/presentation/bloc/profile_bloc.dart`
+  - `lib/features/profile/domain/repositories/profile_repository.dart`
+  - `lib/features/profile/data/repositories/profile_repository_impl.dart`
+  - `lib/features/profile/data/repositories/in_memory_profile_repository.dart`
+  - `lib/features/profile/data/datasources/profile_remote_datasource.dart`
+  - `ios/Runner/Info.plist`
+- Verification:
+  - `fvm flutter pub get` berhasil.
+  - `fvm flutter analyze` untuk file terkait pass (hanya info deprecation existing di `profile_page.dart`).
+
+---
+
+## 2026-02-20 — Improve avatar picker error handling
+
+**Context:**
+
+- Setelah implement upload avatar, user melaporkan snackbar "gagal memilih foto profile" saat tap avatar.
+- Pesan error sebelumnya terlalu generik sehingga sulit dibedakan antara plugin belum aktif, izin ditolak, atau error lain.
+
+**Choice:**
+
+- Menambahkan handling error yang lebih spesifik di `ProfilePage` untuk proses image picking:
+  - `MissingPluginException` -> arahkan user melakukan full restart app,
+  - `PlatformException` kode permission/denied -> tampilkan instruksi izin galeri,
+  - fallback generic untuk error lainnya.
+
+**Rationale:**
+
+- Mengurangi ambiguity saat troubleshooting di device dan mempercepat pemulihan tanpa tebak-tebakan.
+
+**Impact:**
+
+- Updated: `lib/features/profile/presentation/pages/profile_page.dart`
+- Verification: `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart` (pass; hanya info deprecation existing).
+
+---
+
+## 2026-02-20 — Handle `channel-error` on avatar picker with fallback
+
+**Context:**
+
+- User masih mendapatkan snackbar error saat pilih foto profile, dengan detail `(channel-error)`.
+- Error ini menandakan method channel `image_picker` gagal di runtime pada sebagian environment/device.
+
+**Choice:**
+
+- Tambahkan fallback picker menggunakan `file_picker` ketika:
+  - terjadi `MissingPluginException`, atau
+  - terjadi `PlatformException` dengan code berisi `channel-error`.
+- Refactor alur pick+dispatch avatar agar dipakai bersama oleh `image_picker` dan fallback.
+
+**Rationale:**
+
+- Menjaga UX tetap jalan meskipun plugin channel utama bermasalah.
+- Mengurangi hard blocker pada flow ubah avatar tanpa mengubah kontrak backend.
+
+**Impact:**
+
+- Added dependency: `file_picker` in `pubspec.yaml`.
+- Updated: `lib/features/profile/presentation/pages/profile_page.dart`.
+- Verification:
+  - `fvm flutter pub get` sukses.
+  - `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart` pass (hanya info deprecation existing).
+
+---
+
+## 2026-02-20 — Fix file_picker fallback crash (`method image` not found)
+
+**Context:**
+
+- User mengirim log crash: `MissingPluginException(No implementation found for method image on channel miguelruivo.flutter.plugins.filepicker)`.
+- Root cause: fallback memanggil `FileType.image` yang pada environment ini tidak didukung oleh method channel yang tersedia, dan exception di fallback belum ditangani.
+
+**Choice:**
+
+- Ubah fallback `file_picker` ke mode yang paling kompatibel:
+  - gunakan `FileType.custom` + `allowedExtensions: ['jpg','jpeg','png','webp']`.
+- Tambahkan try/catch di fallback picker agar exception plugin tidak crash app, cukup return `false` dan lanjutkan alur error UI.
+
+**Rationale:**
+
+- Menjaga fallback benar-benar fail-safe dan tidak melempar unhandled exception.
+- Tetap mempertahankan tujuan produk: user bisa pilih image file untuk avatar.
+
+**Impact:**
+
+- Updated: `lib/features/profile/presentation/pages/profile_page.dart`.
+- Verification: `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart` pass (hanya info deprecation existing).
+
+---
+
+## 2026-02-21 — Avatar edit flow moved into long-press preview actions
+
+**Context:**
+
+- User meminta perubahan behavior: tap avatar di Profile tidak boleh langsung buka galeri.
+- Aksi ubah/hapus foto harus dipindah ke mode preview yang muncul saat long-press avatar.
+- Di preview, tap foto atau tap ikon edit harus membuka modal aksi sederhana.
+
+**Choice:**
+
+1. **Interaction flow update:**
+   - Hapus direct upload dari `onTap` avatar utama.
+   - Pertahankan `onLongPress` untuk membuka preview overlay.
+   - Pindahkan ikon edit dari avatar utama ke dalam preview overlay.
+
+2. **Preview actions modal:**
+   - Tambah bottom sheet aksi dari preview (dipicu oleh tap foto atau ikon edit) dengan opsi:
+     - `Ganti foto profile`
+     - `Hapus foto profile`
+   - Setelah user pilih aksi, preview ditutup lalu jalankan action terkait.
+
+3. **Avatar remove support (end-to-end):**
+   - Tambah event bloc `ProfileAvatarRemoveRequested`.
+   - Tambah repository contract `removeAvatar()`.
+   - Implementasi data source remove avatar via `PUT /profiles/me` dengan payload `{ profileImageId: null }`.
+   - Update repository impl + in-memory impl agar konsisten.
+
+**Rationale:**
+
+- Menyamakan UX dengan pola Instagram-like preview flow, namun tetap minimal (tanpa action bar kompleks).
+- Mengurangi accidental action (tidak lagi langsung buka galeri saat tap biasa).
+- Menjaga arsitektur bersih: semua perubahan avatar tetap lewat BLoC/repository flow.
+
+**Impact:**
+
+- Updated files:
+  - `lib/features/profile/presentation/pages/profile_page.dart`
+  - `lib/features/profile/presentation/bloc/profile_event.dart`
+  - `lib/features/profile/presentation/bloc/profile_bloc.dart`
+  - `lib/features/profile/domain/repositories/profile_repository.dart`
+  - `lib/features/profile/data/repositories/profile_repository_impl.dart`
+  - `lib/features/profile/data/repositories/in_memory_profile_repository.dart`
+  - `lib/features/profile/data/datasources/profile_remote_datasource.dart`
+- Verification:
+  - `fvm flutter analyze` untuk file terkait pass tanpa warning/error baru.
+  - Tersisa info deprecation lama di `profile_page.dart` (`background`, `surfaceVariant`).
+
+---
+
+## 2026-02-21 — Instagram-like long-press avatar quick preview (simple mode)
+
+**Context:**
+
+- User meminta behavior seperti Instagram: saat avatar di-hold lama, foto profile terbuka dalam mode preview.
+- Scope dipersempit: hanya preview foto profile saja, tanpa action buttons tambahan.
+
+**Choice:**
+
+- Menambahkan gesture `onLongPress` pada komponen avatar profile.
+- Saat long-press, tampilkan overlay preview fullscreen menggunakan `showGeneralDialog` dengan:
+  - background blur + dim layer,
+  - avatar besar berbentuk lingkaran di tengah,
+  - transisi fade + scale untuk feel quick preview.
+- Interaction sederhana:
+  - tap di luar untuk menutup preview,
+  - `onTap` avatar existing tetap dipertahankan untuk flow upload/edit avatar.
+
+**Rationale:**
+
+- Meniru pola Instagram terbaru pada level esensial (press-and-hold membuka preview) tanpa menambah kompleksitas UI.
+- Menjaga YAGNI: tidak menambahkan action bar/share/copy/QR karena tidak diminta.
+- Tidak mengganggu flow fitur upload avatar yang sudah aktif.
+
+**Impact:**
+
+- Updated: `lib/features/profile/presentation/pages/profile_page.dart`
+- UX profile image lebih modern: user bisa quick-view avatar tanpa pindah halaman.
+- Verification:
+  - `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart`
+  - hasil: hanya info deprecation existing (`background`, `surfaceVariant`), tanpa warning/error baru dari fitur preview.
+
+---
+
+## 2026-02-21 — Add draggable/throw-to-dismiss avatar preview motion
+
+**Context:**
+
+- User meminta preview avatar dibuat lebih Instagram-like: saat preview terbuka, avatar bisa digerakkan mengikuti gesture drag, dan bisa "dilempar" ke arah mana pun untuk menutup preview.
+
+**Choice:**
+
+- Menambahkan komponen stateful `_DraggableAvatarPreview` untuk motion layer preview avatar.
+- Gesture yang diimplementasikan pada seluruh overlay:
+  - `onPanUpdate`: avatar mengikuti gerakan user (translate + rotate + scale ringan),
+  - `onPanEnd`: jika velocity tinggi atau jarak drag melewati threshold -> dismiss animation,
+  - jika tidak melewati threshold -> avatar spring back ke tengah.
+- Menambahkan efek visual pendukung:
+  - alpha overlay backdrop ikut menurun saat avatar ditarik jauh,
+  - haptic feedback ringan saat trigger dismiss via throw.
+
+**Rationale:**
+
+- Memberi feel interaction yang lebih natural, playful, dan dekat dengan pola interaction media app modern.
+- Tetap mempertahankan kesederhanaan: action modal change/remove tetap sama, hanya motion interaction yang ditingkatkan.
+
+**Impact:**
+
+- Updated: `lib/features/profile/presentation/pages/profile_page.dart`
+- Long-press preview sekarang mendukung drag-follow dan throw-to-dismiss dari arah apa pun.
+- Verification:
+  - `dart format lib/features/profile/presentation/pages/profile_page.dart`
+  - `fvm flutter analyze` pada file profile terkait (pass; hanya info deprecation existing di `profile_page.dart`).

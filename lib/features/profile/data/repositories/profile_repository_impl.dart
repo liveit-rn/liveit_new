@@ -8,7 +8,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource _remoteDataSource;
 
   ProfileRepositoryImpl({required ProfileRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   @override
   Future<ProfileModel> fetchProfile() async {
@@ -16,18 +16,34 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<void> updateDisplayName(String displayName) async {
-    await _remoteDataSource.updateDisplayName(displayName);
+  Future<ProfileModel> updateDisplayName(String displayName) async {
+    return await _remoteDataSource.updateDisplayName(displayName);
   }
 
   @override
-  Future<void> updateAvatar(String avatarUrl) async {
-    await _remoteDataSource.updateAvatar(avatarUrl);
+  Future<ProfileModel> uploadAvatar({
+    required List<int> fileBytes,
+    required String fileName,
+  }) async {
+    return await _remoteDataSource.uploadAndUpdateAvatar(
+      fileBytes: fileBytes,
+      fileName: fileName,
+    );
   }
 
   @override
-  Future<void> updateTimezone(String timezone) async {
-    await _remoteDataSource.updateTimezone(timezone);
+  Future<ProfileModel> updateAvatar(String profileImageId) async {
+    return await _remoteDataSource.updateAvatar(profileImageId);
+  }
+
+  @override
+  Future<ProfileModel> removeAvatar() async {
+    return await _remoteDataSource.removeAvatar();
+  }
+
+  @override
+  Future<ProfileModel> updateTimezone(String timezone) async {
+    return await _remoteDataSource.updateTimezone(timezone);
   }
 
   @override

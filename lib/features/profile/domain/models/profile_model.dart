@@ -3,6 +3,7 @@ class ProfileModel {
   final String username;
   final String email;
   final String? displayName;
+  final String? profileImageId;
   final String? avatarUrl;
   final String? timezone;
   final int totalZoePoints;
@@ -15,6 +16,7 @@ class ProfileModel {
     required this.username,
     required this.email,
     this.displayName,
+    this.profileImageId,
     this.avatarUrl,
     this.timezone,
     required this.totalZoePoints,
@@ -28,6 +30,7 @@ class ProfileModel {
     String? username,
     String? email,
     String? displayName,
+    String? profileImageId,
     String? avatarUrl,
     String? timezone,
     int? totalZoePoints,
@@ -40,6 +43,7 @@ class ProfileModel {
       username: username ?? this.username,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
+      profileImageId: profileImageId ?? this.profileImageId,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       timezone: timezone ?? this.timezone,
       totalZoePoints: totalZoePoints ?? this.totalZoePoints,
@@ -50,17 +54,26 @@ class ProfileModel {
   }
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    final totalZoePoints = json['totalZoePoints'] ?? json['totalZP'];
+    final currentLevel = json['currentLevel'] ?? json['level'];
+    final joinedAtRaw = json['joinedAt'] ?? json['createdAt'];
+
     return ProfileModel(
       id: json['id'] as String,
-      username: json['username'] as String,
+      username: json['username'] as String? ?? 'user',
       email: json['email'] as String,
-      displayName: json['displayName'] as String?,
+      displayName: json['displayName'] as String? ?? json['name'] as String?,
+      profileImageId: json['profileImageId'] as String?,
       avatarUrl: json['avatarUrl'] as String?,
       timezone: json['timezone'] as String?,
-      totalZoePoints: json['totalZoePoints'] as int? ?? 0,
-      currentLevel: json['currentLevel'] as int? ?? 1,
-      currentStreak: json['currentStreak'] as int?,
-      joinedAt: DateTime.parse(json['joinedAt'] as String),
+      totalZoePoints: totalZoePoints is num ? totalZoePoints.toInt() : 0,
+      currentLevel: currentLevel is num ? currentLevel.toInt() : 1,
+      currentStreak: json['currentStreak'] is num
+          ? (json['currentStreak'] as num).toInt()
+          : null,
+      joinedAt: joinedAtRaw is String
+          ? DateTime.parse(joinedAtRaw)
+          : DateTime.now(),
     );
   }
 
@@ -70,6 +83,7 @@ class ProfileModel {
       'username': username,
       'email': email,
       'displayName': displayName,
+      'profileImageId': profileImageId,
       'avatarUrl': avatarUrl,
       'timezone': timezone,
       'totalZoePoints': totalZoePoints,

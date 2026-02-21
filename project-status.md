@@ -24,6 +24,559 @@ Next Steps:
 
 ---
 
+## Update (2026-02-21 - Avatar Action Flow via Long Press Preview):
+
+Initial Ask:
+
+- Ubah behavior avatar profile: tap biasa tidak langsung buka galeri.
+- Aksi ubah/hapus foto dipindah ke preview (dibuka via long-press avatar), dan dari preview saat tap foto / ikon edit muncul modal opsi.
+
+Initial Response:
+
+- Refactor interaction avatar ke flow dua tahap: long-press untuk preview, lalu action sheet untuk ganti/hapus.
+
+Checklist:
+
+- [x] Hilangkan direct `onTap` avatar utama yang langsung pick image
+- [x] Pertahankan long-press membuka preview overlay
+- [x] Pindahkan ikon edit kecil dari avatar utama ke preview overlay
+- [x] Tambah tap pada foto preview membuka modal aksi
+- [x] Tambah tap pada ikon edit preview membuka modal aksi yang sama
+- [x] Tambah opsi modal: `Ganti foto profile`
+- [x] Tambah opsi modal: `Hapus foto profile`
+- [x] Tambah dukungan remove avatar end-to-end (event/bloc/repository/datasource)
+- [x] Verifikasi analyzer untuk file-file profile terkait
+
+Current Status:
+
+- Flow avatar sekarang lebih aman dan terstruktur:
+  - long-press avatar -> preview,
+  - tap foto/ikon edit di preview -> pilih ganti/hapus,
+  - aksi dijalankan setelah preview ditutup.
+- Aksi hapus foto profile sudah terhubung ke backend (`profileImageId: null`).
+
+Files Modified:
+
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `lib/features/profile/presentation/bloc/profile_event.dart`
+- `lib/features/profile/presentation/bloc/profile_bloc.dart`
+- `lib/features/profile/domain/repositories/profile_repository.dart`
+- `lib/features/profile/data/repositories/profile_repository_impl.dart`
+- `lib/features/profile/data/repositories/in_memory_profile_repository.dart`
+- `lib/features/profile/data/datasources/profile_remote_datasource.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart lib/features/profile/presentation/bloc/profile_bloc.dart lib/features/profile/presentation/bloc/profile_event.dart lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/data/repositories/profile_repository_impl.dart lib/features/profile/data/repositories/in_memory_profile_repository.dart lib/features/profile/data/datasources/profile_remote_datasource.dart`
+- ℹ️ Tersisa info deprecation lama di `profile_page.dart` (`background`, `surfaceVariant`), bukan dari perubahan flow ini.
+
+Next Steps:
+
+- [ ] Uji manual di device: long-press duration, dismiss overlay, dan action sheet behavior
+- [ ] Verifikasi endpoint backend menerima remove avatar (`profileImageId: null`) di semua environment
+
+---
+
+## Update (2026-02-20 - Profile Backend vs Flutter Analysis Doc):
+
+Initial Ask:
+
+- Buat dokumentasi markdown di `liveit-flutter/docs/` yang merangkum hasil analisa fitur Profile dari backend dan Flutter client, termasuk gap endpoint/kontrak serta data UI vs data backend.
+
+Initial Response:
+
+- Melakukan audit code backend + Flutter profile, lalu menulis dokumen analisis komprehensif (tanpa implementasi perubahan kode runtime).
+
+Checklist:
+
+- [x] Audit endpoint backend Profiles + Gamification yang relevan untuk halaman Profile
+- [x] Audit implementasi Flutter Profile (datasource/repository/bloc/page)
+- [x] Petakan data yang ditampilkan UI Profile Flutter saat ini
+- [x] Petakan data yang dapat disuplai backend untuk tiap elemen UI profile
+- [x] Identifikasi gap kontrak API (response envelope, field mapping, endpoint mismatch)
+- [x] Susun matrix endpoint backend vs penggunaan di client
+- [x] Tulis dokumen final di `docs/profile-backend-client-gap-analysis.md`
+
+Current Status:
+
+- Dokumen analisis Profile backend-vs-client telah tersedia dan siap dijadikan acuan alignment sebelum implementasi perbaikan parity API.
+
+Files Modified:
+
+- `docs/profile-backend-client-gap-analysis.md`
+- `decisions.md`
+- `project-status.md`
+
+Next Steps:
+
+- [ ] Turunkan dokumen ini menjadi task implementasi bertahap (P0: contract mapping, P1: avatar upload flow, P2: summary/gamification wiring)
+
+---
+
+## Update (2026-02-21 - Avatar Preview Motion Upgrade):
+
+Initial Ask:
+
+- Tambahkan animasi ala Instagram di preview avatar: saat preview terbuka, foto bisa ikut gerak saat di-drag dan bisa dilempar ke arah mana pun untuk keluar dari preview screen.
+
+Initial Response:
+
+- Menambahkan motion interaction stateful pada overlay preview avatar: drag-follow + throw-to-dismiss + spring-back.
+
+Checklist:
+
+- [x] Tambah komponen stateful untuk handling motion preview avatar
+- [x] Implement `onPanUpdate` agar avatar ikut bergerak (translate)
+- [x] Tambah tilt/rotation berdasarkan arah drag
+- [x] Tambah scale-down subtle saat drag jauh
+- [x] Implement threshold dismiss berdasarkan distance/velocity
+- [x] Implement throw-out animation ke arah gesture
+- [x] Implement spring-back animation jika drag tidak cukup kuat
+- [x] Tambah overlay alpha adjustment saat avatar ditarik
+- [x] Pertahankan modal action change/remove dari preview
+- [x] Verifikasi analyzer untuk file profile terkait
+
+Current Status:
+
+- Preview avatar sekarang punya behavior interaktif seperti Instagram-like:
+  - drag di mana pun saat preview aktif membuat avatar ikut bergerak,
+  - lempar cepat/jauh ke arah mana pun menutup preview,
+  - drag kecil akan balik halus ke tengah.
+
+Files Modified:
+
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `dart format lib/features/profile/presentation/pages/profile_page.dart`
+- ✅ `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart lib/features/profile/presentation/bloc/profile_bloc.dart lib/features/profile/presentation/bloc/profile_event.dart lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/data/repositories/profile_repository_impl.dart lib/features/profile/data/repositories/in_memory_profile_repository.dart lib/features/profile/data/datasources/profile_remote_datasource.dart`
+- ℹ️ Tersisa info deprecation lama di `profile_page.dart` (`background`, `surfaceVariant`).
+
+Next Steps:
+
+- [ ] Uji manual feel threshold (distance/velocity) di device real; tuning jika perlu
+- [ ] Validasi gesture conflict kecil (tap action vs drag) pada berbagai ukuran layar
+
+---
+
+## Update (2026-02-21 - Long Press Avatar Preview):
+
+Initial Ask:
+
+- Implement behavior profile picture seperti Instagram: saat user tahan lama avatar, tampil preview foto profile. Scope simple, tanpa tombol action tambahan.
+
+Initial Response:
+
+- Menambahkan quick preview overlay pada long-press avatar dengan transisi halus dan background blur/dim.
+
+Checklist:
+
+- [x] Tambah `onLongPress` di avatar profile
+- [x] Implement overlay preview via `showGeneralDialog`
+- [x] Tambah visual style preview: blur + dim + avatar besar di tengah
+- [x] Tambah transisi fade + scale
+- [x] Tap outside untuk dismiss preview
+- [x] Pertahankan `onTap` existing untuk upload/edit avatar
+- [x] Verifikasi analyzer file profile
+
+Current Status:
+
+- Avatar profile sekarang mendukung **quick preview saat long-press**.
+- Preview bersifat minimalis (foto saja), sesuai scope yang diminta.
+- Flow upload avatar existing tidak berubah.
+
+Files Modified:
+
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart`
+- ℹ️ Masih ada info deprecation lama (`background`, `surfaceVariant`) yang sudah ada sebelumnya.
+
+Next Steps:
+
+- [ ] Test di device: hold duration feel + dismiss gesture
+- [ ] Jika perlu, tweak ukuran avatar preview agar lebih pas untuk layar kecil
+
+---
+
+## Update (2026-02-20 - file_picker fallback crash fix)
+
+Initial Ask:
+
+- User kirim log runtime crash saat fallback picker: `No implementation found for method image`.
+
+Initial Response:
+
+- Perbaiki fallback picker agar kompatibel lintas environment dan tidak menyebabkan unhandled exception.
+
+Checklist:
+
+- [x] Investigasi stacktrace crash pada `_pickWithFilePickerFallback`
+- [x] Ubah `FileType.image` ke `FileType.custom` + allowed image extensions
+- [x] Tambah guard try/catch di fallback agar exception plugin tidak crash app
+- [x] Verifikasi analyzer untuk file profile page
+
+Current Status:
+
+- Fallback picker sekarang tidak melempar crash meskipun plugin method tertentu tidak tersedia.
+
+Files Modified:
+
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart`
+
+Next Steps:
+
+- [ ] User retest pilih avatar di device yang sama untuk validasi fallback non-crash
+
+## Update (2026-02-20 - Avatar picker `channel-error` fallback)
+
+Initial Ask:
+
+- User melaporkan snackbar tetap muncul saat ganti avatar, dengan detail `(channel-error)`.
+
+Initial Response:
+
+- Tambahkan fallback picker agar flow pilih foto tetap berjalan saat `image_picker` method channel gagal.
+
+Checklist:
+
+- [x] Tambah dependency `file_picker`
+- [x] Tambah fallback path untuk `MissingPluginException`
+- [x] Tambah fallback path untuk `PlatformException(channel-error)`
+- [x] Refactor dispatch upload avatar agar reusable
+- [x] Jalankan `fvm flutter pub get`
+- [x] Jalankan analyzer pada `profile_page.dart`
+
+Current Status:
+
+- Ubah avatar sekarang punya fallback picker, jadi tidak mentok hanya pada plugin channel `image_picker`.
+
+Files Modified:
+
+- `pubspec.yaml`
+- `pubspec.lock`
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter pub get`
+- ✅ `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart`
+
+Next Steps:
+
+- [ ] User retest ganti avatar di device yang sama untuk validasi fallback path
+
+## Update (2026-02-20 - Profile Avatar Upload Implementation)
+
+Initial Ask:
+
+- Implement upload dan ubah foto profile langsung di halaman Profile Flutter.
+
+Initial Response:
+
+- Menambahkan flow end-to-end: pick image dari galeri, upload ke backend avatar endpoint, lalu update profile via `profileImageId`.
+
+Checklist:
+
+- [x] Tambah dependency image picker
+- [x] Implement API flow upload avatar di profile datasource
+- [x] Tambah method repository untuk upload avatar
+- [x] Tambah event BLoC `ProfileAvatarUploadRequested`
+- [x] Handle upload avatar di ProfileBloc
+- [x] Wire tap avatar di `ProfilePage` ke flow upload
+- [x] Tambah indikator affordance edit avatar (camera badge)
+- [x] Tambah iOS photo library usage description
+- [x] Jalankan `fvm flutter pub get`
+- [x] Jalankan analyzer untuk file terkait
+
+Current Status:
+
+- User sekarang bisa tap avatar di halaman Profile, pilih foto dari galeri, dan foto profile ter-update via backend flow.
+
+Files Modified:
+
+- `pubspec.yaml`
+- `ios/Runner/Info.plist`
+- `lib/features/profile/data/datasources/profile_remote_datasource.dart`
+- `lib/features/profile/domain/repositories/profile_repository.dart`
+- `lib/features/profile/data/repositories/profile_repository_impl.dart`
+- `lib/features/profile/data/repositories/in_memory_profile_repository.dart`
+- `lib/features/profile/presentation/bloc/profile_event.dart`
+- `lib/features/profile/presentation/bloc/profile_bloc.dart`
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter pub get`
+- ✅ `fvm flutter analyze lib/features/profile/data/datasources/profile_remote_datasource.dart lib/features/profile/data/repositories/profile_repository_impl.dart lib/features/profile/data/repositories/in_memory_profile_repository.dart lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/presentation/bloc/profile_event.dart lib/features/profile/presentation/bloc/profile_bloc.dart lib/features/profile/presentation/pages/profile_page.dart`
+
+Next Steps:
+
+- [ ] Uji manual di device: pick image sukses, loading/error handling, dan avatar persist setelah reopen app
+- [ ] Implement remove/reset avatar action jika dibutuhkan produk
+
+---
+
+## Update (2026-02-20 - Avatar Picker Error Handling)
+
+Initial Ask:
+
+- User melaporkan snackbar "gagal memilih foto profile" saat mencoba ganti avatar.
+
+Initial Response:
+
+- Perbaiki handling error agar pesan lebih spesifik berdasarkan jenis error picker (plugin/permission/generic).
+
+Checklist:
+
+- [x] Tambah handling `MissingPluginException` dengan instruksi full restart
+- [x] Tambah handling `PlatformException` untuk kasus izin galeri ditolak
+- [x] Tambah helper snackbar agar error handling konsisten
+- [x] Jalankan analyzer untuk file profile page
+
+Current Status:
+
+- Pesan error avatar picker sekarang lebih actionable dan tidak lagi selalu generic.
+
+Files Modified:
+
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/features/profile/presentation/pages/profile_page.dart`
+
+Next Steps:
+
+- [ ] Minta user coba lagi setelah full restart app (bukan hot reload)
+
+## Update (2026-02-20 - Profile Avatar Contract Alignment)
+
+Initial Ask:
+
+- Lanjutkan eksekusi dari gap analysis profile dan benahi mismatch avatar antara backend dan Flutter dengan prinsip client hanya ke backend.
+
+Initial Response:
+
+- Menyelaraskan kontrak profile Flutter ke backend terbaru (avatar proxy flow), termasuk mapping field, parsing payload, dan normalisasi URL avatar backend.
+
+Checklist:
+
+- [x] Selaraskan parsing response profile (`response.data` langsung / nested `data`)
+- [x] Ganti payload update nama ke field backend `name`
+- [x] Ganti payload update avatar ke field backend `profileImageId`
+- [x] Tambahkan normalisasi `avatarUrl` relatif ke absolut berdasarkan API base URL
+- [x] Update repository contract agar update methods return `ProfileModel`
+- [x] Update model mapping (`name/displayName`, `createdAt/joinedAt`, `profileImageId/avatarUrl`)
+- [x] Sync dokumen analisis profile dengan status implementasi terbaru
+- [x] Verifikasi analyzer untuk file profile yang diubah
+
+Current Status:
+
+- Kontrak avatar profile Flutter sudah selaras dengan backend proxy flow.
+- Flutter tidak perlu mengandalkan URL Appwrite langsung untuk render avatar.
+
+Files Modified:
+
+- `lib/features/profile/data/datasources/profile_remote_datasource.dart`
+- `lib/features/profile/domain/models/profile_model.dart`
+- `lib/features/profile/domain/repositories/profile_repository.dart`
+- `lib/features/profile/data/repositories/profile_repository_impl.dart`
+- `lib/features/profile/data/repositories/in_memory_profile_repository.dart`
+- `lib/features/profile/presentation/bloc/profile_bloc.dart`
+- `lib/features/profile/presentation/bloc/profile_event.dart`
+- `docs/profile-backend-client-gap-analysis.md`
+- `docs/liveit-backend-api.md`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/features/profile/data/datasources/profile_remote_datasource.dart lib/features/profile/data/repositories/in_memory_profile_repository.dart lib/features/profile/data/repositories/profile_repository_impl.dart lib/features/profile/domain/models/profile_model.dart lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/presentation/bloc/profile_bloc.dart lib/features/profile/presentation/bloc/profile_event.dart lib/features/profile/presentation/pages/profile_page.dart`
+
+Next Steps:
+
+- [ ] Implement upload avatar UI flow (picker -> `POST /profiles/upload/avatar` -> `PUT /profiles/me { profileImageId }`)
+- [ ] Hapus/replace call `DELETE /profiles/me` karena endpoint belum tersedia di backend
+
+## Update (2026-02-16):
+
+Initial Ask:
+
+- Implementasi offline-first write outbox sesuai `docs/skills/offline-first-data-flow.md` dan `docs/habit-tracker/implementation-offline-first-data-flow.md`.
+
+Initial Response:
+
+- Menambahkan outbox check-in/undo-check-in berbasis Hive, sync service berbasis konektivitas, integrasi BLoC/UI, serta test unit/bloc untuk flow utama.
+
+Checklist:
+
+- [x] Tambah `ConnectivityService` untuk status online/offline sebagai stream
+- [x] Tambah model immutable `PendingMutation` (`checkin`/`undo_checkin`)
+- [x] Tambah `OutboxLocalDataSource` (Hive box `habit_outbox`) dengan API queue FIFO
+- [x] Tambah `HabitSyncService` untuk drain queue saat online + manual sync
+- [x] Update `HabitRepository` & `HabitRepositoryImpl` untuk queue write dan pending counter
+- [x] Update `HabitBloc` untuk offline queue fallback (network error tetap optimistic, tidak rollback)
+- [x] Tambah event/state sinkronisasi (`HabitSyncRequested`, `HabitSyncCompleted`, `pendingSyncCount`)
+- [x] Tambah banner sinkronisasi di `HabitTrackerPage` + tombol Sync manual
+- [x] Update DI (`injection_container.dart`) untuk outbox/connectivity/sync service wiring
+- [x] Tambah test:
+  - [x] `test/features/habit_tracker/data/datasources/outbox_local_data_source_test.dart`
+  - [x] `test/features/habit_tracker/data/services/habit_sync_service_test.dart`
+  - [x] `test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart`
+
+Current Status:
+
+- Offline write outbox untuk check-in/undo-check-in sudah aktif end-to-end.
+- Saat offline: aksi check-in/undo tetap optimistic dan masuk antrian.
+- Saat online kembali: antrian disinkronkan otomatis; ada tombol sync manual di UI.
+- Strategi konflik yang dipakai: **server-wins** (4xx saat replay dibuang dari antrian).
+
+Verification:
+
+- ✅ `fvm flutter test test/features/habit_tracker/data/datasources/outbox_local_data_source_test.dart`
+- ✅ `fvm flutter test test/features/habit_tracker/data/services/habit_sync_service_test.dart`
+- ✅ `fvm flutter test test/features/habit_tracker/presentation/bloc/habit_bloc_test.dart`
+- ℹ️ `fvm flutter analyze` masih memunculkan warning/info lama lintas modul lain (tidak terkait perubahan ini), tanpa error baru dari outbox.
+
+Next Steps:
+
+- [ ] Tambahkan indikator pending per habit (optional, saat ini baru banner global)
+- [ ] Evaluasi dedup/merge mutation berurutan untuk habit+date yang sama (opsional untuk optimasi queue)
+- [ ] Perluas outbox ke write operation lain jika sudah diprioritaskan produk (add/update/archive/reorder)
+
+---
+
+## Update (2026-02-17 - Sync Snackbar Feedback):
+
+Initial Ask:
+
+- Tambahkan SnackBar feedback saat sync selesai atau gagal, dengan deteksi transisi `pendingSyncCount > 0 -> 0` di `BlocListener`.
+
+Initial Response:
+
+- Menambahkan SnackBar sukses ketika pending sync habis, serta SnackBar error ketika pipeline sync mengembalikan `SyncError`.
+
+Checklist:
+
+- [x] Tambah deteksi transisi pending `>0 -> 0` di listener `HabitTrackerPage`
+- [x] Tampilkan SnackBar sukses saat sinkronisasi selesai
+- [x] Tampilkan SnackBar error saat sinkronisasi gagal
+- [x] Tambah field feedback sinkronisasi di state (`syncFeedbackMessage`)
+- [x] Wiring feedback message dari `HabitBloc` (berdasarkan `SyncStatus`)
+- [x] Jalankan ulang test terkait (`habit_bloc_test`, `habit_sync_service_test`)
+
+Current Status:
+
+- Sync flow sekarang punya feedback visual yang jelas:
+  - sukses: SnackBar saat pending queue habis,
+  - gagal: SnackBar merah dengan pesan error sinkronisasi.
+
+Next Steps:
+
+- [ ] Uji manual di device untuk memastikan timing SnackBar nyaman saat koneksi fluktuatif.
+
+---
+
+## Update (2026-02-17 - Mutation ID UUID):
+
+Initial Ask:
+
+- Ganti mutation ID outbox ke UUID.
+
+Initial Response:
+
+- Sudah diganti dari timestamp microseconds ke UUID v4 untuk menurunkan risiko collision key di outbox.
+
+Checklist:
+
+- [x] Replace ID generator pada `queueCheckIn` ke UUID v4
+- [x] Replace ID generator pada `queueUndoCheckIn` ke UUID v4
+- [x] Tambah `uuid` sebagai direct dependency di `pubspec.yaml`
+- [x] Jalankan `fvm flutter pub get`
+- [x] Jalankan verifikasi test (`habit_bloc_test`)
+
+Current Status:
+
+- Outbox mutation sekarang memakai UUID v4 sebagai key Hive, sehingga risiko overwrite karena ID sama menjadi sangat kecil.
+
+Next Steps:
+
+- [ ] (Opsional) tambahkan test eksplisit untuk format UUID pada mutation enqueue.
+
+Update (2026-02-11):
+
+Initial Ask:
+
+- Analisa mendalam sistem “offline-first” (offline dulu baru update server) dan buat dokumentasinya.
+
+Initial Response:
+
+- Menelusuri implementasi Habit Tracker (Hive cache + repository + BLoC) dan menulis dokumen yang memetakan alur read/write serta keterbatasannya.
+
+Checklist:
+
+- [x] Audit data flow Habit Tracker: cache (Hive) + API (Dio) + repository + bloc
+- [x] Tegaskan behavior sebenarnya: cache-first untuk read, optimistic UI untuk write (tanpa write queue)
+- [x] Buat skill doc untuk dibaca tim
+
+Current Status:
+
+- Dokumen tersedia di `docs/skills/offline-first-data-flow.md`.
+
+Next Steps:
+
+- Jika target product benar-benar butuh “offline write then sync”, implement outbox minimal (mulai dari check-in) + trigger sync saat koneksi pulih.
+
+---
+
+Initial Ask (2025-10-13):
+
+- Implement homepage layout sesuai dokumen brand essence dan user story Epic Homepage Experience.
+
+Initial Response:
+
+- Menelaah kembali `docs/liveit-userStories.md`, `docs/liveit-brand-essence.md`, dan struktur modul home untuk memetakan komponen UI yang diperlukan.
+
+Checklist:
+
+- [x] Identifikasi section utama (ringkasan harian, daftar habit, renungan, gamifikasi, status banner, empty state)
+- [x] Bangun widget modular di `lib/features/home/presentation/widget/` untuk setiap section
+- [x] Perbarui `HomePage` agar merangkai widget dan menangani interaksi dasar (check-in, undo, refresh, snackbar)
+- [ ] Integrasikan dengan state management/bloc serta API backend nyata
+- [ ] Tambahkan pengujian widget untuk skenario utama dan edge case offline/error
+
+Current Status:
+
+- Homepage kini menampilkan layout lengkap dengan data sample `HomeUiState.sample()` dan interaksi lokal. Integrasi data & testing menyeluruh masih pending.
+
+Next Steps:
+
+- Sambungkan ke sumber data nyata (bloc/service) dan lengkapi pengujian widget sesuai acceptance criteria user stories 14-18.
+
+---
+
 Initial Ask (2025-10-11):
 
 - Susun user story halaman homepage berdasarkan dokumen blueprint LIVEIT.
@@ -93,3 +646,848 @@ Current Status:
 Next Steps:
 
 - Tambahkan interceptors/router guards sesuai kebutuhan fitur (auth, onboarding) dan dokumentasikan perubahan.
+
+---
+
+Initial Ask (2025-10-22):
+
+- Susun atau perbarui `.github/copilot-instructions.md` agar AI coding agent cepat paham konteks repo.
+
+Initial Response:
+
+- Meninjau `AGENTS.md`, struktur `lib/`, serta dokumen blueprint dan brand untuk merangkum arsitektur, workflow, dan pola penting.
+
+Checklist:
+
+- [x] Audit pedoman AI yang sudah ada (`AGENTS.md`, docs utama)
+- [x] Identifikasi arsitektur inti, workflow build/test, dan pola modul yang harus diketahui agen
+- [x] Tulis `.github/copilot-instructions.md` dengan ringkasan 20–50 baris
+
+Current Status:
+
+- Berkas petunjuk agen telah dibuat dan selaras dengan konteks repo per 2025-10-22.
+
+Next Steps:
+
+- Revisi file instruksi jika ada perubahan besar pada arsitektur, tooling, atau SOP agen.
+
+---
+
+Initial Ask (2025-10-30):
+
+- Samakan layout homepage (tab Routine) dengan mock mobile terbaru, termasuk header, daftar habit, dan quick actions.
+
+Initial Response:
+
+- Meninjau implementasi `lib/features/home/presentation/pages/home_page.dart` untuk memetakan selisih dengan referensi desain dan menentukan komponen yang perlu dirombak.
+
+Checklist:
+
+- [x] Ganti header card dengan gradient mint + progress ring sesuai mock
+- [x] Kelompokkan daftar habit dalam satu card dengan badge kemajuan
+- [x] Desain ulang quick action tiles agar konsisten dengan referensi
+- [ ] Integrasikan ulang layout ke HomeBloc/data real saat siap
+- [ ] Tambahkan pengujian widget untuk variasi state utama
+
+Current Status:
+
+- Layout baru sudah terpasang dengan data sampel lokal; menunggu integrasi state management dan pengujian.
+
+Next Steps:
+
+---
+
+Initial Ask (2025-12-27):
+
+- Buat dokumen gambaran besar architecture feature Articles/Daily Devotional dan panduan implementasi Flutter (state management, DTO, data flow), tanpa menulis kode.
+
+Initial Response:
+
+- Meninjau kontrak backend/CMS pada folder `docs/devotional-page/*` (public endpoints, cursor pagination, contentJson/ProseMirror) dan menyusun panduan implementasi yang boring + type-safe.
+
+Checklist:
+
+- [x] Ringkas kontrak API public untuk mobile (`GET /articles/public`, `GET /articles/public/:slug`)
+- [x] Tetapkan fetch rule devotional untuk MVP: `section=devotional`, urutan `publishedAt desc`
+- [x] Catat timezone handling MVP: server UTC, client hanya formatting untuk display
+- [x] Definisikan guideline DTO + mapping rules + repository contract
+- [x] Definisikan guideline state management (Bloc) untuk feed & detail
+- [x] Tegaskan strategi reader: render dari `contentJson` (ProseMirror) bukan HTML mentah
+- [x] Tegaskan scope MVP: like endpoint belum ada → UI like ditunda
+
+Current Status:
+
+- Dokumen panduan tersedia di `docs/skills/articles-devotional-flutter-architecture.md` dan sudah diselaraskan dengan kontrak backend.
+
+Next Steps:
+
+- Flutter team implement feed + detail berdasarkan dokumen.
+- Keputusan MVP sudah dikunci: navigasi pakai `slug` (simpan `id` untuk cursor/cache/analytics), renderer v1 pakai minimum node set, embed provider YouTube-only.
+
+Update (2025-12-27):
+
+- Menambahkan “Done criteria” per step, daftar failure modes wajib, dan template sample payload fixtures (list + detail + optional 404) ke `docs/skills/articles-devotional-flutter-architecture.md` agar implementasi bisa dikerjakan mandiri tanpa AI dan lebih mudah dites.
+
+Update (2025-12-27):
+
+- Menyesuaikan section fixtures (12.3) agar mengikuti shape server-accurate dari `docs/devotional-page/ARTICLES_PUBLIC_API_RESPONSES.md` (field list/detail, catatan `nextCursor` bisa di-omit).
+
+Initial Ask (2025-12-03):
+
+- Implement Habit Tracker feature following `docs/liveit-habbitTracker-feature.md` and `docs/flutter_integration_fromBackend_guide.md`.
+
+Initial Response:
+
+- Analyzed codebase, created feature structure `lib/features/habit_tracker`. Implemented Data, Domain, and Presentation layers.
+
+Checklist:
+
+- [x] Define Models (`Habit`, `UserHabit`, `HabitCheckinResponse`)
+- [x] Implement `HabitRemoteDataSource` with `DioClient`
+- [x] Implement `HabitRepository`
+- [x] Implement `HabitBloc` (Load, CheckIn, Undo, Add)
+- [x] Register dependencies in `service_locator.dart`
+- [x] Integrate `HabitBloc` into `RoutinePage`/`HomePage`
+- [x] Create `AddHabitPage` and add to Router
+- [x] Implement "Add Habit" FAB in `HomePage`
+
+Current Status:
+
+- Feature implemented. UI updated to use real Bloc (which calls API).
+- `HomePage` displays habit list and handles check-ins.
+- `AddHabitPage` allows adding from catalog or custom.
+
+Next Steps:
+
+- Verify integration with running backend.
+- Implement gamification visual feedback (animations).
+- Add offline caching (Hive) if needed for robust offline support (currently relies on API).
+
+---
+
+Initial Ask (2026-01-15):
+
+- Update Devotion page to fetch articles from `GET /articles/public`.
+
+Initial Response:
+
+- Added a small remote datasource + DTOs for the public feed.
+- Updated DevotionPage to load `section=devotional` and render `DevotionalCard` from API data.
+
+Checklist:
+
+- [x] Add DTOs for `/articles/public` response
+- [x] Add remote datasource using `DioClient`
+- [x] Register datasource in DI
+- [x] Replace hardcoded cards with API-driven list + loading/error/empty states
+
+Current Status:
+
+- DevotionPage now fetches and displays devotional articles from backend.
+
+Next Steps:
+
+- Implement article detail page and route by `slug` (`GET /articles/public/{slug}`).
+
+---
+
+Initial Ask (2026-01-21):
+
+- Implement Habit Tracker Phase 2A features to align with backend specification at `C:\Users\Kevin\liveit-server`.
+
+Initial Response:
+
+- Analyzed backend documentation and created comprehensive implementation plan with 101 tasks across 6 phases.
+- Identified that Flutter currently has ~30% Phase 2A coverage (basic CRUD only).
+- Documented gaps: repeatPeriod, frequency, color, icon, order, update/delete/reorder methods, gamification UI.
+
+Checklist:
+
+- [x] Analyze backend Phase 2A specification
+- [x] Create implementation plan with detailed checklist (docs/habit-tracker-implementation-plan.md)
+- [x] Phase 1: Data Layer Phase 2A Support (20 tasks)
+- [x] Phase 2: State Management Phase 2A Support (12 tasks)
+- [x] Phase 3: UI Layer - Basic Phase 2A (12 tasks)
+- [x] Phase 4: UI Layer - Advanced Features (23 tasks)
+- [x] Phase 5: Polish & Optimization (19 tasks)
+  - [x] Integrate celebrations with check-in flow
+  - [x] Add offline caching (Hive)
+  - [x] Implement pull-to-refresh caching
+  - [x] Optimistic UI for Check-in/Undo
+  - [x] Fix missing files causing build failures (HabitLocalDataSource, EditHabitPage)
+  - [ ] Replace deprecated `withOpacity` with `withValues(alpha: ...)`
+  - [ ] Animations & transitions
+  - [ ] Accessibility improvements
+  - [ ] Error states
+  - [ ] Performance optimization
+- [ ] Phase 6: Testing (15 tasks)
+  - [ ] Unit tests (models, datasource, repository, bloc)
+  - [ ] Widget tests (UI components)
+  - [ ] Integration tests (full flows)
+
+Current Status:
+
+- Implementation plan created with 101 tasks across 6 phases.
+- Phase 1-4 COMPLETED (Data, State, UI Basic, UI Advanced).
+- Phase 5 Polish PROGRESSING (Celebrations, Offline Caching, and Restoration of missing files).
+
+**Phase 1 Completed Tasks:**
+
+- [x] Update HabitRemoteDataSource abstract class with Phase 2A methods
+- [x] Implement HabitRemoteDataSourceImpl with all methods
+- [x] Update HabitRepository interface with Phase 2A parameters
+- [x] Implement HabitRepositoryImpl with all methods
+- [x] Update HabitEvent with Phase 2A fields and new events
+- [x] Update HabitBloc with all event handlers
+- [x] Update AddHabitPage to use new method signatures
+- [x] Run build_runner to regenerate .g.dart files
+- [x] Run dart format on all modified files
+
+**Phase 3 Completed Tasks:**
+
+- [x] Update HabitCard with Phase 2A fields (color, icon, repeatPeriod, frequency, streak badges)
+- [x] Update HabitCard with Edit and Archive action buttons
+- [x] Update HabitTrackerPage with options bottom sheet and archive confirmation
+- [x] Update AddHabitPage with Phase 2A form inputs
+
+**Phase 4 Completed Tasks:**
+
+- [x] Rebuild HabitTrackerPage with distinctive "Grounded Growth" design
+- [x] Create new HabitCard widget with animations and streak badges
+- [x] Create EditHabitPage for editing existing habits
+- [x] Implement drag & drop reordering with SliverReorderableList
+- [x] Add gamification visual feedback widgets (Confetti, Dialogs)
+- [x] Create HabitStatsPage with calendar heatmap and streak timeline
+- [x] Update router with EditHabitRoute and HabitStatsRoute
+
+**Phase 5 Progress:**
+
+- [x] Integrate celebrations with check-in flow (Confetti, Points, Dialogs wired to Bloc)
+- [x] Add offline caching (Hive)
+- [x] Implement pull-to-refresh caching (via Hybrid Repository)
+- [x] Optimistic UI for Check-in/Undo
+
+Next Steps:
+
+- Proceed with remaining Phase 5 Polish items:
+  - [ ] Replace deprecated `withOpacity` with `withValues(alpha: ...)`
+  - [ ] Unit/Widget Tests
+
+---
+
+**Update 2026-01-24 - Phase 4 Completed & Celebrations Integrated**
+
+**Recent Accomplishments:**
+
+- ✅ Phase 4: Advanced Features fully implemented (Edit, Stats, Drag&Drop).
+- ✅ Phase 5: Celebrations integration completed.
+  - Wired `HabitBloc` to detect streaks/all-done from check-in response.
+  - Added `CelebrationData` to state for transient events.
+  - Wrapped `HabitTrackerPage` with `ConfettiOverlay` and listener.
+  - Now showing: Confetti, Zoe Points popup, Streak Milestone dialogs, All Done dialog.
+- ✅ Phase 5: Offline Caching & Optimistic UI implemented (Me+ Experience).
+  - Added `hive` and `hive_flutter` dependencies.
+  - Created `HabitLocalDataSource` and registered in DI.
+  - `HabitBloc` now emits state twice on load: Cache (Instant) -> API (Fresh).
+  - UI feels significantly faster; Check-in is instant.
+
+**Pending Actions:**
+
+- Fix `withOpacity` deprecation warnings (Flutter 3.27+).
+- Write unit/widget tests.
+
+---
+
+## Initial Ask (2026-02-01):
+
+- Refactor ProfilePage dengan modern iOS glass-morphism aesthetic sesuai LIVEIT brand colors dan konteks spiritual app.
+
+## Initial Response:
+
+- Menganalisis struktur existing, mendaftarkan ProfileBloc ke DI, dan merefactor complete ProfilePage dengan glass-morphism design.
+
+## Checklist:
+
+- [x] Register ProfileBloc di injection_container.dart
+- [x] Add ProfileBloc ke global providers (main_dev.dart & main_prod.dart)
+- [x] Implement glass-morphism header dengan gradient dan BackdropFilter
+- [x] Create frosted glass avatar ring dengan brand gradient
+- [x] Build glass stat cards untuk Zoe Points, Level, Streak, dan Badge
+- [x] Implement glass menu section dengan BackdropFilter
+- [x] Integrasi ProfileBloc untuk fetch real data dari `/profiles/me`
+- [x] Display real Zoe Points, Level, dan Streak dari ProfileModel
+- [x] Add member duration calculation (smart formatting)
+- [x] Enhance unauthenticated view dengan glass card
+- [x] Implement glass-morphism logout dialog
+- [x] Add coming soon feedback untuk menu items (Edit, Badge, History, Settings)
+- [x] Add flutter_animate package untuk smooth entry animations
+- [x] Extend ProfileModel dengan currentStreak field
+- [x] Update decisions.md dengan detail refactor
+
+## Current Status:
+
+- ProfilePage fully refactored dengan iOS 2026 glass-morphism aesthetic.
+- Menggunakan LIVEIT brand colors: Deep Teal (Primary), Coral (Tertiary), Warm Sand (Secondary).
+- ProfileBloc terintegrasi dan mengambil data real dari backend.
+- flutter_animate package installed untuk staggered entry animations.
+- Semua menu items memiliki UX feedback (coming soon snackbars).
+- Avatar mendukung network image dari avatarUrl.
+- Member duration ditampilkan dalam format human-readable ("3 bulan").
+- Design konsisten dengan HabitTrackerPage "Grounded Growth" aesthetic.
+- Ready untuk testing dan further enhancement.
+
+## Files Modified:
+
+- `lib/core/injection/injection_container.dart`
+- `lib/main_dev.dart`
+- `lib/main_prod.dart`
+- `lib/features/profile/presentation/pages/profile_page.dart`
+- `lib/features/profile/domain/models/profile_model.dart`
+- `pubspec.yaml`
+- `decisions.md`
+- `project-status.md`
+
+## Design Features:
+
+- **Glass Header**: BackdropFilter blur sigma 20, gradient overlay brand colors
+- **Avatar Ring**: 4px gradient border (Primary → Secondary → Tertiary)
+- **Glass Stats Cards**: Frosted surface dengan colored borders dan soft shadows
+- **Glass Menu**: BackdropFilter blur sigma 10, transparent surface
+- **Animations**: flutter_animate staggered reveals (1200ms header, 800ms stats)
+- **Typography**: Uppercase display names, bold weights (w800), tight letter-spacing
+- **New Stats**: Added Streak dan Badge cards untuk complete gamification display
+
+## Next Steps:
+
+- [ ] Run `fvm flutter run` untuk testing di device/emulator
+- [ ] Implement Edit Profile page
+- [ ] Implement Badge & Achievements page
+- [ ] Implement Activity History page
+- [ ] Implement Settings page (Privacy, Notifications)
+
+---
+
+## Initial Ask (2026-02-01 - Navigation Shell):
+
+- Refactor NavigationShellPage dengan modern iOS glass-morphism pill navigation style yang matching dengan ProfilePage.
+
+## Initial Response:
+
+- Menganalisis struktur existing, convert ke floating pill design dengan glass-morphism effect yang konsisten dengan ProfilePage.
+
+## Checklist:
+
+- [x] Convert bottom nav ke floating pill container (32px radius, 16px margin)
+- [x] Implement glass-morphism dengan BackdropFilter blur sigma 20
+- [x] Add dual shadow layer (primary-tinted + black)
+- [x] Build pill dengan gradient surface dan subtle border
+- [x] Create animated nav items dengan active/inactive states
+- [x] Add scale animation pada tab change (300ms easeOutBack)
+- [x] Implement entry animation (slide up + fade, 600ms)
+- [x] Convert \_NavigationShellView ke StatefulWidget untuk AnimationController
+- [x] Add flutter_animate package untuk scale effects
+- [x] Update decisions.md dengan detail perubahan
+
+## Current Status:
+
+- NavigationShellPage fully refactored dengan iOS 2026 floating pill aesthetic.
+- Menggunakan LIVEIT brand colors: Deep Teal (Primary), Coral accents.
+- Glass-morphism effect matching ProfilePage design language.
+- 4 nav items: Home, Devotion, Habits, Profile.
+- Smooth scale animations pada tab selection.
+- Entry animation dengan slide-up effect.
+- Extend body untuk visual continuity dengan content.
+
+## Files Modified:
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+
+## Design Features:
+
+- **Floating Pill**: 32px radius, 16px horizontal margin, detached from bottom
+- **Glass Surface**: BackdropFilter blur 20, gradient surface (85-92% alpha)
+- **Dual Shadows**: Primary-tinted glow + soft black shadow
+- **Active State**: Gradient fill, border, colored icon/text
+- **Inactive State**: Transparent, muted icons
+- **Animations**: Scale (300ms easeOutBack), Entry slide-up (600ms)
+- **Typography**: Label reveal on active, w600 weight
+
+## Next Steps:
+
+- [ ] Test navigation interactions di device/emulator
+- [ ] Add notification badges pada nav items (future enhancement)
+- [ ] Consider haptic feedback integration
+
+---
+
+## Initial Ask (2026-02-01 - Homepage):
+
+- Refactor HomePage menjadi landing page utama dengan glass-morphism design seperti ProfilePage, ganti RoutineRoute dengan HomeRoute sebagai tab pertama.
+
+## Initial Response:
+
+- Complete rewrite HomePage dengan 5 sections: Hero, Progress, Features, Stats, Community. Update navigation routing.
+
+## Checklist:
+
+- [x] Rewrite HomePage dengan glass-morphism aesthetic
+- [x] Hero Section dengan date badge dan greeting
+- [x] Progress Overview Card dengan real-time habit data
+- [x] Main Features Grid (2x2): Habit Tracker, Zoe Points, Community, Profile
+- [x] Quick Stats Grid: Zoe Points, Streak, Level, Badge
+- [x] Community Preview dengan avatar stack
+- [x] Implement glass cards dengan BackdropFilter blur
+- [x] Add entry animations (slide-up + fade)
+- [x] Update NavigationShellPage: RoutineRoute → HomeRoute
+- [x] Update app_router.dart routing configuration
+- [x] Regenerate auto_route files dengan build_runner
+- [x] Fix analyzer issues (deprecated background, unused imports)
+
+## Current Status:
+
+- HomePage fully refactored sebagai landing page utama LiveIt.
+- Glass-morphism design konsisten dengan ProfilePage.
+- Real-time habit progress integration dengan HabitBloc.
+- Navigation routing updated: HomeRoute jadi tab pertama.
+- Semua feature cards navigable ke respective routes.
+- FAB untuk quick add habit.
+- Analyzer clean (no errors).
+
+## Files Modified:
+
+- `lib/features/home/presentation/pages/home_page.dart` (complete rewrite, ~600 lines)
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart` (updated routes)
+- `lib/core/router/app_router.dart` (updated nested routes)
+- `lib/core/router/app_router.gr.dart` (auto-generated)
+- `decisions.md` (added entry)
+
+## Design Features:
+
+- **Glass Cards**: BackdropFilter blur 12-16, gradient surfaces
+- **Border Radius**: 24-28px cards, 20px badges, 32px progress card
+- **Animations**: 1000ms entry, slide-up translate (30-70px)
+- **Typography**: Bold weights (w800), tight letter-spacing
+- **Colors**: Primary (Deep Teal), Tertiary (Coral), Surface alpha 45-85%
+
+## Next Steps:
+
+- [ ] Test di device/emulator
+- [ ] Integrasi dengan ProfileBloc untuk real stats (saat ini hardcoded)
+- [ ] Implementasi Community page
+- [ ] Implementasi Badge & Achievements
+
+---
+
+## Initial Ask (2026-02-01 - Devotion Pages):
+
+- Refactor DevotionPage dan ArticleDetailPage mengikuti glass-morphism style yang sama seperti HomePage.
+
+## Initial Response:
+
+- Complete rewrite kedua halaman dengan glass-morphism design system yang konsisten.
+
+## Checklist:
+
+- [x] Rewrite DevotionPage dengan glass-morphism aesthetic
+- [x] Glass header dengan date badge dan bold typography
+- [x] Glass article cards dengan cover images dan meta info
+- [x] Loading/Error/Empty states dengan glass cards
+- [x] Entry animations (slide-up + fade, 1000ms)
+- [x] Rewrite ArticleDetailPage dengan glass-morphism aesthetic
+- [x] Glass AppBar dengan gradient surface
+- [x] Cover image dengan gradient overlay
+- [x] Meta chips (date, reading time, author) dengan brand colors
+- [x] Quote block container untuk subtitle
+- [x] Article footer dengan branding
+- [x] Loading/Error/NotFound states dengan glass cards
+- [x] Fix analyzer issues (unused imports, TickerProvider)
+
+## Current Status:
+
+- DevotionPage fully refactored dengan glass-morphism design.
+- ArticleDetailPage fully refactored dengan glass-morphism design.
+- Consistent design language across all pages (Home, Devotion, Article).
+- Entry animations provide smooth user experience.
+- All states (loading/error/empty) use glass card styling.
+- Analyzer clean (no errors).
+
+## Files Modified:
+
+- `lib/features/inspire/presentation/pages/devotion_page.dart` (~550 lines)
+- `lib/features/inspire/presentation/pages/article_detail_page.dart` (~500 lines)
+- `decisions.md` (added entry)
+
+## Design Features (DevotionPage):
+
+- **Glass Header**: Date badge, title 36px w800, tagline subtitle
+- **Article Cards**: Glass cards dengan cover images, badges, CTA
+- **Meta Info**: Date (primary), Reading Time (tertiary), Author (secondary)
+- **Animations**: Entry slide-up (30px translate), 1000ms duration
+
+## Design Features (ArticleDetailPage):
+
+- **Glass AppBar**: Gradient surface, back button, title
+- **Cover Image**: Full-width dengan gradient overlay
+- **Meta Chips**: Colored chips untuk date, reading time, author
+- **Quote Block**: Styled container untuk verse/subtitle
+- **Footer**: Glass container dengan branding
+
+## Next Steps:
+
+- [ ] Test di device/emulator
+- [ ] Add share functionality ke ArticleDetailPage
+- [ ] Add bookmark/favorite feature
+- [ ] Add reading progress indicator
+
+---
+
+## Initial Ask (2026-02-07):
+
+- Fix FAB "Tambah" yang tersembunyi di belakang floating pill navigation bar di HabitTrackerPage.
+
+## Initial Response:
+
+- Analisis root cause: Parent Scaffold dengan `extendBody: true` menyebabkan FAB berada di belakang nav bar. Implement fix dengan Padding widget.
+
+## Checklist:
+
+- [x] Identifikasi root cause (nested Scaffolds + extendBody)
+- [x] Wrap `_buildGlassFAB()` return value dengan `Padding(bottom: 80)`
+- [x] Test visual: FAB sekarang visible dengan proper clearance
+- [x] Update decisions.md dengan rationale fix
+- [x] Update project-status.md dengan task completion
+
+## Current Status:
+
+- Fix applied di `habit_tracker_page.dart` lines 572-637.
+- FAB "Tambah" sekarang visible dan tidak tertutup nav bar.
+- Padding 80px accounts for: nav bar height (64px) + bottom padding (8px) + safety margin (8px).
+
+## Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+## Next Steps:
+
+- [ ] Test di device/emulator untuk memastikan clearance cukup di berbagai screen sizes
+- [ ] Consider adjusting padding value jika nav bar height berubah di design update
+
+---
+
+## Initial Ask (2026-02-07 - FAB Refactor):
+
+- Refactor FAB "Tambah" menjadi kombinasi: Header "+" icon button dan Inline Add Card di akhir habits list.
+
+## Initial Response:
+
+- Remove FAB dan \_buildGlassFAB method, implement header button dengan glass styling dan inline add card di \_buildHabitsList.
+
+## Checklist:
+
+- [x] Remove FAB dari Scaffold property
+- [x] Delete \_buildGlassFAB() method seluruhnya
+- [x] Buat \_navigateToAddHabit() helper method
+- [x] Buat \_buildGlassIconButton() reusable widget
+- [x] Add header "+" button di \_buildHeader() sebelah settings
+- [x] Styling header button: primary gradient, shadow, 12px radius
+- [x] Buat \_buildAddHabitCard() untuk inline card
+- [x] Modify \_buildHabitsList(): itemCount +1, render add card di index terakhir
+- [x] Inline card styling: glass effect, gradient border, "Tambah Kebiasaan Baru"
+- [x] Both buttons navigate ke AddHabitPage dengan haptic feedback
+- [x] dart analyze clean (no issues)
+- [x] Update decisions.md dengan design rationale
+- [x] Update project-status.md dengan completion status
+
+## Current Status:
+
+- FAB fully removed dan digantikan dengan dua entry points yang lebih UX-friendly
+- Header button: glass icon button dengan primary styling (gradient teal + shadow)
+- Inline card: glass card di akhir list dengan border dan label descriptive
+- Kedua navigasi menggunakan \_navigateToAddHabit() helper untuk consistency
+- Glass-morphism design konsisten dengan ProfilePage dan HomePage
+
+## Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/habit_tracker_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+## Acceptance Criteria:
+
+- [x] FAB completely removed
+- [x] Header has glass "+" button next to settings
+- [x] Inline add card appears at end of habits list
+- [x] Both buttons navigate to AddHabitPage correctly
+- [x] Glass styling consistent with design system
+- [x] dart analyze passes with no issues
+
+## Next Steps:
+
+- [ ] Test navigation dan styling di device/emulator
+- [ ] Verify responsive layout di berbagai screen sizes
+
+---
+
+## Initial Ask (2026-02-08):
+
+- Refactor Navigation Shell dengan premium frosted glass design - stronger blur, gradient border, icon-only navigation.
+
+## Initial Response:
+
+- Upgrade glass-morphism effect dengan blur σ=30, gradient border, compact height 56px, remove labels, add glow shadow untuk active icon.
+
+## Checklist:
+
+- [x] Enhanced blur dari σ=20 ke σ=30
+- [x] Darker frosted glass surface dengan surfaceContainerHigh/Highest
+- [x] Gradient border effect menggunakan double container pattern
+- [x] Compact height 56px (dari 64px)
+- [x] Refactor \_GlassNavItem jadi icon-only (remove labels)
+- [x] Add glow shadow untuk active icon dengan primary color
+- [x] Update border radius: 28px outer, 27px inner (1px gradient border)
+- [x] Box shadow lebih soft: shadow alpha 0.15, black alpha 0.2
+- [x] Icon size 22px dengan scale animation (0.92→1.0)
+- [x] dart analyze clean - no issues
+
+## Current Status:
+
+- Navigation Shell fully refactored dengan premium frosted glass aesthetic
+- Blur effect: σ=30 (dari σ=20) untuk lebih premium look
+- Surface gradient: surfaceContainerHighest (0.65) → surfaceContainerHigh (0.55)
+- Gradient border: white alpha 0.2→0.15 dengan 1px margin
+- Height: 56px compact (dari 64px) - lebih streamlined
+- Navigation: icon-only tanpa labels, glow shadow pada active icon
+- Scale animation: 250ms easeOutBack dari 0.92→1.0
+
+## Files Modified:
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+## Design Specifications:
+
+- **Outer Container**: Border radius 28px, gradient border (white 0.2→0.15), shadow soft
+- **Inner Container**: 1px margin untuk reveal gradient border, border radius 27px
+- **Blur**: BackdropFilter σ=30 (dari σ=20)
+- **Surface**: LinearGradient surfaceContainerHighest (0.65) → surfaceContainerHigh (0.55)
+- **Height**: 56px compact
+- **Icons**: 22px, icon-only tanpa labels
+- **Active State**: Primary color + glow shadow (blur 8px, alpha 0.6)
+- **Animation**: Scale 0.92→1.0, 250ms easeOutBack
+
+## Acceptance Criteria:
+
+- [x] Stronger blur (σ=30)
+- [x] Darker frosted glass surface
+- [x] Gradient border effect
+- [x] Compact height 56 (dari 64)
+- [x] Icon-only nav items (no labels)
+- [x] Active icon dengan glow shadow
+- [x] dart analyze passes with no issues
+
+## Next Steps:
+
+- [ ] Test di device/emulator untuk verify visual quality
+- [ ] Check performance impact dari σ=30 blur di low-end devices
+- [ ] Gather user feedback tentang icon-only navigation (tanpa labels)
+
+---
+
+## Initial Ask (2026-02-19):
+
+- Refactor AddHabitPage mengikuti glass-morphism design system seperti DevotionPage dan HomePage, serta improve UX.
+
+## Initial Response:
+
+- Complete rewrite AddHabitPage dengan glass-morphism design, live preview card, enhanced pickers, haptic feedback, dan entry animations.
+
+## Checklist:
+
+- [x] Glass AppBar dengan blur σ=20 dan gradient surface
+- [x] Glass TabBar dengan segmented control style dan shadow
+- [x] Glass form cards dengan BackdropFilter (σ=12-16)
+- [x] Glass text inputs tanpa outline border
+- [x] Live habit preview card dengan real-time updates
+- [x] Haptic feedback pada semua user interactions
+- [x] Enhanced color picker (52px circles dengan glow shadow)
+- [x] Enhanced icon picker (56px circles dengan labels)
+- [x] Chip-based selectors untuk repeat period dan frequency
+- [x] Circular day picker untuk custom frequency
+- [x] Entry animations (slide-up + fade, 800ms)
+- [x] Improved loading/error/empty states dengan glass styling
+- [x] Fix duplicate imports (remove double auto_route)
+- [x] Fix unused variable (colorScheme in _buildInfoChip)
+- [x] dart analyze clean (no issues)
+
+## Current Status:
+
+- AddHabitPage fully refactored dengan glass-morphism aesthetic yang konsisten dengan design system.
+- Live preview card memberikan immediate visual feedback saat membuat custom habit.
+- Enhanced pickers (color/icon) lebih besar dan interactive dengan glow effects.
+- Chip-based selectors menggantikan dropdowns untuk UX yang lebih modern.
+- Haptic feedback menambah tactile response pada setiap interaction.
+- Entry animations memberikan smooth visual transition.
+- Analyzer clean dengan no issues.
+
+## Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart` (complete rewrite)
+
+## Design Features:
+
+- **Glass AppBar**: Blur σ=20, gradient surface (alpha 0.8→0.4)
+- **Glass TabBar**: Segmented style, blur σ=12, gradient active indicator
+- **Glass Cards**: Blur σ=12-16, border radius 20-24px
+- **Glass Inputs**: No outline, prefix icons, 16px radius
+- **Live Preview**: Shows habit appearance in real-time
+- **Color Picker**: 52px circles, glow shadow on select, checkmark icon
+- **Icon Picker**: 56px circles, emoji with shadow, labels
+- **Animations**: Entry slide-up (30px), 800ms duration
+
+## Next Steps:
+
+- [ ] Test AddHabitPage di device/emulator
+- [ ] Verify catalog loading dan error handling
+- [ ] Test form validation dan submit flow
+- [ ] Gather feedback on live preview feature
+
+## Bug Fix (2026-02-19):
+
+**Issue:** `LateInitializationError: Field '_animationController' has not been initialized`
+
+**Root Cause:** Menggunakan `SingleTickerProviderStateMixin` untuk 2 AnimationController (`_tabController` dan `_animationController`). Mixin ini hanya menyediakan 1 ticker.
+
+**Fix:** Ganti mixin dari `SingleTickerProviderStateMixin` ke `TickerProviderStateMixin` (support multiple tickers).
+
+**Status:** ✅ Fixed dan verified dengan `dart analyze`
+
+---
+
+## Update (2026-02-20 - AddHabitPage UI Cleanup Pass 2):
+
+Initial Ask:
+
+- Rapihin lagi tampilan AddHabitPage karena masih terlihat berantakan; improve tata letak, ukuran komponen, dan overall modern feel.
+
+Initial Response:
+
+- Rework ulang layout AddHabitPage dengan fokus visual hierarchy, spacing consistency, dan simplifikasi komponen agar lebih clean di mobile.
+
+Checklist:
+
+- [x] Simplify visual style agar tidak terlalu ramai (gradient/tint dikurangi)
+- [x] Standarisasi card style dengan helper glass card tunggal
+- [x] Normalisasi spacing global (horizontal 16px, section spacing konsisten)
+- [x] Rapikan struktur Custom tab: Preview → Form → Jadwal → Personalisasi → Submit
+- [x] Group text input dalam satu form card yang lebih compact
+- [x] Refine Repeat/Frequency selector ke ChoiceChip compact
+- [x] Refine custom day selector ke FilterChip compact
+- [x] Rapikan color/icon picker (lebih padat, selected state jelas)
+- [x] Rapikan habit card katalog (density lebih baik, CTA lebih jelas)
+- [x] Tambahkan summary line pada catalog default settings
+- [x] Verifikasi analyzer clean untuk file AddHabitPage
+
+Current Status:
+
+- AddHabitPage sekarang jauh lebih rapih dan modern secara keseluruhan.
+- Komponen tidak lagi terasa saling "bertabrakan"; hierarchy lebih jelas dan mudah discan.
+- Mobile density lebih proporsional (input, chips, card, spacing).
+- Analyzer clean: no issues on `add_habit_page.dart`.
+
+Files Modified:
+
+- `lib/features/habit_tracker/presentation/pages/add_habit_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Next Steps:
+
+- [ ] Hot restart di device (bukan hot reload) untuk memastikan state lama tidak mengganggu tampilan baru
+- [ ] Uji quick usability: tambah 1 habit dari katalog + 1 habit custom
+- [ ] Jika perlu, lanjut final polish kecil (typography scale & chip spacing berdasarkan feedback visual terbaru)
+
+---
+
+## Update (2026-02-20 - Floating Nav Consistency):
+
+Initial Ask:
+
+- Buat navigation shell di HomePage dan DevotionPage terasa melayang/hovering seperti di ProfilePage.
+
+Initial Response:
+
+- Menyesuaikan positioning nav bar di shell + menyamakan perilaku bottom area Home/Devotion agar efek floating lebih konsisten.
+
+Checklist:
+
+- [x] Adjust `_FloatingGlassNavBar` vertical offset agar lebih detached
+- [x] Gunakan padding bawah dinamis berdasarkan `MediaQuery.padding.bottom`
+- [x] Ubah HomePage ke `SafeArea(bottom: false)`
+- [x] Ubah DevotionPage ke `SafeArea(bottom: false)`
+- [x] Tambah bottom spacer HomePage `100 -> 124`
+- [x] Tambah bottom spacer DevotionPage `100 -> 124`
+- [x] Verifikasi analyzer untuk 3 file terkait
+
+Current Status:
+
+- Floating pill navigation sekarang tampil lebih hovering dan konsisten pada Home, Devotion, dan Profile.
+- Konten Home/Devotion tetap aman dari overlap berkat spacer bawah yang diperbesar.
+- Tidak ada perubahan pada logic tab navigation/bloc.
+
+Files Modified:
+
+- `lib/core/navigation/presentation/pages/navigation_shell_page.dart`
+- `lib/features/home/presentation/pages/home_page.dart`
+- `lib/features/inspire/presentation/pages/devotion_page.dart`
+- `decisions.md`
+- `project-status.md`
+
+Verification:
+
+- ✅ `fvm flutter analyze lib/core/navigation/presentation/pages/navigation_shell_page.dart lib/features/home/presentation/pages/home_page.dart lib/features/inspire/presentation/pages/devotion_page.dart`
+
+Next Steps:
+
+- [ ] Hot restart app untuk memverifikasi feel floating terbaru di device
+- [ ] Cek visual di device kecil & besar untuk validasi jarak bawah nav
+
+---
+
+## Update (2026-02-20 - Profile Backend vs Flutter Analysis Doc):
+
+Initial Ask:
+
+- Buat dokumentasi markdown di `liveit-flutter/docs/` yang merangkum hasil analisa fitur Profile dari backend dan Flutter client, termasuk gap endpoint/kontrak serta data UI vs data backend.
+
+Initial Response:
+
+- Melakukan audit code backend + Flutter profile, lalu menulis dokumen analisis komprehensif (tanpa implementasi perubahan kode runtime).
+
+Checklist:
+
+- [x] Audit endpoint backend Profiles + Gamification yang relevan untuk halaman Profile
+- [x] Audit implementasi Flutter Profile (datasource/repository/bloc/page)
+- [x] Petakan data yang ditampilkan UI Profile Flutter saat ini
+- [x] Petakan data yang dapat disuplai backend untuk tiap elemen UI profile
+- [x] Identifikasi gap kontrak API (response envelope, field mapping, endpoint mismatch)
+- [x] Susun matrix endpoint backend vs penggunaan di client
+- [x] Tulis dokumen final di `docs/profile-backend-client-gap-analysis.md`
+
+Current Status:
+
+- Dokumen analisis Profile backend-vs-client telah tersedia dan siap dijadikan acuan alignment sebelum implementasi perbaikan parity API.
+
+Files Modified:
+
+- `docs/profile-backend-client-gap-analysis.md`
+- `decisions.md`
+- `project-status.md`
+
+Next Steps:
+
+- [ ] Turunkan dokumen ini menjadi task implementasi bertahap (P0: contract mapping, P1: avatar upload flow, P2: summary/gamification wiring)
+
+---

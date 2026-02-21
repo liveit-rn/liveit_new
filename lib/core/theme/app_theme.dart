@@ -17,8 +17,6 @@ class AppTheme {
   static const Color _lightBackground = Color(0xFFF8F8F8); // Off-White
   static const Color _lightSurface = Color(0xFFFFFFFF); // White
   static const Color _lightOutline = Color(0xFFE0E0E0); // Divider/Outline
-  static const Color _lightOnBackground = Color(0xFF333333); // Text Primary
-  static const Color _lightOnSurface = Color(0xFF333333); // Text Primary
 
   // --- Brand palette constants (Dark) ---
   static const Color _darkPrimary = Color(0xFF68B0AB); // Mint/Lighter Teal
@@ -32,16 +30,16 @@ class AppTheme {
   static const Color _darkBackground = Color(0xFF1A1A1A); // Near Black
   static const Color _darkSurface = Color(0xFF2C2C2C); // Dark Grey
   static const Color _darkOutline = Color(0xFF424242); // Divider/Outline
-  static const Color _darkOnBackground = Color(0xFFE0E0E0); // Text Primary
-  static const Color _darkOnSurface = Color(0xFFE0E0E0); // Text Primary
 
   // --- Semantic colors (Soft tones consistent with brand) ---
   static const Color _successLight = Color(0xFF66BB6A);
   static const Color _warningLight = Color(0xFFF4A261);
   static const Color _infoLight = Color(0xFF4A90A4);
+  static const Color _highlightLight = Color(0xFFF9A826); // Faith yellow/orange
   static const Color _successDark = Color(0xFF81C784);
   static const Color _warningDark = Color(0xFFF4A261);
   static const Color _infoDark = Color(0xFF7FB3C2);
+  static const Color _highlightDark = Color(0xFFFFB74D); // Lighter faith yellow
 
   /// Light theme using the Grounded Growth palette.
   static ThemeData light() {
@@ -62,44 +60,42 @@ class AppTheme {
     );
 
     // Override display/headline with New Amsterdam for headings/display
-    final TextTheme lightTextTheme = plusJakartaLight
-        .copyWith(
-          displayLarge: plusJakartaLight.displayLarge?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          displayMedium: plusJakartaLight.displayMedium?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          displaySmall: plusJakartaLight.displaySmall?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          headlineLarge: plusJakartaLight.headlineLarge?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          headlineMedium: plusJakartaLight.headlineMedium?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w600,
-          ),
-          headlineSmall: plusJakartaLight.headlineSmall?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w600,
-          ),
-          // Titles remain Plus Jakarta Sans with strengthened weights
-          titleLarge: plusJakartaLight.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          titleMedium: plusJakartaLight.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-          titleSmall: plusJakartaLight.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-        )
-        .apply(bodyColor: _lightOnSurface, displayColor: _lightOnSurface);
+    final TextTheme lightTextTheme = plusJakartaLight.copyWith(
+      displayLarge: plusJakartaLight.displayLarge?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      displayMedium: plusJakartaLight.displayMedium?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      displaySmall: plusJakartaLight.displaySmall?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      headlineLarge: plusJakartaLight.headlineLarge?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      headlineMedium: plusJakartaLight.headlineMedium?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w600,
+      ),
+      headlineSmall: plusJakartaLight.headlineSmall?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w600,
+      ),
+      // Titles remain Plus Jakarta Sans with strengthened weights
+      titleLarge: plusJakartaLight.titleLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+      titleMedium: plusJakartaLight.titleMedium?.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+      titleSmall: plusJakartaLight.titleSmall?.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+    );
 
     return FlexThemeData.light(
       colors: scheme,
@@ -120,19 +116,16 @@ class AppTheme {
       ),
       visualDensity: VisualDensity.standard,
     ).copyWith(
-      colorScheme: FlexColorScheme.light(colors: scheme).toScheme.copyWith(
-        surface: _lightSurface,
-        background: _lightBackground,
-        outline: _lightOutline,
-        onBackground: _lightOnBackground,
-        onSurface: _lightOnSurface,
-      ),
+      colorScheme: FlexColorScheme.light(
+        colors: scheme,
+      ).toScheme.copyWith(surface: _lightSurface, outline: _lightOutline),
       textTheme: lightTextTheme,
       extensions: <ThemeExtension<dynamic>>[
         const AppSemanticColors(
           success: _successLight,
           warning: _warningLight,
           info: _infoLight,
+          highlight: _highlightLight,
         ),
       ],
     );
@@ -157,44 +150,42 @@ class AppTheme {
     );
 
     // Override display/headline with New Amsterdam for headings/display
-    final TextTheme darkTextTheme = plusJakartaDark
-        .copyWith(
-          displayLarge: plusJakartaDark.displayLarge?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          displayMedium: plusJakartaDark.displayMedium?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          displaySmall: plusJakartaDark.displaySmall?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          headlineLarge: plusJakartaDark.headlineLarge?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w700,
-          ),
-          headlineMedium: plusJakartaDark.headlineMedium?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w600,
-          ),
-          headlineSmall: plusJakartaDark.headlineSmall?.copyWith(
-            fontFamily: 'NewAmsterdam',
-            fontWeight: FontWeight.w600,
-          ),
-          // Titles remain Plus Jakarta Sans with strengthened weights
-          titleLarge: plusJakartaDark.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          titleMedium: plusJakartaDark.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-          titleSmall: plusJakartaDark.titleSmall?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-        )
-        .apply(bodyColor: _darkOnSurface, displayColor: _darkOnSurface);
+    final TextTheme darkTextTheme = plusJakartaDark.copyWith(
+      displayLarge: plusJakartaDark.displayLarge?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      displayMedium: plusJakartaDark.displayMedium?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      displaySmall: plusJakartaDark.displaySmall?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      headlineLarge: plusJakartaDark.headlineLarge?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w700,
+      ),
+      headlineMedium: plusJakartaDark.headlineMedium?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w600,
+      ),
+      headlineSmall: plusJakartaDark.headlineSmall?.copyWith(
+        fontFamily: 'NewAmsterdam',
+        fontWeight: FontWeight.w600,
+      ),
+      // Titles remain Plus Jakarta Sans with strengthened weights
+      titleLarge: plusJakartaDark.titleLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+      titleMedium: plusJakartaDark.titleMedium?.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+      titleSmall: plusJakartaDark.titleSmall?.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+    );
 
     return FlexThemeData.dark(
       colors: scheme,
@@ -215,19 +206,16 @@ class AppTheme {
       ),
       visualDensity: VisualDensity.standard,
     ).copyWith(
-      colorScheme: FlexColorScheme.dark(colors: scheme).toScheme.copyWith(
-        surface: _darkSurface,
-        background: _darkBackground,
-        outline: _darkOutline,
-        onBackground: _darkOnBackground,
-        onSurface: _darkOnSurface,
-      ),
+      colorScheme: FlexColorScheme.dark(
+        colors: scheme,
+      ).toScheme.copyWith(surface: _darkSurface, outline: _darkOutline),
       textTheme: darkTextTheme,
       extensions: <ThemeExtension<dynamic>>[
         const AppSemanticColors(
           success: _successDark,
           warning: _warningDark,
           info: _infoDark,
+          highlight: _highlightDark,
         ),
       ],
     );
@@ -240,19 +228,27 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color success;
   final Color warning;
   final Color info;
+  final Color highlight; // Faith yellow/orange for streaks, achievements
 
   const AppSemanticColors({
     required this.success,
     required this.warning,
     required this.info,
+    required this.highlight,
   });
 
   @override
-  AppSemanticColors copyWith({Color? success, Color? warning, Color? info}) {
+  AppSemanticColors copyWith({
+    Color? success,
+    Color? warning,
+    Color? info,
+    Color? highlight,
+  }) {
     return AppSemanticColors(
       success: success ?? this.success,
       warning: warning ?? this.warning,
       info: info ?? this.info,
+      highlight: highlight ?? this.highlight,
     );
   }
 
@@ -263,6 +259,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
       info: Color.lerp(info, other.info, t)!,
+      highlight: Color.lerp(highlight, other.highlight, t)!,
     );
   }
 }

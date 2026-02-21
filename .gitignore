@@ -48,3 +48,9 @@ app.*.map.json
 .env.dev
 .env.prod
 .env
+
+/.roo/
+.github/
+/.opencode/
+nul
+.env

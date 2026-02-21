@@ -1,10 +1,10 @@
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -37,6 +37,100 @@ class _ProfileViewState extends State<_ProfileView>
     with TickerProviderStateMixin {
   late final AnimationController _glassController;
   late final AnimationController _statsController;
+
+  void _showAvatarPickerError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _dispatchAvatarUpload({
+    required List<int> fileBytes,
+    required String fileName,
+  }) {
+    if (!mounted) return;
+    context.read<ProfileBloc>().add(
+      ProfileAvatarUploadRequested(fileBytes: fileBytes, fileName: fileName),
+    );
+  }
+
+  Future<bool> _pickWithFilePickerFallback() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return false;
+
+      final file = result.files.first;
+      final bytes = file.bytes;
+      if (bytes == null || bytes.isEmpty) return false;
+
+      _dispatchAvatarUpload(
+        fileBytes: bytes,
+        fileName: file.name.isEmpty ? 'avatar.jpg' : file.name,
+      );
+      return true;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+
+    try {
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return;
+
+      final fileBytes = await pickedFile.readAsBytes();
+
+      _dispatchAvatarUpload(
+        fileBytes: fileBytes,
+        fileName: pickedFile.name.isEmpty ? 'avatar.jpg' : pickedFile.name,
+      );
+    } on MissingPluginException {
+      final handled = await _pickWithFilePickerFallback();
+      if (!handled) {
+        _showAvatarPickerError(
+          'Fitur pilih foto belum aktif. Coba full restart aplikasi.',
+        );
+      }
+    } on PlatformException catch (e) {
+      final code = e.code.toLowerCase();
+      if (code.contains('denied') || code.contains('permission')) {
+        _showAvatarPickerError(
+          'Akses galeri ditolak. Izinkan akses foto di pengaturan perangkat.',
+        );
+        return;
+      }
+
+      if (code.contains('channel-error')) {
+        final handled = await _pickWithFilePickerFallback();
+        if (handled) return;
+      }
+
+      _showAvatarPickerError('Gagal memilih foto profil (${e.code})');
+    } catch (_) {
+      _showAvatarPickerError('Gagal memilih foto profil');
+    }
+  }
+
+  void _removeAvatar() {
+    if (!mounted) return;
+    context.read<ProfileBloc>().add(const ProfileAvatarRemoveRequested());
+  }
 
   @override
   void initState() {
@@ -73,7 +167,15 @@ class _ProfileViewState extends State<_ProfileView>
 
           final user = authState.user;
 
-          return BlocBuilder<ProfileBloc, ProfileState>(
+          return BlocConsumer<ProfileBloc, ProfileState>(
+            listener: (context, profileState) {
+              if (profileState.status == ProfileStatus.failure &&
+                  profileState.errorMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(profileState.errorMessage!)),
+                );
+              }
+            },
             builder: (context, profileState) {
               final profile = profileState.profile;
               final isLoading = profileState.status == ProfileStatus.loading;
@@ -91,6 +193,8 @@ class _ProfileViewState extends State<_ProfileView>
                 isLoading: isLoading,
                 glassController: _glassController,
                 statsController: _statsController,
+                onAvatarChangeRequested: _pickAndUploadAvatar,
+                onAvatarRemoveRequested: _removeAvatar,
               );
             },
           );
@@ -106,6 +210,8 @@ class _ModernGlassScaffold extends StatelessWidget {
   final bool isLoading;
   final AnimationController glassController;
   final AnimationController statsController;
+  final VoidCallback onAvatarChangeRequested;
+  final VoidCallback onAvatarRemoveRequested;
 
   const _ModernGlassScaffold({
     required this.user,
@@ -113,6 +219,8 @@ class _ModernGlassScaffold extends StatelessWidget {
     required this.isLoading,
     required this.glassController,
     required this.statsController,
+    required this.onAvatarChangeRequested,
+    required this.onAvatarRemoveRequested,
   });
 
   @override
@@ -144,6 +252,8 @@ class _ModernGlassScaffold extends StatelessWidget {
                 profile: profile,
                 isLoading: isLoading,
                 controller: glassController,
+                onAvatarChangeRequested: onAvatarChangeRequested,
+                onAvatarRemoveRequested: onAvatarRemoveRequested,
               ),
               _GamificationSection(
                 profile: profile,
@@ -155,13 +265,8 @@ class _ModernGlassScaffold extends StatelessWidget {
                 isLoading: isLoading,
                 controller: statsController,
               ),
-              _GlassMenuSection(
-                profile: profile,
-                controller: glassController,
-              ),
-              SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
+              _GlassMenuSection(profile: profile, controller: glassController),
+              SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),
           _GlassBlurOverlay(controller: glassController),
@@ -223,8 +328,8 @@ class _LoadingView extends StatelessWidget {
             Text(
               'Memuat profil...',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -260,10 +365,7 @@ class _UnauthenticatedView extends StatelessWidget {
           builder: (context, value, child) {
             return Transform.scale(
               scale: 0.8 + (0.2 * value),
-              child: Opacity(
-                opacity: value,
-                child: child,
-              ),
+              child: Opacity(opacity: value, child: child),
             );
           },
           child: Container(
@@ -416,12 +518,16 @@ class _GlassHeader extends StatelessWidget {
   final ProfileModel? profile;
   final bool isLoading;
   final AnimationController controller;
+  final VoidCallback onAvatarChangeRequested;
+  final VoidCallback onAvatarRemoveRequested;
 
   const _GlassHeader({
     required this.user,
     required this.profile,
     required this.isLoading,
     required this.controller,
+    required this.onAvatarChangeRequested,
+    required this.onAvatarRemoveRequested,
   });
 
   @override
@@ -429,7 +535,8 @@ class _GlassHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final displayName = profile?.displayName ??
+    final displayName =
+        profile?.displayName ??
         user.name ??
         user.username ??
         user.email.split('@').first;
@@ -444,10 +551,7 @@ class _GlassHeader extends StatelessWidget {
           final value = controller.value;
           return Transform.translate(
             offset: Offset(0, 20 * (1 - value)),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
+            child: Opacity(opacity: value, child: child),
           );
         },
         child: Column(
@@ -456,6 +560,8 @@ class _GlassHeader extends StatelessWidget {
             _AvatarGlass(
               avatarUrl: profile?.avatarUrl,
               isLoading: isLoading,
+              onChangeRequested: onAvatarChangeRequested,
+              onRemoveRequested: onAvatarRemoveRequested,
             ),
             const SizedBox(height: 20),
             Padding(
@@ -527,10 +633,14 @@ class _GlassHeader extends StatelessWidget {
 class _AvatarGlass extends StatelessWidget {
   final String? avatarUrl;
   final bool isLoading;
+  final VoidCallback onChangeRequested;
+  final VoidCallback onRemoveRequested;
 
   const _AvatarGlass({
     this.avatarUrl,
     required this.isLoading,
+    required this.onChangeRequested,
+    required this.onRemoveRequested,
   });
 
   @override
@@ -538,71 +648,494 @@ class _AvatarGlass extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
-      onTap: () {},
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: animation,
-              child: child,
-            ),
-          );
-        },
-        child: Container(
-          key: ValueKey(avatarUrl ?? 'default'),
-          padding: const EdgeInsets.all(5),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.primary.withValues(alpha: 0.8),
-                colorScheme.tertiary.withValues(alpha: 0.5),
-                colorScheme.secondary.withValues(alpha: 0.3),
-              ],
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(60),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: colorScheme.surface.withValues(alpha: 0.85),
+      onLongPress: () {
+        HapticFeedback.mediumImpact();
+        _showAvatarPreview(context);
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(scale: animation, child: child),
+              );
+            },
+            child: Container(
+              key: ValueKey(avatarUrl ?? 'default'),
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colorScheme.primary.withValues(alpha: 0.8),
+                    colorScheme.tertiary.withValues(alpha: 0.5),
+                    colorScheme.secondary.withValues(alpha: 0.3),
+                  ],
                 ),
-                child: avatarUrl != null
-                    ? Image.network(
-                        avatarUrl!,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
-                          return const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stack) =>
-                            _AvatarPlaceholder(
-                          colorScheme: colorScheme,
-                        ),
-                      )
-                    : _AvatarPlaceholder(colorScheme: colorScheme),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(60),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withValues(alpha: 0.85),
+                    ),
+                    child: avatarUrl != null
+                        ? Image.network(
+                            avatarUrl!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stack) =>
+                                _AvatarPlaceholder(colorScheme: colorScheme),
+                          )
+                        : _AvatarPlaceholder(colorScheme: colorScheme),
+                  ),
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showAvatarPreview(BuildContext context) {
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Avatar preview',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return _AvatarPreviewOverlay(
+          avatarUrl: avatarUrl,
+          onChangeRequested: onChangeRequested,
+          onRemoveRequested: onRemoveRequested,
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.92, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AvatarPreviewOverlay extends StatelessWidget {
+  final String? avatarUrl;
+  final VoidCallback onChangeRequested;
+  final VoidCallback onRemoveRequested;
+
+  const _AvatarPreviewOverlay({
+    required this.avatarUrl,
+    required this.onChangeRequested,
+    required this.onRemoveRequested,
+  });
+
+  Future<void> _openAvatarActions(BuildContext context) async {
+    HapticFeedback.selectionClick();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final action = await showModalBottomSheet<_AvatarAction>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.15),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library_outlined,
+                  color: colorScheme.primary,
+                ),
+                title: const Text('Ganti foto profile'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_AvatarAction.change),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.delete_outline_rounded,
+                  color: colorScheme.error,
+                ),
+                title: Text(
+                  'Hapus foto profile',
+                  style: TextStyle(color: colorScheme.error),
+                ),
+                onTap: avatarUrl == null
+                    ? null
+                    : () =>
+                          Navigator.of(sheetContext).pop(_AvatarAction.remove),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (action == null || !context.mounted) return;
+
+    Navigator.of(context).pop();
+
+    if (action == _AvatarAction.change) {
+      onChangeRequested();
+      return;
+    }
+
+    if (action == _AvatarAction.remove) {
+      onRemoveRequested();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _DraggableAvatarPreview(
+      avatarUrl: avatarUrl,
+      onClose: () => Navigator.of(context).pop(),
+      onOpenActions: () => _openAvatarActions(context),
+    );
+  }
+}
+
+class _DraggableAvatarPreview extends StatefulWidget {
+  final String? avatarUrl;
+  final VoidCallback onClose;
+  final VoidCallback onOpenActions;
+
+  const _DraggableAvatarPreview({
+    required this.avatarUrl,
+    required this.onClose,
+    required this.onOpenActions,
+  });
+
+  @override
+  State<_DraggableAvatarPreview> createState() =>
+      _DraggableAvatarPreviewState();
+}
+
+class _DraggableAvatarPreviewState extends State<_DraggableAvatarPreview>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _motionController;
+
+  Offset _dragOffset = Offset.zero;
+  double _dragScale = 1;
+  double _dragRotation = 0;
+  bool _isDismissAnimating = false;
+
+  Animation<Offset>? _offsetAnimation;
+  Animation<double>? _scaleAnimation;
+  Animation<double>? _rotationAnimation;
+
+  double get _overlayAlpha {
+    final distance = _dragOffset.distance;
+    return (0.45 - (distance / 900)).clamp(0.16, 0.45);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _motionController = AnimationController(vsync: this)
+      ..addListener(_handleMotionTick)
+      ..addStatusListener(_handleMotionStatus);
+  }
+
+  @override
+  void dispose() {
+    _motionController
+      ..removeListener(_handleMotionTick)
+      ..removeStatusListener(_handleMotionStatus)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleMotionTick() {
+    final offset = _offsetAnimation;
+    final scale = _scaleAnimation;
+    final rotation = _rotationAnimation;
+
+    if (offset == null || scale == null || rotation == null) return;
+
+    setState(() {
+      _dragOffset = offset.value;
+      _dragScale = scale.value;
+      _dragRotation = rotation.value;
+    });
+  }
+
+  void _handleMotionStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _isDismissAnimating && mounted) {
+      widget.onClose();
+    }
+  }
+
+  void _onPanStart(DragStartDetails details) {
+    if (_isDismissAnimating) return;
+    _motionController.stop();
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    if (_isDismissAnimating) return;
+
+    final nextOffset = _dragOffset + details.delta;
+    final distance = nextOffset.distance;
+
+    setState(() {
+      _dragOffset = nextOffset;
+      _dragScale = (1 - (distance / 1100)).clamp(0.86, 1.0);
+      _dragRotation = (nextOffset.dx / 600).clamp(-0.12, 0.12);
+    });
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (_isDismissAnimating) return;
+
+    final speed = details.velocity.pixelsPerSecond.distance;
+    final distance = _dragOffset.distance;
+    final shouldDismiss = speed > 1100 || distance > 140;
+
+    if (shouldDismiss) {
+      HapticFeedback.lightImpact();
+      _animateDismiss(details.velocity.pixelsPerSecond);
+      return;
+    }
+
+    _animateBackToCenter();
+  }
+
+  void _animateBackToCenter() {
+    _isDismissAnimating = false;
+    _runMotionAnimation(
+      targetOffset: Offset.zero,
+      targetScale: 1,
+      targetRotation: 0,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutBack,
+    );
+  }
+
+  void _animateDismiss(Offset velocity) {
+    _isDismissAnimating = true;
+
+    final screen = MediaQuery.of(context).size;
+    final velocityDistance = velocity.distance;
+
+    Offset direction;
+    if (velocityDistance > 20) {
+      direction = Offset(
+        velocity.dx / velocityDistance,
+        velocity.dy / velocityDistance,
+      );
+    } else if (_dragOffset.distance > 0) {
+      direction = Offset(
+        _dragOffset.dx / _dragOffset.distance,
+        _dragOffset.dy / _dragOffset.distance,
+      );
+    } else {
+      direction = const Offset(0, 1);
+    }
+
+    final travelDistance = screen.longestSide * 0.9;
+    final targetOffset = _dragOffset + (direction * travelDistance);
+
+    _runMotionAnimation(
+      targetOffset: targetOffset,
+      targetScale: (_dragScale - 0.18).clamp(0.72, 0.9),
+      targetRotation: _dragRotation + (direction.dx * 0.25),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeInCubic,
+    );
+  }
+
+  void _runMotionAnimation({
+    required Offset targetOffset,
+    required double targetScale,
+    required double targetRotation,
+    required Duration duration,
+    required Curve curve,
+  }) {
+    _offsetAnimation = Tween<Offset>(
+      begin: _dragOffset,
+      end: targetOffset,
+    ).animate(CurvedAnimation(parent: _motionController, curve: curve));
+
+    _scaleAnimation = Tween<double>(
+      begin: _dragScale,
+      end: targetScale,
+    ).animate(CurvedAnimation(parent: _motionController, curve: curve));
+
+    _rotationAnimation = Tween<double>(
+      begin: _dragRotation,
+      end: targetRotation,
+    ).animate(CurvedAnimation(parent: _motionController, curve: curve));
+
+    _motionController
+      ..duration = duration
+      ..forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final previewSize = (MediaQuery.of(context).size.width * 0.72).clamp(
+      220.0,
+      340.0,
+    );
+
+    return Material(
+      color: Colors.transparent,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onClose,
+        onPanStart: _onPanStart,
+        onPanUpdate: _onPanUpdate,
+        onPanEnd: _onPanEnd,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  color: Colors.black.withValues(alpha: _overlayAlpha),
+                ),
+              ),
+            ),
+            Center(
+              child: Transform.translate(
+                offset: _dragOffset,
+                child: Transform.rotate(
+                  angle: _dragRotation,
+                  child: Transform.scale(
+                    scale: _dragScale,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        GestureDetector(
+                          onTap: widget.onOpenActions,
+                          child: Container(
+                            width: previewSize,
+                            height: previewSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.outline.withValues(
+                                  alpha: 0.22,
+                                ),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: widget.avatarUrl != null
+                                  ? Image.network(
+                                      widget.avatarUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Container(
+                                              color: colorScheme.surface,
+                                              child: _AvatarPlaceholder(
+                                                colorScheme: colorScheme,
+                                              ),
+                                            );
+                                          },
+                                    )
+                                  : Container(
+                                      color: colorScheme.surface,
+                                      child: _AvatarPlaceholder(
+                                        colorScheme: colorScheme,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          right: 10,
+                          bottom: 10,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: widget.onOpenActions,
+                              borderRadius: BorderRadius.circular(22),
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: colorScheme.outline.withValues(
+                                      alpha: 0.22,
+                                    ),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.edit_outlined,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+enum _AvatarAction { change, remove }
 
 class _AvatarPlaceholder extends StatelessWidget {
   final ColorScheme colorScheme;
@@ -645,9 +1178,7 @@ class _MemberSinceBadge extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
             color: colorScheme.primary.withValues(alpha: 0.05),
@@ -716,10 +1247,7 @@ class _GamificationSection extends StatelessWidget {
           final value = controller.value;
           return Transform.translate(
             offset: Offset(0, 30 * (1 - value)),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
+            child: Opacity(opacity: value, child: child),
           );
         },
         child: Padding(
@@ -838,10 +1366,7 @@ class _StatsGrid extends StatelessWidget {
           final value = controller.value;
           return Transform.translate(
             offset: Offset(0, 40 * (1 - value)),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
+            child: Opacity(opacity: value, child: child),
           );
         },
         child: Padding(
@@ -930,10 +1455,7 @@ class _GlassStatCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: stat.color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: stat.color.withValues(alpha: 0.2), width: 1),
         boxShadow: [
           BoxShadow(
             color: stat.color.withValues(alpha: 0.08),
@@ -1065,10 +1587,7 @@ class _GlassMenuSection extends StatelessWidget {
           final value = controller.value;
           return Transform.translate(
             offset: Offset(0, 50 * (1 - value)),
-            child: Opacity(
-              opacity: value,
-              child: child,
-            ),
+            child: Opacity(opacity: value, child: child),
           );
         },
         child: Padding(
@@ -1114,8 +1633,9 @@ class _GlassMenuSection extends StatelessWidget {
                                 height: 1,
                                 indent: 72,
                                 endIndent: 16,
-                                color:
-                                    colorScheme.outline.withValues(alpha: 0.08),
+                                color: colorScheme.outline.withValues(
+                                  alpha: 0.08,
+                                ),
                               ),
                           ],
                         );
@@ -1150,11 +1670,10 @@ class _GlassMenuSection extends StatelessWidget {
         ),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        backgroundColor:
-            Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.surface.withValues(alpha: 0.95),
       ),
     );
   }
@@ -1207,11 +1726,7 @@ class _GlassMenuItem extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  item.icon,
-                  size: 22,
-                  color: colorScheme.primary,
-                ),
+                child: Icon(item.icon, size: 22, color: colorScheme.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -1274,9 +1789,7 @@ class _LogoutButton extends StatelessWidget {
               ],
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.error.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1323,10 +1836,7 @@ class _LogoutButton extends StatelessWidget {
           builder: (context, value, child) {
             return Transform.scale(
               scale: 0.9 + (0.1 * value),
-              child: Opacity(
-                opacity: value,
-                child: child,
-              ),
+              child: Opacity(opacity: value, child: child),
             );
           },
           child: Container(
@@ -1399,9 +1909,9 @@ class _LogoutButton extends StatelessWidget {
                               child: InkWell(
                                 onTap: () {
                                   Navigator.pop(ctx);
-                                  context
-                                      .read<AuthBloc>()
-                                      .add(AuthLogoutRequested());
+                                  context.read<AuthBloc>().add(
+                                    AuthLogoutRequested(),
+                                  );
                                   context.router.pushPath('/');
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -1424,13 +1934,17 @@ class _LogoutButton extends StatelessWidget {
                                   );
                                 },
                                 borderRadius: BorderRadius.circular(16),
-                                splashColor:
-                                    colorScheme.error.withValues(alpha: 0.2),
-                                highlightColor:
-                                    colorScheme.error.withValues(alpha: 0.1),
+                                splashColor: colorScheme.error.withValues(
+                                  alpha: 0.2,
+                                ),
+                                highlightColor: colorScheme.error.withValues(
+                                  alpha: 0.1,
+                                ),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 16),
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: colorScheme.error,
                                     borderRadius: BorderRadius.circular(16),

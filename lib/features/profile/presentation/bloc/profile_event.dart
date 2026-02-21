@@ -21,12 +21,29 @@ class ProfileDisplayNameChanged extends ProfileEvent {
 }
 
 class ProfileAvatarChanged extends ProfileEvent {
-  final String avatarUrl;
+  final String profileImageId;
 
-  const ProfileAvatarChanged(this.avatarUrl);
+  const ProfileAvatarChanged(this.profileImageId);
 
   @override
-  List<Object?> get props => [avatarUrl];
+  List<Object?> get props => [profileImageId];
+}
+
+class ProfileAvatarUploadRequested extends ProfileEvent {
+  final List<int> fileBytes;
+  final String fileName;
+
+  const ProfileAvatarUploadRequested({
+    required this.fileBytes,
+    required this.fileName,
+  });
+
+  @override
+  List<Object?> get props => [fileName, fileBytes.length];
+}
+
+class ProfileAvatarRemoveRequested extends ProfileEvent {
+  const ProfileAvatarRemoveRequested();
 }
 
 class ProfileDeleteRequested extends ProfileEvent {

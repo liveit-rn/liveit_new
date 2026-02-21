@@ -8,11 +8,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository _repository;
 
   ProfileBloc({required ProfileRepository repository})
-      : _repository = repository,
-        super(const ProfileState()) {
+    : _repository = repository,
+      super(const ProfileState()) {
     on<ProfileRequested>(_onProfileRequested);
     on<ProfileDisplayNameChanged>(_onDisplayNameChanged);
+    on<ProfileAvatarUploadRequested>(_onAvatarUploadRequested);
     on<ProfileAvatarChanged>(_onAvatarChanged);
+    on<ProfileAvatarRemoveRequested>(_onAvatarRemoveRequested);
     on<ProfileDeleteRequested>(_onDeleteRequested);
   }
 
@@ -81,9 +83,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     try {
-      await _repository.updateDisplayName(event.displayName);
-      final updatedProfile = state.profile?.copyWith(
-        displayName: event.displayName,
+      final updatedProfile = await _repository.updateDisplayName(
+        event.displayName,
       );
       emit(state.copyWith(profile: updatedProfile));
     } catch (e) {
@@ -101,11 +102,51 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     try {
-      await _repository.updateAvatar(event.avatarUrl);
-      final updatedProfile = state.profile?.copyWith(
-        avatarUrl: event.avatarUrl,
+      final updatedProfile = await _repository.updateAvatar(
+        event.profileImageId,
       );
       emit(state.copyWith(profile: updatedProfile));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ProfileStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onAvatarUploadRequested(
+    ProfileAvatarUploadRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      final updatedProfile = await _repository.uploadAvatar(
+        fileBytes: event.fileBytes,
+        fileName: event.fileName,
+      );
+      emit(
+        state.copyWith(status: ProfileStatus.success, profile: updatedProfile),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ProfileStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onAvatarRemoveRequested(
+    ProfileAvatarRemoveRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
+    try {
+      final updatedProfile = await _repository.removeAvatar();
+      emit(
+        state.copyWith(status: ProfileStatus.success, profile: updatedProfile),
+      );
     } catch (e) {
       emit(
         state.copyWith(
